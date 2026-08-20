@@ -182,18 +182,29 @@ const RULES = [
 
 // ⚠️ 아래 firebaseConfig를 본인 Firebase 프로젝트 값으로 바꿔주세요.
 // Firebase 콘솔 > 프로젝트 설정 > 일반 > "내 앱" 섹션에서 config를 복사할 수 있어요.
-// Realtime Database를 "테스트 모드"로 만들어야 읽기/쓰기가 됩니다.
+// Realtime Database를 만들고 규칙을 게시(Publish)해야 읽기/쓰기가 됩니다.
 const firebaseConfig = {
   apiKey: "AIzaSyDIRC2j63Wa259HSPTewMAwXAAj6j0B4Hw",
   authDomain: "dydy-96bb1.firebaseapp.com",
   databaseURL: "https://dydy-96bb1-default-rtdb.firebaseio.com",
   projectId: "dydy-96bb1"
 };
-firebase.initializeApp(firebaseConfig);
-const stateRef = firebase.database().ref('leave_app_v2');
 
 let state = null;
 let loadError = null;
+let stateRef = null;
+
+try{
+  if(typeof firebase === 'undefined'){
+    throw new Error('Firebase SDK 스크립트를 불러오지 못했어요. 인터넷 연결이나 네트워크 차단(방화벽/광고차단기)을 확인해주세요.');
+  }
+  firebase.initializeApp(firebaseConfig);
+  stateRef = firebase.database().ref('leave_app_v2');
+}catch(e){
+  console.error(e);
+  loadError = e.message || String(e);
+}
+
 let adminUnlocked = false;
 let view = 'applicant';
 
@@ -218,6 +229,7 @@ function defaultState(){
 }
 
 async function saveState(){
+  if(!stateRef){ console.error('stateRef 없음 - Firebase 초기화 실패'); return; }
   try{
     await stateRef.set(state);
   }catch(e){
@@ -277,26 +289,30 @@ function refreshCurrentView(){
   }
 }
 
-stateRef.on('value', (snapshot)=>{
-  loadError = null;
-  const val = snapshot.val();
-  if(val){
-    state = val;
-    applyYearRollover();
-  } else {
-    state = defaultState();
-    saveState();
-  }
-  refreshCurrentView();
-}, (err)=>{
-  console.error(err);
-  loadError = err.message || String(err);
-  refreshCurrentView();
-});
+if(stateRef){
+  stateRef.on('value', (snapshot)=>{
+    loadError = null;
+    const val = snapshot.val();
+    if(val && typeof val === 'object'){
+      state = Object.assign(defaultState(), val);
+      state.requests = Array.isArray(val.requests) ? val.requests : [];
+      state.history = Array.isArray(val.history) ? val.history : [];
+      applyYearRollover();
+    } else {
+      state = defaultState();
+      saveState();
+    }
+    refreshCurrentView();
+  }, (err)=>{
+    console.error(err);
+    loadError = '데이터베이스 접근이 거부됐어요 (권한 오류). Firebase Realtime Database 규칙이 게시(Publish)되어 있는지 확인해주세요. 원본 오류: ' + (err.message || String(err));
+    refreshCurrentView();
+  });
+}
 
 setTimeout(()=>{
   if(!state){
-    loadError = loadError || 'Firebase 연결이 안 되고 있어요. index.html 상단의 firebaseConfig 값이 비어있거나(YOUR_API_KEY 등) 잘못된 건 아닌지 확인해주세요.';
+    loadError = loadError || 'Firebase 연결이 6초 넘게 응답이 없어요. firebaseConfig 값, 네트워크 연결, Realtime Database 규칙 게시 여부를 확인해주세요.';
     refreshCurrentView();
   }
 }, 6000);
@@ -836,6 +852,13 @@ document.getElementById('btnAdmin').addEventListener('click', ()=>{
   document.getElementById('view-admin').style.display = 'block';
   document.getElementById('view-applicant').style.display = 'none';
   renderAdmin();
+});
+
+window.addEventListener('error', (ev)=>{
+  const el = document.getElementById(view === 'admin' ? 'view-admin' : 'view-applicant');
+  if(el && !state){
+    el.innerHTML = `<div class="empty">오류가 발생했어요 😢<br><span style="font-size:11px">${escapeHTML(ev.message || String(ev.error))}</span></div>`;
+  }
 });
 
 renderApplicant(); // 첫 화면: Firebase에서 데이터가 오기 전까지 "불러오는 중" 표시
