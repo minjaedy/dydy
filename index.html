@@ -3,15 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>이토끼 유흥연차결재</title>
-<link rel="icon" type="image/png" href="favicon-32.png">
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>SOLVERX 결재함</title>
+<link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
+<link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
 <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
-  :root{
+  *{box-sizing:border-box;}
+  body{ margin:0; font-family:'Noto Sans KR',sans-serif; min-height:100vh; }
+  .top-banner{
+    display:flex; gap:8px; padding:12px 16px; background:#20242B; position:sticky; top:0; z-index:50;
+  }
+  .top-banner button{
+    flex:1; padding:12px 8px; border-radius:14px; border:none; cursor:pointer;
+    font-family:'Gaegu',cursive; font-size:16px; font-weight:700; color:#fff; background:#3A3F47;
+    opacity:0.6; transition:opacity .15s;
+  }
+  .top-banner button.active{ opacity:1; box-shadow:0 0 0 2px rgba(255,255,255,0.5) inset; }
+  .app-panel{ min-height:100vh; }
+
+#app-leave{
     --pink:#F9E4E7;
     --pink-deep:#F0C9CF;
     --cream:#FFF8F0;
@@ -24,8 +36,8 @@
     --ok:#7BAE7F;
     --warn:#E0A860;
   }
-  *{box-sizing:border-box;}
-  body{
+#app-leave *{box-sizing:border-box;}
+#app-leave{
     margin:0;
     font-family:'Noto Sans KR',sans-serif;
     color:var(--ink);
@@ -34,140 +46,241 @@
     background-size:120px 120px;
     min-height:100vh;
   }
-  .script{font-family:'Gaegu',cursive;}
-  header{
+#app-leave .script{font-family:'Gaegu',cursive;}
+#app-leave header{
     background:linear-gradient(135deg, var(--pink) 0%, var(--pink-deep) 100%);
     padding:22px 20px 20px;
     border-bottom:3px dashed var(--lavender);
     text-align:center;
   }
-  h1{
+#app-leave h1{
     font-family:'Gaegu',cursive; font-size:26px; margin:0; color:var(--ink); font-weight:700;
   }
-  .sub{font-size:12px; color:var(--brown); margin-top:5px; letter-spacing:.02em;}
-
-  .switch{
+#app-leave .sub{font-size:12px; color:var(--brown); margin-top:5px; letter-spacing:.02em;}
+#app-leave .switch{
     display:flex; max-width:380px; margin:16px auto 0; padding:0 16px; gap:8px;
   }
-  .switch button{
+#app-leave .switch button{
     flex:1; padding:10px 8px; border-radius:20px; border:2px solid var(--lavender);
     background:#fff; color:var(--brown); font-family:'Gaegu',cursive; font-size:15px; font-weight:700;
     cursor:pointer;
   }
-  .switch button.active{ background:var(--lavender); color:#fff; border-color:var(--lavender); }
-
-  main{max-width:420px; margin:0 auto; padding:16px 16px 60px;}
-
-  .card{
+#app-leave .switch button.active{ background:var(--lavender); color:#fff; border-color:var(--lavender); }
+#app-leave main{max-width:420px; margin:0 auto; padding:16px 16px 60px;}
+#app-leave .card{
     background:#fffdfb; border:2px solid var(--pink-deep); border-radius:16px;
     padding:16px; margin-bottom:14px; box-shadow:0 2px 0 var(--pink-deep);
   }
-  .card h2{font-family:'Gaegu',cursive; font-size:18px; margin:0 0 10px; color:var(--ink);}
-
-  .balance-hero{
+#app-leave .card h2{font-family:'Gaegu',cursive; font-size:18px; margin:0 0 10px; color:var(--ink);}
+#app-leave .balance-hero{
     text-align:center; padding:18px 10px;
   }
-  .balance-num{
+#app-leave .balance-num{
     font-family:'Gaegu',cursive; font-size:44px; color:var(--brown); font-weight:700; line-height:1;
   }
-  .balance-label{font-size:12px; color:var(--muted); margin-top:4px;}
-  .rule-note{
+#app-leave .balance-label{font-size:12px; color:var(--muted); margin-top:4px;}
+#app-leave .rule-note{
     font-size:11.5px; color:var(--brown); background:var(--pink); border-radius:10px;
     padding:8px 10px; margin-top:10px; line-height:1.6;
   }
-
-  .field{margin-bottom:12px;}
-  .field label{display:block; font-size:12px; color:var(--brown); margin-bottom:5px; font-weight:600;}
-  .field input, .field textarea{
+#app-leave .field{margin-bottom:12px;}
+#app-leave .field label{display:block; font-size:12px; color:var(--brown); margin-bottom:5px; font-weight:600;}
+#app-leave .field input, #app-leave .field textarea{
     width:100%; padding:9px 10px; border:1.5px solid var(--pink-deep); border-radius:10px;
     font-family:'Noto Sans KR',sans-serif; font-size:14px; background:#fff;
   }
-  .field textarea{resize:vertical; min-height:56px;}
-  .row2{display:flex; gap:8px;}
-  .row2 > div{flex:1;}
-
-  .days-badge{
+#app-leave .field textarea{resize:vertical; min-height:56px;}
+#app-leave .row2{display:flex; gap:8px;}
+#app-leave .row2 > div{flex:1;}
+#app-leave .days-badge{
     display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--brown);
     background:var(--pink); border:1px dashed var(--lavender); padding:6px 10px; border-radius:10px;
   }
-  .warn-text{ font-size:12px; color:#B5542F; margin-top:6px; }
-
-  button.action{
+#app-leave .warn-text{ font-size:12px; color:#B5542F; margin-top:6px; }
+#app-leave button.action{
     font-family:'Noto Sans KR',sans-serif; font-weight:600; font-size:13px;
     border:none; padding:10px 16px; border-radius:20px; cursor:pointer; color:#fff;
   }
-  .btn-primary{ background:var(--lavender); width:100%; }
-  .btn-primary:disabled{ background:#D8CFE0; cursor:not-allowed; }
-  .btn-approve{ background:var(--ok); }
-  .btn-reject{ background:var(--stamp-black); }
-  .btn-small{ background:var(--brown); font-size:12px; padding:7px 12px; }
-
-  .req-meta{font-size:12.5px; color:var(--muted); margin-bottom:4px;}
-  .req-reason{font-size:14px; margin:6px 0 10px; line-height:1.5;}
-  .rules-box{
+#app-leave .btn-primary{ background:var(--lavender); width:100%; }
+#app-leave .btn-primary:disabled{ background:#D8CFE0; cursor:not-allowed; }
+#app-leave .btn-approve{ background:var(--ok); }
+#app-leave .btn-reject{ background:var(--stamp-black); }
+#app-leave .btn-small{ background:var(--brown); font-size:12px; padding:7px 12px; }
+#app-leave .req-meta{font-size:12.5px; color:var(--muted); margin-bottom:4px;}
+#app-leave .req-reason{font-size:14px; margin:6px 0 10px; line-height:1.5;}
+#app-leave .rules-box{
     background:var(--pink); border-radius:10px; padding:10px 12px; margin-bottom:8px;
   }
-  .rule-line{ font-size:12px; color:var(--brown); line-height:1.7; }
-  .ack-label{
+#app-leave .rule-line{ font-size:12px; color:var(--brown); line-height:1.7; }
+#app-leave .ack-label{
     display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink);
     font-weight:600; cursor:pointer;
   }
-  .ack-label input{ width:16px; height:16px; }
-  .status{
+#app-leave .ack-label input{ width:16px; height:16px; }
+#app-leave .status{
     font-size:11px; padding:3px 9px; border-radius:20px; font-weight:600; margin-left:6px;
   }
-  .status.pending{background:#FBE9C7; color:#96702A;}
-  .status.approved{background:#DFF0DF; color:var(--ok);}
-  .status.rejected{background:#EDE8E4; color:var(--stamp-black);}
-
-  .stamp-wrap{ position:relative; display:inline-block; }
-  .stamp{
+#app-leave .status.pending{background:#FBE9C7; color:#96702A;}
+#app-leave .status.approved{background:#DFF0DF; color:var(--ok);}
+#app-leave .status.rejected{background:#EDE8E4; color:var(--stamp-black);}
+#app-leave .stamp-wrap{ position:relative; display:inline-block; }
+#app-leave .stamp{
     position:absolute; top:-6px; right:-40px; width:44px; height:44px; border-radius:50%;
     border:2.5px solid var(--stamp-red); color:var(--stamp-red);
     display:flex; align-items:center; justify-content:center; font-weight:700; font-size:11px;
     transform:rotate(-14deg) scale(0); opacity:0;
-    animation:stampIn .4s ease-out forwards;
+    animation:stampInL .4s ease-out forwards;
   }
-  .stamp.reject{ border-color:var(--stamp-black); color:var(--stamp-black); }
-  @keyframes stampIn{
+#app-leave .stamp.reject{ border-color:var(--stamp-black); color:var(--stamp-black); }
+@keyframes stampInL{
     0%{transform:rotate(-14deg) scale(2.8); opacity:0;}
     60%{transform:rotate(-14deg) scale(0.85); opacity:1;}
     80%{transform:rotate(-11deg) scale(1.08);}
     100%{transform:rotate(-11deg) scale(1); opacity:1;}
   }
-
-  .actions{display:flex; gap:8px; margin-top:10px;}
-  .empty{ text-align:center; padding:30px 20px; color:var(--muted); font-size:13px; }
-  .lock-msg{ text-align:center; padding:20px 10px; color:var(--brown); font-size:13px; line-height:1.7; }
-
-  .history-item{ font-size:12.5px; color:var(--brown); padding:6px 0; border-bottom:1px dashed var(--pink); }
-  .history-item:last-child{ border-bottom:none; }
-
-  .link-btn{
+#app-leave .actions{display:flex; gap:8px; margin-top:10px;}
+#app-leave .empty{ text-align:center; padding:30px 20px; color:var(--muted); font-size:13px; }
+#app-leave .lock-msg{ text-align:center; padding:20px 10px; color:var(--brown); font-size:13px; line-height:1.7; }
+#app-leave .history-item{ font-size:12.5px; color:var(--brown); padding:6px 0; border-bottom:1px dashed var(--pink); }
+#app-leave .history-item:last-child{ border-bottom:none; }
+#app-leave .link-btn{
     background:none; border:none; color:var(--lavender); font-size:12px; text-decoration:underline;
     cursor:pointer; padding:0; margin-top:8px;
   }
-  .bunny-tag{ font-size:12px; color:var(--muted); text-align:center; margin-top:2px; }
+#app-leave .bunny-tag{ font-size:12px; color:var(--muted); text-align:center; margin-top:2px; }
+
+
+#app-smoke{
+    --sky:#E4F1F9;
+    --sky-deep:#C9E4F0;
+    --cream:#FAFBFC;
+    --slate:#5B6B73;
+    --ink:#3A4448;
+    --muted:#8FA0A8;
+    --stamp-red:#D96C7A;
+    --stamp-black:#8B7F78;
+    --ok:#6FA8A0;
+  }
+#app-smoke *{box-sizing:border-box;}
+#app-smoke{
+    margin:0; font-family:'Noto Sans KR',sans-serif; color:var(--ink);
+    background-color:var(--cream);
+    background-image:radial-gradient(circle, #D7E9F2 1.5px, transparent 1.5px);
+    background-size:26px 26px;
+    min-height:100vh;
+  }
+#app-smoke header{
+    background:linear-gradient(135deg, var(--sky) 0%, var(--sky-deep) 100%);
+    padding:22px 20px 20px; border-bottom:3px dashed #A9C9DA; text-align:center;
+  }
+#app-smoke h1{ font-family:'Gaegu',cursive; font-size:24px; margin:0; color:var(--ink); font-weight:700; }
+#app-smoke .sub{font-size:12px; color:var(--slate); margin-top:5px;}
+#app-smoke .switch{ display:flex; max-width:380px; margin:16px auto 0; padding:0 16px; gap:8px; }
+#app-smoke .switch button{
+    flex:1; padding:10px 8px; border-radius:20px; border:2px solid #A9C9DA;
+    background:#fff; color:var(--slate); font-family:'Gaegu',cursive; font-size:15px; font-weight:700; cursor:pointer;
+  }
+#app-smoke .switch button.active{ background:#A9C9DA; color:#fff; border-color:#A9C9DA; }
+#app-smoke main{max-width:420px; margin:0 auto; padding:16px 16px 60px;}
+#app-smoke .card{
+    background:#fff; border:2px solid var(--sky-deep); border-radius:16px;
+    padding:16px; margin-bottom:14px; box-shadow:0 2px 0 var(--sky-deep);
+  }
+#app-smoke .card h2{font-family:'Gaegu',cursive; font-size:18px; margin:0 0 10px; color:var(--ink);}
+#app-smoke .field{margin-bottom:12px;}
+#app-smoke .field label{display:block; font-size:12px; color:var(--slate); margin-bottom:5px; font-weight:600;}
+#app-smoke .field input, #app-smoke .field textarea, #app-smoke .field select{
+    width:100%; padding:9px 10px; border:1.5px solid var(--sky-deep); border-radius:10px;
+    font-family:'Noto Sans KR',sans-serif; font-size:14px; background:#fff;
+  }
+#app-smoke button.action{
+    font-family:'Noto Sans KR',sans-serif; font-weight:600; font-size:13px;
+    border:none; padding:10px 16px; border-radius:20px; cursor:pointer; color:#fff;
+  }
+#app-smoke .btn-primary{ background:var(--slate); width:100%; }
+#app-smoke .btn-primary:disabled{ background:#CBD5D9; cursor:not-allowed; }
+#app-smoke .btn-approve{ background:var(--ok); }
+#app-smoke .btn-reject{ background:var(--stamp-black); }
+#app-smoke .btn-ghost{ background:#F0F6FA; color:#000; border:1.5px solid var(--slate); font-weight:700; }
+#app-smoke button.action.btn-ghost{ color:#000; }
+#app-smoke .req-meta{font-size:12.5px; color:var(--muted); margin-bottom:4px;}
+#app-smoke .req-reason{font-size:14px; margin:6px 0 10px; line-height:1.5;}
+#app-smoke .status{ font-size:11px; padding:3px 9px; border-radius:20px; font-weight:600; margin-left:6px; }
+#app-smoke .status.pending{background:#FBE9C7; color:#96702A;}
+#app-smoke .status.approved{background:#DFF0DF; color:var(--ok);}
+#app-smoke .status.rejected{background:#EDE8E4; color:var(--stamp-black);}
+#app-smoke .stamp-wrap{ position:relative; display:inline-block; }
+#app-smoke .stamp{
+    position:absolute; top:-6px; right:-40px; width:44px; height:44px; border-radius:50%;
+    border:2.5px solid var(--stamp-red); color:var(--stamp-red);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:11px;
+    transform:rotate(-14deg) scale(0); opacity:0; animation:stampInS .4s ease-out forwards;
+  }
+#app-smoke .stamp.reject{ border-color:var(--stamp-black); color:var(--stamp-black); }
+@keyframes stampInS{
+    0%{transform:rotate(-14deg) scale(2.8); opacity:0;}
+    60%{transform:rotate(-14deg) scale(0.85); opacity:1;}
+    80%{transform:rotate(-11deg) scale(1.08);}
+    100%{transform:rotate(-11deg) scale(1); opacity:1;}
+  }
+#app-smoke .actions{display:flex; gap:8px; margin-top:10px;}
+#app-smoke .empty{ text-align:center; padding:30px 20px; color:var(--muted); font-size:13px; }
+#app-smoke .lock-msg{ text-align:center; padding:20px 10px; color:var(--slate); font-size:13px; line-height:1.7; }
+#app-smoke .history-item{ font-size:12.5px; color:var(--slate); padding:6px 0; border-bottom:1px dashed var(--sky); }
+#app-smoke .history-item:last-child{ border-bottom:none; }
+#app-smoke .link-btn{ background:none; border:none; color:var(--slate); font-size:12px; text-decoration:underline; cursor:pointer; padding:0; margin-top:8px; }
+#app-smoke .timer-hero{ text-align:center; padding:20px 10px; }
+#app-smoke .timer-num{ font-family:'Gaegu',cursive; font-size:44px; color:var(--slate); font-weight:700; line-height:1; }
+#app-smoke .timer-label{ font-size:12px; color:var(--muted); margin-top:4px; }
+#app-smoke .timer-num.over{ color:var(--stamp-red); }
+
+
 </style>
 </head>
 <body>
 
+<div class="top-banner">
+  <button id="siteTabLeave" class="active">🐰 유흥연차</button>
+  <button id="siteTabSmoke">💨 흡연결재</button>
+</div>
+
+<div id="app-leave" class="app-panel">
 <header>
   <h1>🐰 이토끼의 유흥연차결재</h1>
   <div class="sub">신청인: 이토끼 &nbsp;/&nbsp; 결재권자: 구마구마</div>
 </header>
 
 <div class="switch">
-  <button id="btnApplicant" class="active">신청인</button>
-  <button id="btnAdmin">관리자</button>
+  <button id="L-btnApplicant" class="active">신청인</button>
+  <button id="L-btnAdmin">관리자</button>
 </div>
 
 <main>
-  <div id="view-applicant"></div>
-  <div id="view-admin" style="display:none"></div>
+  <div id="L-view-applicant"></div>
+  <div id="L-view-admin" style="display:none"></div>
 </main>
+</div>
+
+<div id="app-smoke" class="app-panel" style="display:none">
+<header>
+  <h1>💨 흡연시간 결재</h1>
+  <div class="sub">신청인: 구마구마 &nbsp;/&nbsp; 결재권자: 이토끼</div>
+</header>
+
+<div class="switch">
+  <button id="S-btnApplicant" class="active">신청인</button>
+  <button id="S-btnAdmin">관리자</button>
+</div>
+
+<main>
+  <div id="S-view-applicant"></div>
+  <div id="S-view-admin" style="display:none"></div>
+</main>
+</div>
 
 <script>
+(function(){
+
 const ANNUAL_GRANT = 2;
 const BLACKOUT_MONTHS = [5,6,7]; // 0-indexed: 6,7,8월
 const MAX_BONUS = 1;
@@ -189,6 +302,25 @@ const firebaseConfig = {
   databaseURL: "https://dydy-96bb1-default-rtdb.firebaseio.com",
   projectId: "dydy-96bb1"
 };
+
+// ⚠️ 텔레그램 알림 설정 (BotFather에서 받은 토큰과 각자의 chat_id)
+const TELEGRAM_BOT_TOKEN = "8983400466:AAGgVhbHJ58KMOi4lBNmVigae0lB5NJDwVk";
+const CHAT_ID_이토끼 = "8888189518";
+const CHAT_ID_구마구마 = "8659272154";
+
+async function notifyTelegram(chatId, text){
+  if(!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN === "YOUR_BOT_TOKEN") return;
+  if(!chatId || chatId.startsWith("YOUR_CHAT_ID")) return;
+  try{
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ chat_id: chatId, text })
+    });
+  }catch(e){
+    console.error('텔레그램 알림 실패', e);
+  }
+}
 
 let state = null;
 let loadError = null;
@@ -252,8 +384,8 @@ function applyYearRollover(){
 }
 
 /* 실시간 동기화: 다른 기기에서 신청/결재하면 자동으로 화면이 갱신됨 */
-const APPLICANT_FIELD_IDS = ['theDate','startTime','endTime','place','companion','ackCheck'];
-const ADMIN_FIELD_IDS = ['bonusAmount','bonusReason','pwInput','pw1','pw2'];
+const APPLICANT_FIELD_IDS = ['L-theDate','L-startTime','L-endTime','L-place','L-companion','L-ackCheck'];
+const ADMIN_FIELD_IDS = ['L-bonusAmount','L-bonusReason','L-pwInput','L-pw1','L-pw2'];
 
 function captureDraft(ids){
   const d = {};
@@ -277,9 +409,9 @@ function refreshCurrentView(){
     const draft = captureDraft(APPLICANT_FIELD_IDS);
     renderApplicant();
     restoreDraft(APPLICANT_FIELD_IDS, draft);
-    const dateInput = document.getElementById('theDate');
-    const submitBtn = document.getElementById('submitBtn');
-    const ack = document.getElementById('ackCheck');
+    const dateInput = document.getElementById('L-theDate');
+    const submitBtn = document.getElementById('L-submitBtn');
+    const ack = document.getElementById('L-ackCheck');
     if(submitBtn && ack) submitBtn.disabled = !ack.checked;
     if(dateInput) dateInput.dispatchEvent(new Event('change'));
   } else {
@@ -359,7 +491,7 @@ function escapeHTML(str){
 
 /* ---------------- 신청인 뷰 ---------------- */
 function renderApplicant(){
-  const el = document.getElementById('view-applicant');
+  const el = document.getElementById('L-view-applicant');
   if(!state){
     el.innerHTML = loadError
       ? `<div class="empty">불러오기 실패 😢<br><span style="font-size:11px">${escapeHTML(loadError)}</span></div>`
@@ -380,26 +512,26 @@ function renderApplicant(){
       <h2>유흥연차 신청하기</h2>
       <div class="field">
         <label>날짜</label>
-        <input type="date" id="theDate">
+        <input type="date" id="L-theDate">
       </div>
       <div class="field">
         <label>시간</label>
         <div class="row2">
-          <div><input type="time" id="startTime" value="09:00"></div>
-          <div><input type="time" id="endTime" value="14:00"></div>
+          <div><input type="time" id="L-startTime" value="09:00"></div>
+          <div><input type="time" id="L-endTime" value="14:00"></div>
         </div>
       </div>
       <div class="field">
-        <span class="days-badge" id="daysBadge">0일</span>
-        <div class="warn-text" id="warnText"></div>
+        <span class="days-badge" id="L-daysBadge">0일</span>
+        <div class="warn-text" id="L-warnText"></div>
       </div>
       <div class="field">
         <label>어디를 갈 건가요?</label>
-        <input type="text" id="place" placeholder="예) 강남역 포차거리">
+        <input type="text" id="L-place" placeholder="예) 강남역 포차거리">
       </div>
       <div class="field">
         <label>누구와 갈 건가요?</label>
-        <input type="text" id="companion" placeholder="예) 대학 동기들">
+        <input type="text" id="L-companion" placeholder="예) 대학 동기들">
       </div>
       <div class="field">
         <label>준수사항</label>
@@ -407,29 +539,29 @@ function renderApplicant(){
           ${RULES.map(r=>`<div class="rule-line">${escapeHTML(r)}</div>`).join('')}
         </div>
         <label class="ack-label">
-          <input type="checkbox" id="ackCheck"> 위 준수사항을 모두 확인했습니다
+          <input type="checkbox" id="L-ackCheck"> 위 준수사항을 모두 확인했습니다
         </label>
       </div>
-      <button class="action btn-primary" id="submitBtn" disabled>신청서 제출</button>
+      <button class="action btn-primary" id="L-submitBtn" disabled>신청서 제출</button>
     </div>
 
     <div class="card">
       <h2>내 신청 내역</h2>
-      <div id="myList"></div>
-      <div class="actions" id="myListActions" style="display:none; margin-top:10px;">
-        <button class="action btn-ghost" id="cancelSelectedBtn">선택 취소</button>
-        <button class="action btn-reject" id="cancelAllBtn">모두 취소하기</button>
+      <div id="L-myList"></div>
+      <div class="actions" id="L-myListActions" style="display:none; margin-top:10px;">
+        <button class="action btn-ghost" id="L-cancelSelectedBtn">선택 취소</button>
+        <button class="action btn-reject" id="L-cancelAllBtn">모두 취소하기</button>
       </div>
     </div>
   `;
 
-  const dateInput = document.getElementById('theDate');
-  const startT = document.getElementById('startTime');
-  const endT = document.getElementById('endTime');
-  const badge = document.getElementById('daysBadge');
-  const warnText = document.getElementById('warnText');
-  const submitBtn = document.getElementById('submitBtn');
-  const ackCheck = document.getElementById('ackCheck');
+  const dateInput = document.getElementById('L-theDate');
+  const startT = document.getElementById('L-startTime');
+  const endT = document.getElementById('L-endTime');
+  const badge = document.getElementById('L-daysBadge');
+  const warnText = document.getElementById('L-warnText');
+  const submitBtn = document.getElementById('L-submitBtn');
+  const ackCheck = document.getElementById('L-ackCheck');
 
   function refreshSubmitState(){
     submitBtn.disabled = !ackCheck.checked;
@@ -479,8 +611,8 @@ function renderApplicant(){
     if(touchesBlackout(d)){ alert('6·7·8월에는 유흥연차를 사용할 수 없어요.'); return; }
     const days = hoursToDays(hours);
     if(days > state.balance){ alert(`보유 유흥연차(${state.balance}일)보다 많이 신청할 수 없어요.`); return; }
-    const place = document.getElementById('place').value.trim();
-    const companion = document.getElementById('companion').value.trim();
+    const place = document.getElementById('L-place').value.trim();
+    const companion = document.getElementById('L-companion').value.trim();
     if(!place){ alert('어디를 갈 건지 입력해주세요.'); return; }
     if(!companion){ alert('누구와 갈 건지 입력해주세요.'); return; }
 
@@ -491,9 +623,10 @@ function renderApplicant(){
       decidedAt: null
     });
     await saveState();
+    notifyTelegram(CHAT_ID_구마구마, `🐰 이토끼님이 유흥연차 신청했어요: ${d} ${startT.value}~${endT.value} (${days}일) — ${place} / ${companion}. 결재 부탁해요!`);
     submitBtn.textContent = '신청서 제출';
-    document.getElementById('place').value='';
-    document.getElementById('companion').value='';
+    document.getElementById('L-place').value='';
+    document.getElementById('L-companion').value='';
     ackCheck.checked = false;
     refreshSubmitState();
     warnText.textContent='';
@@ -501,8 +634,8 @@ function renderApplicant(){
     renderApplicant();
   });
 
-  const myList = document.getElementById('myList');
-  const myListActions = document.getElementById('myListActions');
+  const myList = document.getElementById('L-myList');
+  const myListActions = document.getElementById('L-myListActions');
   const statusLabel = {pending:'대기', approved:'승인', rejected:'반려'};
   if(mine.length === 0){
     myList.innerHTML = `<div class="empty">아직 신청 내역이 없어요.</div>`;
@@ -555,8 +688,8 @@ function renderApplicant(){
     });
   });
 
-  const cancelSelectedBtn = document.getElementById('cancelSelectedBtn');
-  const cancelAllBtn = document.getElementById('cancelAllBtn');
+  const cancelSelectedBtn = document.getElementById('L-cancelSelectedBtn');
+  const cancelAllBtn = document.getElementById('L-cancelAllBtn');
   if(cancelSelectedBtn){
     cancelSelectedBtn.addEventListener('click', async ()=>{
       const ids = Array.from(myList.querySelectorAll('.mine-check:checked')).map(cb=>cb.dataset.id);
@@ -594,7 +727,7 @@ function renderApplicant(){
 
 /* ---------------- 관리자 뷰 ---------------- */
 function renderAdmin(){
-  const el = document.getElementById('view-admin');
+  const el = document.getElementById('L-view-admin');
   if(!state){
     el.innerHTML = loadError
       ? `<div class="empty">불러오기 실패 😢<br><span style="font-size:11px">${escapeHTML(loadError)}</span></div>`
@@ -607,14 +740,14 @@ function renderAdmin(){
       <div class="card">
         <h2>🔐 관리자 비밀번호 설정</h2>
         <p style="font-size:13px; color:var(--brown);">처음 사용이시네요! 결재함에 들어갈 비밀번호를 설정해주세요.</p>
-        <div class="field"><label>비밀번호</label><input type="password" id="pw1"></div>
-        <div class="field"><label>비밀번호 확인</label><input type="password" id="pw2"></div>
-        <button class="action btn-primary" id="setPwBtn">설정하기</button>
+        <div class="field"><label>비밀번호</label><input type="password" id="L-pw1"></div>
+        <div class="field"><label>비밀번호 확인</label><input type="password" id="L-pw2"></div>
+        <button class="action btn-primary" id="L-setPwBtn">설정하기</button>
       </div>
     `;
-    document.getElementById('setPwBtn').addEventListener('click', async ()=>{
-      const p1 = document.getElementById('pw1').value;
-      const p2 = document.getElementById('pw2').value;
+    document.getElementById('L-setPwBtn').addEventListener('click', async ()=>{
+      const p1 = document.getElementById('L-pw1').value;
+      const p2 = document.getElementById('L-pw2').value;
       if(!p1){ alert('비밀번호를 입력해주세요.'); return; }
       if(p1 !== p2){ alert('비밀번호가 일치하지 않아요.'); return; }
       state.adminPasswordHash = simpleHash(p1);
@@ -629,13 +762,13 @@ function renderAdmin(){
     el.innerHTML = `
       <div class="card">
         <h2>🔐 관리자 로그인</h2>
-        <div class="field"><label>비밀번호</label><input type="password" id="pwInput"></div>
-        <button class="action btn-primary" id="unlockBtn">잠금 해제</button>
+        <div class="field"><label>비밀번호</label><input type="password" id="L-pwInput"></div>
+        <button class="action btn-primary" id="L-unlockBtn">잠금 해제</button>
         <div class="lock-msg">결재권자 구마구마님만 들어올 수 있어요.</div>
       </div>
     `;
     const tryUnlock = async ()=>{
-      const p = document.getElementById('pwInput').value;
+      const p = document.getElementById('L-pwInput').value;
       if(simpleHash(p) === state.adminPasswordHash){
         adminUnlocked = true;
         renderAdmin();
@@ -643,8 +776,8 @@ function renderAdmin(){
         alert('비밀번호가 맞지 않아요.');
       }
     };
-    document.getElementById('unlockBtn').addEventListener('click', tryUnlock);
-    document.getElementById('pwInput').addEventListener('keydown', (ev)=>{ if(ev.key==='Enter') tryUnlock(); });
+    document.getElementById('L-unlockBtn').addEventListener('click', tryUnlock);
+    document.getElementById('L-pwInput').addEventListener('keydown', (ev)=>{ if(ev.key==='Enter') tryUnlock(); });
     return;
   }
 
@@ -659,7 +792,7 @@ function renderAdmin(){
 
     <div class="card">
       <h2>결재 대기 (${pending.length})</h2>
-      <div id="pendingList">${pending.length===0 ? '<div class="empty">대기 중인 신청서가 없어요.</div>' : ''}</div>
+      <div id="L-pendingList">${pending.length===0 ? '<div class="empty">대기 중인 신청서가 없어요.</div>' : ''}</div>
     </div>
 
     <div class="card">
@@ -667,31 +800,31 @@ function renderAdmin(){
       <p style="font-size:12px; color:var(--muted); margin-top:-4px;">한 번에 최대 ${MAX_BONUS}일까지 지급할 수 있어요.</p>
       <div class="field">
         <label>지급 일수 (0.5 ~ ${MAX_BONUS})</label>
-        <input type="number" id="bonusAmount" min="0.5" max="${MAX_BONUS}" step="0.5" value="0.5">
+        <input type="number" id="L-bonusAmount" min="0.5" max="${MAX_BONUS}" step="0.5" value="0.5">
       </div>
       <div class="field">
         <label>지급 사유</label>
-        <input type="text" id="bonusReason" placeholder="예) 프로젝트 마감 고생 포상">
+        <input type="text" id="L-bonusReason" placeholder="예) 프로젝트 마감 고생 포상">
       </div>
-      <button class="action btn-approve" id="bonusBtn" style="width:100%;">지급하기</button>
+      <button class="action btn-approve" id="L-bonusBtn" style="width:100%;">지급하기</button>
     </div>
 
     <div class="card">
       <h2>처리 내역</h2>
-      <div id="decidedList">${decided.length===0 ? '<div class="empty">아직 처리한 내역이 없어요.</div>' : ''}</div>
+      <div id="L-decidedList">${decided.length===0 ? '<div class="empty">아직 처리한 내역이 없어요.</div>' : ''}</div>
     </div>
 
     <div class="card">
       <h2>활동 로그</h2>
-      <div id="historyList"></div>
+      <div id="L-historyList"></div>
     </div>
 
-    <button class="link-btn" id="lockBtn">결재함 잠그기</button>
-    <button class="link-btn" id="changePwBtn" style="margin-left:12px;">비밀번호 변경</button>
-    <button class="link-btn" id="resetBtn" style="margin-left:12px; color:var(--stamp-red);">신청내역 초기화</button>
+    <button class="link-btn" id="L-lockBtn">결재함 잠그기</button>
+    <button class="link-btn" id="L-changePwBtn" style="margin-left:12px;">비밀번호 변경</button>
+    <button class="link-btn" id="L-resetBtn" style="margin-left:12px; color:var(--stamp-red);">신청내역 초기화</button>
   `;
 
-  const pendingList = document.getElementById('pendingList');
+  const pendingList = document.getElementById('L-pendingList');
   pendingList.innerHTML += pending.map(item => `
     <div class="card" data-id="${item.id}" style="margin:10px 0 0;">
       <div class="req-meta">${fmtReq(item)} · ${item.days}일</div>
@@ -735,11 +868,14 @@ function renderAdmin(){
         stampSpan.appendChild(stamp);
       }
       await saveState();
+      notifyTelegram(CHAT_ID_이토끼, action==='approve'
+        ? `✅ 구마구마님이 유흥연차 ${item.days}일(${fmtReq(item)}) 승인했어요!`
+        : `❌ 구마구마님이 유흥연차 신청을 반려했어요: ${fmtReq(item)}`);
       setTimeout(renderAdmin, 550);
     });
   });
 
-  const decidedList = document.getElementById('decidedList');
+  const decidedList = document.getElementById('L-decidedList');
   const statusLabel = {approved:'승인', rejected:'반려'};
   decidedList.innerHTML += decided.map(item => `
     <div class="card" data-decided-id="${item.id}" style="margin:10px 0 0;">
@@ -785,16 +921,16 @@ function renderAdmin(){
     });
   });
 
-  const historyList = document.getElementById('historyList');
+  const historyList = document.getElementById('L-historyList');
   historyList.innerHTML = state.history.slice(0,20).map(h => `
     <div class="history-item">${new Date(h.at).toLocaleDateString('ko-KR')} · ${escapeHTML(h.note)}</div>
   `).join('');
 
-  document.getElementById('bonusBtn').addEventListener('click', async ()=>{
-    let amt = parseFloat(document.getElementById('bonusAmount').value);
+  document.getElementById('L-bonusBtn').addEventListener('click', async ()=>{
+    let amt = parseFloat(document.getElementById('L-bonusAmount').value);
     if(isNaN(amt) || amt <= 0){ alert('지급 일수를 입력해주세요.'); return; }
     if(amt > MAX_BONUS){ alert(`한 번에 최대 ${MAX_BONUS}일까지만 지급할 수 있어요.`); return; }
-    const reason = document.getElementById('bonusReason').value.trim();
+    const reason = document.getElementById('L-bonusReason').value.trim();
     state.balance = Math.round((state.balance + amt) * 10) / 10;
     state.history.unshift({ note:`포상 유흥연차 지급: ${amt}일${reason ? ' — '+reason : ''}`, at:new Date().toISOString() });
     await saveState();
@@ -802,11 +938,11 @@ function renderAdmin(){
     renderAdmin();
   });
 
-  document.getElementById('lockBtn').addEventListener('click', ()=>{
+  document.getElementById('L-lockBtn').addEventListener('click', ()=>{
     adminUnlocked = false;
     renderAdmin();
   });
-  document.getElementById('changePwBtn').addEventListener('click', async ()=>{
+  document.getElementById('L-changePwBtn').addEventListener('click', async ()=>{
     const cur = prompt('현재 비밀번호를 입력해주세요.');
     if(simpleHash(cur||'') !== state.adminPasswordHash){ alert('현재 비밀번호가 맞지 않아요.'); return; }
     const np = prompt('새 비밀번호를 입력해주세요.');
@@ -815,8 +951,8 @@ function renderAdmin(){
     await saveState();
     alert('비밀번호가 변경됐어요.');
   });
-  document.getElementById('resetBtn').addEventListener('click', async ()=>{
-    const btn = document.getElementById('resetBtn');
+  document.getElementById('L-resetBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('L-resetBtn');
     if(btn.dataset.confirming !== '1'){
       btn.dataset.confirming = '1';
       btn.textContent = '진짜 삭제할까요? (다시 누르면 삭제됨)';
@@ -837,31 +973,661 @@ function renderAdmin(){
 }
 
 /* ---------------- 탭 전환 ---------------- */
-document.getElementById('btnApplicant').addEventListener('click', ()=>{
+document.getElementById('L-btnApplicant').addEventListener('click', ()=>{
   view = 'applicant';
-  document.getElementById('btnApplicant').classList.add('active');
-  document.getElementById('btnAdmin').classList.remove('active');
-  document.getElementById('view-applicant').style.display = 'block';
-  document.getElementById('view-admin').style.display = 'none';
+  document.getElementById('L-btnApplicant').classList.add('active');
+  document.getElementById('L-btnAdmin').classList.remove('active');
+  document.getElementById('L-view-applicant').style.display = 'block';
+  document.getElementById('L-view-admin').style.display = 'none';
   renderApplicant();
 });
-document.getElementById('btnAdmin').addEventListener('click', ()=>{
+document.getElementById('L-btnAdmin').addEventListener('click', ()=>{
   view = 'admin';
-  document.getElementById('btnAdmin').classList.add('active');
-  document.getElementById('btnApplicant').classList.remove('active');
-  document.getElementById('view-admin').style.display = 'block';
-  document.getElementById('view-applicant').style.display = 'none';
+  document.getElementById('L-btnAdmin').classList.add('active');
+  document.getElementById('L-btnApplicant').classList.remove('active');
+  document.getElementById('L-view-admin').style.display = 'block';
+  document.getElementById('L-view-applicant').style.display = 'none';
   renderAdmin();
 });
 
 window.addEventListener('error', (ev)=>{
-  const el = document.getElementById(view === 'admin' ? 'view-admin' : 'view-applicant');
+  const el = document.getElementById(view === 'admin' ? 'L-view-admin' : 'L-view-applicant');
   if(el && !state){
     el.innerHTML = `<div class="empty">오류가 발생했어요 😢<br><span style="font-size:11px">${escapeHTML(ev.message || String(ev.error))}</span></div>`;
   }
 });
 
 renderApplicant(); // 첫 화면: Firebase에서 데이터가 오기 전까지 "불러오는 중" 표시
+
+})();
+</script>
+<script>
+(function(){
+
+// ⚠️ 아래 firebaseConfig를 본인 Firebase 프로젝트 값으로 바꿔주세요.
+const firebaseConfig = {
+  apiKey: "AIzaSyAkORo-yBzufXQ1SSIJIADs6Zbr19-D2hw",
+  authDomain: "smoke-a9b2e.firebaseapp.com",
+  databaseURL: "https://smoke-a9b2e-default-rtdb.firebaseio.com",
+  projectId: "smoke-a9b2e"
+};
+
+// ⚠️ 텔레그램 알림 설정 (BotFather에서 받은 토큰과 각자의 chat_id로 교체해주세요)
+const TELEGRAM_BOT_TOKEN = "8983400466:AAGgVhbHJ58KMOi4lBNmVigae0lB5NJDwVk";
+const CHAT_ID_구마구마 = "8659272154";
+const CHAT_ID_이토끼 = "8888189518";
+
+const MAX_MINUTES = 10;
+
+let state = null;
+let loadError = null;
+let stateRef = null;
+
+try{
+  if(typeof firebase === 'undefined'){
+    throw new Error('Firebase SDK 스크립트를 불러오지 못했어요. 인터넷 연결이나 네트워크 차단(방화벽/광고차단기)을 확인해주세요.');
+  }
+  firebase.initializeApp(firebaseConfig, 'smokeApp');
+  stateRef = firebase.app('smokeApp').database().ref('smoke_app_v1');
+}catch(e){
+  console.error(e);
+  loadError = e.message || String(e);
+}
+
+let adminUnlocked = false;
+let view = 'applicant';
+let tickInterval = null;
+
+function defaultState(){
+  return {
+    adminPasswordHash: null,
+    requests: [],
+    history: []
+  };
+}
+
+function simpleHash(str){
+  let h = 5381;
+  for(let i=0;i<str.length;i++){ h = ((h*33) ^ str.charCodeAt(i)) >>> 0; }
+  return h.toString(16);
+}
+
+async function saveState(){
+  if(!stateRef){ console.error('stateRef 없음 - Firebase 초기화 실패'); return; }
+  try{
+    await stateRef.set(state);
+  }catch(e){
+    console.error(e);
+    alert("저장에 실패했어요. 인터넷 연결을 확인해주세요.");
+  }
+}
+
+async function notifyTelegram(chatId, text){
+  if(!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN === "YOUR_BOT_TOKEN") return;
+  if(!chatId || chatId.startsWith("YOUR_CHAT_ID")) return;
+  try{
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ chat_id: chatId, text })
+    });
+  }catch(e){
+    console.error('텔레그램 알림 실패', e);
+  }
+}
+
+function uid(){ return 'r'+Date.now()+Math.random().toString(36).slice(2,7); }
+function compressImage(file, maxWidth=600, quality=0.6){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+function pruneOldRequests(){
+  const cutoff = Date.now() - 7*24*60*60*1000;
+  const before = state.requests.length;
+  state.requests = state.requests.filter(r=>new Date(r.submittedAt).getTime() >= cutoff);
+  if(state.requests.length !== before){
+    saveState();
+  }
+}
+function escapeHTML(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+function fmtTime(iso){
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function fmtDateTime(iso){
+  const d = new Date(iso);
+  return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+const APPLICANT_FIELD_IDS = ['S-minutes','S-memo'];
+const ADMIN_FIELD_IDS = ['S-pwInput','S-pw1','S-pw2'];
+
+function captureDraft(ids){
+  const d = {};
+  ids.forEach(id=>{
+    const elx = document.getElementById(id);
+    if(elx) d[id] = (elx.type === 'checkbox') ? elx.checked : elx.value;
+  });
+  return d;
+}
+function restoreDraft(ids, d){
+  ids.forEach(id=>{
+    const elx = document.getElementById(id);
+    if(elx && d[id] !== undefined){
+      if(elx.type === 'checkbox') elx.checked = d[id];
+      else elx.value = d[id];
+    }
+  });
+}
+function refreshCurrentView(){
+  if(view === 'applicant'){
+    const draft = captureDraft(APPLICANT_FIELD_IDS);
+    renderApplicant();
+    restoreDraft(APPLICANT_FIELD_IDS, draft);
+  } else {
+    const draft = captureDraft(ADMIN_FIELD_IDS);
+    renderAdmin();
+    restoreDraft(ADMIN_FIELD_IDS, draft);
+  }
+}
+
+if(stateRef){
+  stateRef.on('value', (snapshot)=>{
+    loadError = null;
+    const val = snapshot.val();
+    if(val && typeof val === 'object'){
+      state = Object.assign(defaultState(), val);
+      state.requests = Array.isArray(val.requests) ? val.requests : [];
+      state.history = Array.isArray(val.history) ? val.history : [];
+      pruneOldRequests();
+    } else {
+      state = defaultState();
+      saveState();
+    }
+    refreshCurrentView();
+  }, (err)=>{
+    console.error(err);
+    loadError = '데이터베이스 접근이 거부됐어요 (권한 오류). Firebase Realtime Database 규칙이 게시(Publish)되어 있는지 확인해주세요. 원본 오류: ' + (err.message || String(err));
+    refreshCurrentView();
+  });
+}
+
+setTimeout(()=>{
+  if(!state){
+    loadError = loadError || 'Firebase 연결이 6초 넘게 응답이 없어요. firebaseConfig 값, 네트워크 연결, Realtime Database 규칙 게시 여부를 확인해주세요.';
+    refreshCurrentView();
+  }
+}, 6000);
+
+/* ---------------- 신청인 뷰 ---------------- */
+function renderApplicant(){
+  const el = document.getElementById('S-view-applicant');
+  if(!state){
+    el.innerHTML = loadError
+      ? `<div class="empty">불러오기 실패 😢<br><span style="font-size:11px">${escapeHTML(loadError)}</span></div>`
+      : '<div class="empty">불러오는 중... 💨</div>';
+    return;
+  }
+  const current = state.requests.find(r=>r.status==='pending' || (r.status==='approved' && !r.completed));
+  const mine = state.requests.slice().sort((a,b)=>b.submittedAt.localeCompare(a.submittedAt)).slice(0,10);
+  const statusLabel = {pending:'대기', approved:'승인', rejected:'반려'};
+
+  if(current){
+    const started = current.status === 'approved' && !!current.actualStartAt;
+    el.innerHTML = `
+      <div class="card timer-hero">
+        <div class="timer-num" id="S-timerNum">${current.status === 'pending' ? '⏳' : (started ? '--:--' : String(current.minutes).padStart(2,'0')+':00')}</div>
+        <div class="timer-label" id="S-timerLabel">${current.status === 'pending' ? '결재 대기 중이에요' : (started ? '남은 시간' : '승인됐어요! 시작 버튼을 눌러주세요')}</div>
+      </div>
+      <div class="card">
+        <div class="req-meta">${current.minutes}분 신청 · ${escapeHTML(current.memo || '')}
+          <span class="status ${current.status}">${statusLabel[current.status]}</span>
+        </div>
+        ${current.status === 'approved' ? (started ? `
+          <button class="action btn-reject" id="S-finishBtn" style="margin-top:8px; width:100%; padding:12px;">✅ 마무리</button>
+        ` : `
+          <button class="action btn-approve" id="S-startBtn" style="margin-top:8px; width:100%; padding:12px;">▶️ 시작</button>
+        `) : ''}
+        <button class="action btn-ghost" id="S-cancelBtn" style="margin-top:8px; width:100%; padding:12px;">🚫 신청 취소</button>
+      </div>
+      <div class="card">
+        <h2>최근 내역</h2>
+        <div id="S-historyMine"></div>
+      </div>
+    `;
+    if(started) startTimer(current);
+    const startBtn = document.getElementById('S-startBtn');
+    if(startBtn){
+      startBtn.addEventListener('click', async ()=>{
+        current.actualStartAt = new Date().toISOString();
+        await saveState();
+        renderApplicant();
+      });
+    }
+    const finishBtn = document.getElementById('S-finishBtn');
+    if(finishBtn){
+      finishBtn.addEventListener('click', async ()=>{
+        if(tickInterval) clearInterval(tickInterval);
+        current.actualEndAt = new Date().toISOString();
+        current.actualMinutes = Math.max(1, Math.round((new Date(current.actualEndAt) - new Date(current.actualStartAt)) / 60000));
+        current.completed = true;
+        await saveState();
+        renderApplicant();
+      });
+    }
+    const cancelBtn = document.getElementById('S-cancelBtn');
+    if(cancelBtn){
+      cancelBtn.addEventListener('click', async ()=>{
+        if(cancelBtn.dataset.confirming !== '1'){
+          cancelBtn.dataset.confirming = '1';
+          cancelBtn.textContent = '진짜 취소?';
+          setTimeout(()=>{ if(cancelBtn.dataset.confirming==='1'){ cancelBtn.dataset.confirming=''; cancelBtn.textContent='신청 취소'; } }, 4000);
+          return;
+        }
+        const idx = state.requests.findIndex(r=>r.id===current.id);
+        if(idx > -1) state.requests.splice(idx,1);
+        if(tickInterval) clearInterval(tickInterval);
+        await saveState();
+        renderApplicant();
+      });
+    }
+  } else {
+    el.innerHTML = `
+      <div class="card">
+        <h2>몇 분 다녀올까요?</h2>
+        <div class="field">
+          <label>시간 (최대 ${MAX_MINUTES}분)</label>
+          <select id="S-minutes">
+            ${Array.from({length:MAX_MINUTES},(_,i)=>i+1).map(m=>`<option value="${m}" ${m===5?'selected':''}>${m}분</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>메모 (선택)</label>
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+            <button type="button" class="action btn-ghost" data-quick-memo="점심 식후" style="padding:6px 10px; font-size:12px;">점심 식후</button>
+            <button type="button" class="action btn-ghost" data-quick-memo="저녁 식후" style="padding:6px 10px; font-size:12px;">저녁 식후</button>
+            <button type="button" class="action btn-ghost" data-quick-memo="미팅 후" style="padding:6px 10px; font-size:12px;">미팅 후</button>
+            <button type="button" class="action btn-ghost" data-quick-memo="바람쐬러" style="padding:6px 10px; font-size:12px;">바람쐬러</button>
+          </div>
+          <input type="text" id="S-memo" placeholder="예) 잠깐 바람쐬러">
+        </div>
+        <button class="action btn-primary" id="S-submitBtn">신청하기</button>
+      </div>
+      <div class="card">
+        <h2>최근 내역</h2>
+        <div id="S-historyMine"></div>
+      </div>
+    `;
+    el.querySelectorAll('button[data-quick-memo]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.getElementById('S-memo').value = btn.dataset.quickMemo;
+      });
+    });
+    document.getElementById('S-submitBtn').addEventListener('click', async ()=>{
+      const minutes = parseInt(document.getElementById('S-minutes').value, 10);
+      const memo = document.getElementById('S-memo').value.trim();
+      const btn = document.getElementById('S-submitBtn');
+      btn.disabled = true; btn.textContent = '제출 중...';
+      const item = {
+        id: uid(), minutes, memo, status:'pending',
+        submittedAt: new Date().toISOString(), decidedAt: null, approvedAt: null
+      };
+      state.requests.push(item);
+      await saveState();
+      notifyTelegram(CHAT_ID_이토끼, `💨 구마구마님이 흡연 ${minutes}분 신청했어요${memo ? ' — '+memo : ''}. 결재 부탁해요!`);
+      renderApplicant();
+    });
+  }
+
+  const historyMine = document.getElementById('S-historyMine');
+  if(historyMine){
+    if(mine.length === 0){
+      historyMine.innerHTML = `<div class="empty">아직 내역이 없어요.</div>`;
+    } else {
+      historyMine.innerHTML = mine.map(item => `
+        <div style="padding:8px 0; border-bottom:1px dashed var(--sky);">
+          <div class="req-meta">${fmtDateTime(item.submittedAt)} · ${item.minutes}분${item.actualMinutes ? ` (실제 ${item.actualMinutes}분)` : ''}
+            <span class="status ${item.status}">${statusLabel[item.status]}</span>
+          </div>
+          ${item.memo ? `<div class="req-reason">${escapeHTML(item.memo)}</div>` : ''}
+          ${item.status === 'approved' ? (item.photo ? `
+            <div style="margin-top:6px;">
+              <button class="action btn-ghost" data-toggle-photo="${item.id}" style="padding:6px 10px; font-size:11px;">📷 사진 보기/숨기기</button>
+              <button class="action btn-ghost" data-retake-photo="${item.id}" style="padding:6px 10px; font-size:11px; margin-left:6px;">다시 찍기</button>
+              ${item.photoAt ? `<div class="req-meta" style="margin-top:4px;">📅 ${fmtTime(item.photoAt)} 업로드</div>` : ''}
+              <img data-photo-img="${item.id}" src="${item.photo}" style="display:none; width:100%; border-radius:10px; margin-top:8px;">
+              <input type="file" accept="image/*" capture="environment" data-photo-input="${item.id}" style="display:none;">
+            </div>
+          ` : `
+            <div style="margin-top:6px;">
+              <label style="font-size:11px; color:var(--muted); display:block; margin-bottom:4px;">인증사진 올리기</label>
+              <input type="file" accept="image/*" capture="environment" data-photo-input="${item.id}">
+            </div>
+          `) : ''}
+        </div>
+      `).join('');
+
+      historyMine.querySelectorAll('input[data-photo-input]').forEach(inp=>{
+        inp.addEventListener('change', async (ev)=>{
+          const file = ev.target.files[0];
+          if(!file) return;
+          const targetItem = state.requests.find(r=>r.id===inp.dataset.photoInput);
+          if(!targetItem) return;
+          try{
+            const dataUrl = await compressImage(file);
+            targetItem.photo = dataUrl;
+            targetItem.photoAt = new Date().toISOString();
+            await saveState();
+            renderApplicant();
+          }catch(e){
+            console.error(e);
+            alert('사진 처리에 실패했어요. 다시 시도해주세요.');
+          }
+        });
+      });
+      historyMine.querySelectorAll('button[data-toggle-photo]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const img = historyMine.querySelector(`img[data-photo-img="${btn.dataset.togglePhoto}"]`);
+          if(img) img.style.display = img.style.display === 'none' ? 'block' : 'none';
+        });
+      });
+      historyMine.querySelectorAll('button[data-retake-photo]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const inp = historyMine.querySelector(`input[data-photo-input="${btn.dataset.retakePhoto}"]`);
+          if(inp) inp.click();
+        });
+      });
+    }
+  }
+}
+
+function startTimer(current){
+  if(tickInterval) clearInterval(tickInterval);
+  if(current.status !== 'approved' || !current.actualStartAt || current.completed) return;
+  function tick(){
+    const elx = document.getElementById('S-timerNum');
+    const labelEl = document.getElementById('S-timerLabel');
+    if(!elx) { clearInterval(tickInterval); return; }
+    const elapsedSec = Math.floor((Date.now() - new Date(current.actualStartAt).getTime()) / 1000);
+    const totalSec = current.minutes * 60;
+    const remain = totalSec - elapsedSec;
+    if(remain <= 0){
+      clearInterval(tickInterval);
+      current.actualEndAt = new Date().toISOString();
+      current.actualMinutes = current.minutes;
+      current.completed = true;
+      saveState();
+      renderApplicant();
+      return;
+    }
+    const mm = String(Math.floor(remain/60)).padStart(2,'0');
+    const ss = String(remain%60).padStart(2,'0');
+    elx.textContent = `${mm}:${ss}`;
+    labelEl.textContent = '남은 시간';
+  }
+  tick();
+  tickInterval = setInterval(tick, 1000);
+}
+
+/* ---------------- 관리자 뷰 ---------------- */
+function renderAdmin(){
+  const el = document.getElementById('S-view-admin');
+  if(!state){
+    el.innerHTML = loadError
+      ? `<div class="empty">불러오기 실패 😢<br><span style="font-size:11px">${escapeHTML(loadError)}</span></div>`
+      : '<div class="empty">불러오는 중... 💨</div>';
+    return;
+  }
+
+  if(!state.adminPasswordHash){
+    el.innerHTML = `
+      <div class="card">
+        <h2>🔐 관리자 비밀번호 설정</h2>
+        <p style="font-size:13px; color:var(--slate);">처음 사용이시네요! 결재함에 들어갈 비밀번호를 설정해주세요.</p>
+        <div class="field"><label>비밀번호</label><input type="password" id="S-pw1"></div>
+        <div class="field"><label>비밀번호 확인</label><input type="password" id="S-pw2"></div>
+        <button class="action btn-primary" id="S-setPwBtn">설정하기</button>
+      </div>
+    `;
+    document.getElementById('S-setPwBtn').addEventListener('click', async ()=>{
+      const p1 = document.getElementById('S-pw1').value;
+      const p2 = document.getElementById('S-pw2').value;
+      if(!p1){ alert('비밀번호를 입력해주세요.'); return; }
+      if(p1 !== p2){ alert('비밀번호가 일치하지 않아요.'); return; }
+      state.adminPasswordHash = simpleHash(p1);
+      await saveState();
+      alert('설정 완료!');
+      renderAdmin();
+    });
+    return;
+  }
+
+  if(!adminUnlocked){
+    el.innerHTML = `
+      <div class="card">
+        <h2>🔐 관리자 로그인</h2>
+        <div class="field"><label>비밀번호</label><input type="password" id="S-pwInput"></div>
+        <button class="action btn-primary" id="S-unlockBtn">잠금 해제</button>
+        <div class="lock-msg">결재권자 이토끼님만 들어올 수 있어요.</div>
+      </div>
+    `;
+    const tryUnlock = async ()=>{
+      const p = document.getElementById('S-pwInput').value;
+      if(simpleHash(p) === state.adminPasswordHash){ adminUnlocked = true; renderAdmin(); }
+      else { alert('비밀번호가 맞지 않아요.'); }
+    };
+    document.getElementById('S-unlockBtn').addEventListener('click', tryUnlock);
+    document.getElementById('S-pwInput').addEventListener('keydown', (ev)=>{ if(ev.key==='Enter') tryUnlock(); });
+    return;
+  }
+
+  function getWeekStart(){
+    const now = new Date();
+    const day = now.getDay(); // 0=Sun ... 6=Sat
+    const diffToMonday = day === 0 ? 6 : day - 1;
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - diffToMonday);
+    monday.setHours(0,0,0,0);
+    return monday;
+  }
+  function weeklyStats(){
+    const weekStart = getWeekStart();
+    const relevant = state.requests.filter(r=>{
+      if(r.status !== 'approved') return false;
+      const d = new Date(r.submittedAt);
+      if(d < weekStart) return false;
+      const dow = d.getDay();
+      if(dow === 0 || dow === 6) return false; // 주말 제외
+      if(d.getHours() >= 20) return false; // 저녁 8시 이후 신청 제외
+      return true;
+    });
+    const totalCount = relevant.length;
+    const totalMinutes = relevant.reduce((sum,r)=> sum + (r.actualMinutes || r.minutes), 0);
+    const avgMinutes = totalCount > 0 ? Math.round((totalMinutes/totalCount)*10)/10 : 0;
+    return { totalCount, totalMinutes, avgMinutes };
+  }
+  const stats = weeklyStats();
+
+  const pending = state.requests.filter(r=>r.status==='pending').sort((a,b)=>a.submittedAt.localeCompare(b.submittedAt));
+  const decided = state.requests.filter(r=>r.status!=='pending').sort((a,b)=>(b.decidedAt||'').localeCompare(a.decidedAt||'')).slice(0,15);
+  const statusLabel = {approved:'승인', rejected:'반려'};
+
+  el.innerHTML = `
+    <div class="card">
+      <h2>이번 주 통계</h2>
+      <p style="font-size:11px; color:var(--muted); margin-top:-6px;">평일 기준 · 오후 8시 이전 신청만 집계</p>
+      <div class="req-meta">이번 주 ${stats.totalCount}회 · 총 ${stats.totalMinutes}분 사용 · 평균 ${stats.avgMinutes}분</div>
+    </div>
+    <div class="card">
+      <h2>결재 대기 (${pending.length})</h2>
+      <div id="S-pendingList">${pending.length===0 ? '<div class="empty">대기 중인 신청이 없어요.</div>' : ''}</div>
+    </div>
+    <div class="card">
+      <h2>처리 내역</h2>
+      <div id="S-decidedList">${decided.length===0 ? '<div class="empty">아직 처리한 내역이 없어요.</div>' : ''}</div>
+    </div>
+    <button class="link-btn" id="S-lockBtn">결재함 잠그기</button>
+    <button class="link-btn" id="S-changePwBtn" style="margin-left:12px;">비밀번호 변경</button>
+    <button class="link-btn" id="S-resetBtn" style="margin-left:12px; color:var(--stamp-red);">신청내역 초기화</button>
+  `;
+
+  const pendingList = document.getElementById('S-pendingList');
+  pendingList.innerHTML += pending.map(item => `
+    <div class="card" data-id="${item.id}" style="margin:10px 0 0;">
+      <div class="req-meta">${fmtDateTime(item.submittedAt)} 신청 · ${item.minutes}분</div>
+      ${item.memo ? `<div class="req-reason">${escapeHTML(item.memo)}</div>` : ''}
+      <div class="actions">
+        <span class="stamp-wrap"><button class="action btn-approve" data-action="approve" data-id="${item.id}">승인</button></span>
+        <button class="action btn-reject" data-action="reject" data-id="${item.id}">반려</button>
+      </div>
+    </div>
+  `).join('');
+
+  pendingList.querySelectorAll('button[data-action]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      const item = state.requests.find(r=>r.id===id);
+      if(!item) return;
+      item.status = action === 'approve' ? 'approved' : 'rejected';
+      item.decidedAt = new Date().toISOString();
+      if(action === 'approve') item.approvedAt = item.decidedAt;
+      const card = pendingList.querySelector(`.card[data-id="${id}"]`);
+      card.querySelectorAll('button').forEach(b=>b.disabled=true);
+      const stampSpan = card.querySelector('.stamp-wrap');
+      if(stampSpan){
+        const stamp = document.createElement('div');
+        stamp.className = 'stamp' + (action==='reject' ? ' reject' : '');
+        stamp.textContent = action==='approve' ? '승인' : '반려';
+        stampSpan.appendChild(stamp);
+      }
+      await saveState();
+      notifyTelegram(CHAT_ID_구마구마, action==='approve'
+        ? `✅ 이토끼님이 흡연 ${item.minutes}분 승인했어요. 다녀오세요!`
+        : `❌ 이토끼님이 흡연 신청을 반려했어요.`);
+      setTimeout(renderAdmin, 550);
+    });
+  });
+
+  const decidedList = document.getElementById('S-decidedList');
+  decidedList.innerHTML += decided.map(item => `
+    <div data-decided-id="${item.id}" style="padding:8px 0; border-bottom:1px dashed var(--sky);">
+      <div class="req-meta">${fmtDateTime(item.submittedAt)} · ${item.minutes}분${item.actualMinutes ? ` (실제 ${item.actualMinutes}분)` : ''}
+        <span class="status ${item.status}">${statusLabel[item.status]}</span>
+      </div>
+      ${item.memo ? `<div class="req-reason">${escapeHTML(item.memo)}</div>` : ''}
+      ${item.photo ? `
+        <button class="action btn-ghost" data-toggle-photo="${item.id}" style="margin-top:6px; padding:6px 10px; font-size:11px;">📷 인증사진 보기/숨기기</button>
+        ${item.photoAt ? `<div class="req-meta" style="margin-top:4px;">📅 ${fmtTime(item.photoAt)} 업로드</div>` : ''}
+        <img data-photo-img="${item.id}" src="${item.photo}" style="display:none; width:100%; border-radius:10px; margin-top:8px;">
+      ` : ''}
+    </div>
+  `).join('');
+
+  decidedList.querySelectorAll('button[data-toggle-photo]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const img = decidedList.querySelector(`img[data-photo-img="${btn.dataset.togglePhoto}"]`);
+      if(img) img.style.display = img.style.display === 'none' ? 'block' : 'none';
+    });
+  });
+
+  document.getElementById('S-lockBtn').addEventListener('click', ()=>{ adminUnlocked = false; renderAdmin(); });
+  document.getElementById('S-changePwBtn').addEventListener('click', async ()=>{
+    const cur = prompt('현재 비밀번호를 입력해주세요.');
+    if(simpleHash(cur||'') !== state.adminPasswordHash){ alert('현재 비밀번호가 맞지 않아요.'); return; }
+    const np = prompt('새 비밀번호를 입력해주세요.');
+    if(!np) return;
+    state.adminPasswordHash = simpleHash(np);
+    await saveState();
+    alert('비밀번호가 변경됐어요.');
+  });
+  document.getElementById('S-resetBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('S-resetBtn');
+    if(btn.dataset.confirming !== '1'){
+      btn.dataset.confirming = '1';
+      btn.textContent = '진짜 삭제할까요? (다시 누르면 삭제됨)';
+      setTimeout(()=>{ if(btn.dataset.confirming==='1'){ btn.dataset.confirming=''; btn.textContent='신청내역 초기화'; } }, 4000);
+      return;
+    }
+    btn.dataset.confirming = '';
+    state.requests = [];
+    await saveState();
+    renderAdmin();
+  });
+}
+
+/* ---------------- 탭 전환 ---------------- */
+document.getElementById('S-btnApplicant').addEventListener('click', ()=>{
+  view = 'applicant';
+  document.getElementById('S-btnApplicant').classList.add('active');
+  document.getElementById('S-btnAdmin').classList.remove('active');
+  document.getElementById('S-view-applicant').style.display = 'block';
+  document.getElementById('S-view-admin').style.display = 'none';
+  renderApplicant();
+});
+document.getElementById('S-btnAdmin').addEventListener('click', ()=>{
+  view = 'admin';
+  document.getElementById('S-btnAdmin').classList.add('active');
+  document.getElementById('S-btnApplicant').classList.remove('active');
+  document.getElementById('S-view-admin').style.display = 'block';
+  document.getElementById('S-view-applicant').style.display = 'none';
+  renderAdmin();
+});
+
+window.addEventListener('error', (ev)=>{
+  const elx = document.getElementById(view === 'admin' ? 'S-view-admin' : 'S-view-applicant');
+  if(elx && !state){
+    elx.innerHTML = `<div class="empty">오류가 발생했어요 😢<br><span style="font-size:11px">${escapeHTML(ev.message || String(ev.error))}</span></div>`;
+  }
+});
+
+renderApplicant();
+
+})();
+</script>
+<script>
+  const siteTabLeave = document.getElementById('siteTabLeave');
+  const siteTabSmoke = document.getElementById('siteTabSmoke');
+  const appLeave = document.getElementById('app-leave');
+  const appSmoke = document.getElementById('app-smoke');
+
+  function showLeave(){
+    siteTabLeave.classList.add('active');
+    siteTabSmoke.classList.remove('active');
+    appLeave.style.display = 'block';
+    appSmoke.style.display = 'none';
+    document.title = '이토끼 유흥연차결재';
+  }
+  function showSmoke(){
+    siteTabSmoke.classList.add('active');
+    siteTabLeave.classList.remove('active');
+    appSmoke.style.display = 'block';
+    appLeave.style.display = 'none';
+    document.title = '흡연시간 결재';
+  }
+  siteTabLeave.addEventListener('click', showLeave);
+  siteTabSmoke.addEventListener('click', showSmoke);
 </script>
 </body>
 </html>
