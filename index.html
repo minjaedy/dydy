@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="2026-10-01-r">
+<meta name="app-version" content="2026-10-01-s">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1573,7 +1573,7 @@ function applyYearRollover(){
 
 /* 실시간 동기화: 다른 기기에서 신청/결재하면 자동으로 화면이 갱신됨 */
 const APPLICANT_FIELD_IDS = ['L-theDate','L-startTime','L-endTime','L-place','L-companion','L-ackCheck'];
-const ADMIN_FIELD_IDS = ['L-bonusAmount','L-bonusReason','L-pwInput','L-pw1','L-pw2'];
+const ADMIN_FIELD_IDS = ['L-bonusAmount','L-bonusReason','L-penaltyAmount','L-penaltyReason','L-pwInput','L-pw1','L-pw2'];
 
 function captureDraft(ids){
   const d = {};
@@ -2105,6 +2105,20 @@ function renderAdmin(){
     </div>
 
     <div class="card">
+      <h2>⚖️ 유흥연차 차감</h2>
+      <p style="font-size:12px; color:var(--muted); margin-top:-4px;">현재 보유 ${state.balance}일에서 뺍니다.</p>
+      <div class="field">
+        <label>차감 일수 (0.5 단위)</label>
+        <input type="number" id="L-penaltyAmount" min="0.5" max="${Math.max(0.5, state.balance)}" step="0.5" value="0.5">
+      </div>
+      <div class="field">
+        <label>차감 사유</label>
+        <input type="text" id="L-penaltyReason" placeholder="예) 귀가 시간 미준수">
+      </div>
+      <button class="action btn-reject" id="L-penaltyBtn" style="width:100%;">차감하기</button>
+    </div>
+
+    <div class="card">
       <h2>처리 내역</h2>
       <div id="L-decidedList">${decided.length===0 ? '<div class="empty">아직 처리한 내역이 없어요.</div>' : ''}</div>
     </div>
@@ -2237,6 +2251,34 @@ function renderAdmin(){
     setTimeout(()=>FX.confetti(), 700);
     FX.edgeFlash('rgba(255,215,140,.8)');
     FX.toast(`포상 유흥연차 ${amt}일을 지급했어요!`);
+    renderAdmin();
+  });
+
+  document.getElementById('L-penaltyBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('L-penaltyBtn');
+    let amt = parseFloat(document.getElementById('L-penaltyAmount').value);
+    if(isNaN(amt) || amt <= 0){ FX.toast('차감 일수를 입력해주세요.', 'warn'); return; }
+    if(amt > state.balance){ FX.toast(`보유 유흥연차(${state.balance}일)보다 많이 뺄 수 없어요.`, 'warn'); return; }
+
+    if(btn.dataset.confirming !== '1'){
+      btn.dataset.confirming = '1';
+      btn.textContent = `정말 ${amt}일 차감할까요? (다시 누르면 차감)`;
+      setTimeout(()=>{
+        if(btn.dataset.confirming==='1'){ btn.dataset.confirming=''; btn.textContent='차감하기'; }
+      }, 4000);
+      return;
+    }
+    btn.dataset.confirming = '';
+
+    const reason = document.getElementById('L-penaltyReason').value.trim();
+    state.balance = Math.round((state.balance - amt) * 10) / 10;
+    state.history.unshift({ note:`유흥연차 차감: ${amt}일${reason ? ' — '+reason : ''}`, at:new Date().toISOString() });
+    await saveState();
+    FX.sad(FX.ICONS.leave);
+    FX.edgeFlash('rgba(190,170,160,.7)');
+    FX.haptic(26);
+    FX.toast(`유흥연차 ${amt}일을 차감했어요`, 'warn');
+    notifyTelegram(CHAT_ID_이토끼, `⚖️ 유흥연차 ${amt}일이 차감됐어요${reason ? ' — '+reason : ''}. 남은 유흥연차 ${state.balance}일`);
     renderAdmin();
   });
 
