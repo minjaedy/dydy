@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="2026-10-01-c">
+<meta name="app-version" content="2026-10-01-h">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -403,6 +403,12 @@
     100%{ transform:translateY(-50%) rotate(360deg) scale(1); }
   }
   .switcher{ max-width:min(380px, calc(100% - 56px)); }
+
+  /* iOS 입력 시 자동 확대 방지 — 16px 미만이면 확대됨 */
+  #app-leave input, #app-leave textarea, #app-leave select,
+  #app-smoke input, #app-smoke textarea, #app-smoke select{
+    font-size:16px !important;
+  }
 
   /* ── 신나는 토끼 ── */
   .happy{ position:fixed; inset:0; z-index:287; pointer-events:none;
@@ -1276,9 +1282,7 @@ function renderApplicant(){
     const days = hoursToDays(hours);
     badge.textContent = `${days}일 (${hours}시간)`;
     if(!d){ warnText.textContent=''; return; }
-    if(isWeekend(d)){
-      warnText.textContent = '주말에는 신청할 필요 없어요.';
-    } else if(touchesBlackout(d)){
+    if(touchesBlackout(d)){
       warnText.textContent = '6·7·8월에는 유흥연차를 사용할 수 없어요.';
     } else if(days > state.balance){
       warnText.textContent = `보유 유흥연차(${state.balance}일)보다 많아요.`;
@@ -1312,7 +1316,6 @@ function renderApplicant(){
     if(!ackCheck.checked){ alert('준수사항을 확인해주세요.'); return; }
     const d = dateInput.value;
     if(!d){ alert('날짜를 입력해주세요.'); return; }
-    if(isWeekend(d)){ alert('주말에는 신청할 필요 없어요.'); return; }
     const hours = timeRangeHours(startT.value, endT.value);
     if(hours <= 0){ alert('종료 시간이 시작 시간보다 늦어야 해요.'); return; }
     if(hours > MAX_HOURS_PER_DAY){ alert(`1일 최대 ${MAX_HOURS_PER_DAY}시간까지만 신청할 수 있어요.`); return; }
@@ -2258,9 +2261,6 @@ function renderAdmin(){
       if(r.status !== 'approved') return false;
       const d = new Date(r.submittedAt);
       if(d < weekStart) return false;
-      const dow = d.getDay();
-      if(dow === 0 || dow === 6) return false; // 주말 제외
-      if(d.getHours() >= 20) return false; // 저녁 8시 이후 신청 제외
       return true;
     });
     const totalCount = relevant.length;
@@ -2277,7 +2277,7 @@ function renderAdmin(){
   el.innerHTML = `
     <div class="card">
       <h2>이번 주 통계</h2>
-      <p style="font-size:11px; color:var(--muted); margin-top:-6px;">평일 기준 · 오후 8시 이전 신청만 집계</p>
+      
       <div class="req-meta">이번 주 ${stats.totalCount}회 · 총 ${stats.totalMinutes}분 사용 · 평균 ${stats.avgMinutes}분</div>
     </div>
     <div class="card">
@@ -2573,23 +2573,6 @@ renderApplicant();
     }
   };
   setTimeout(window.updateDailyStrip, 2100);
-
-  /* ── 스와이프로 탭 전환 ── */
-  (function(){
-    var sx = 0, sy = 0, tracking = false;
-    document.addEventListener('touchstart', function(e){
-      if(e.touches.length !== 1) return;
-      sx = e.touches[0].clientX; sy = e.touches[0].clientY; tracking = true;
-    }, {passive:true});
-    document.addEventListener('touchend', function(e){
-      if(!tracking) return;
-      tracking = false;
-      var t = e.changedTouches[0];
-      var dx = t.clientX - sx, dy = t.clientY - sy;
-      if(Math.abs(dx) < 68 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
-      if(dx < 0) showSmoke(); else showLeave();
-    }, {passive:true});
-  })();
 
   document.getElementById('bootIcon').src = FX.COMBO_ICON;
   setTimeout(function(){
