@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="2026-10-01-a">
+<meta name="app-version" content="2026-10-01-b">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -404,6 +404,91 @@
   }
   .switcher{ max-width:min(380px, calc(100% - 56px)); }
 
+  /* ── 신나는 토끼 ── */
+  .happy{ position:fixed; inset:0; z-index:287; pointer-events:none;
+    display:flex; align-items:center; justify-content:center; }
+  .happy img{
+    width:120px; height:120px; border-radius:27px; object-fit:cover;
+    box-shadow:0 12px 32px rgba(0,0,0,.3);
+    animation:hop 1.9s cubic-bezier(.3,1.3,.5,1) both;
+  }
+  @keyframes hop{
+    0%{ transform:scale(.5) translateY(40px) rotate(-10deg); opacity:0; }
+    16%{ transform:scale(1.08) translateY(0) rotate(4deg); opacity:1; }
+    30%{ transform:scale(1) translateY(-26px) rotate(-5deg); }
+    42%{ transform:scale(1) translateY(0) rotate(3deg); }
+    54%{ transform:scale(1) translateY(-18px) rotate(-4deg); }
+    66%{ transform:scale(1) translateY(0) rotate(2deg); }
+    78%{ transform:scale(1) translateY(-9px) rotate(0deg); }
+    88%{ transform:scale(1) translateY(0); opacity:1; }
+    100%{ transform:scale(1.12) translateY(-16px); opacity:0; }
+  }
+  .happy i{
+    position:absolute; font-size:24px; opacity:0;
+    animation:heartUp 1.9s ease-out forwards;
+  }
+  @keyframes heartUp{
+    0%{ transform:translate(0,0) scale(.4); opacity:0; }
+    22%{ opacity:1; }
+    100%{ transform:translate(var(--dx,0), -170px) scale(1.25); opacity:0; }
+  }
+
+  /* ── 오늘 요약 / 인사 배너 ── */
+  .daily-strip{
+    max-width:420px; margin:12px auto -4px; padding:0 16px;
+  }
+  .daily-strip .inner{
+    border-radius:14px; padding:11px 15px;
+    background:rgba(255,255,255,.72); backdrop-filter:blur(8px);
+    box-shadow:0 2px 12px rgba(120,80,70,.1);
+    font-size:13px; color:#6B5752; line-height:1.55;
+    animation:stripIn .5s ease both;
+  }
+  .daily-strip .hi{ font-family:'Gaegu',cursive; font-size:16px; font-weight:700; color:#5A3B38; }
+  html[data-theme="dark"] .daily-strip .inner{ background:rgba(255,255,255,.07); color:#BFB0AC; }
+  html[data-theme="dark"] .daily-strip .hi{ color:#EBD9D4; }
+  @keyframes stripIn{ from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:none;} }
+
+  /* ── 다시 신청 버튼 ── */
+  .repeat-btn{
+    width:100%; margin-top:8px; padding:9px; border-radius:12px; cursor:pointer;
+    border:1.5px dashed rgba(0,0,0,.18); background:transparent;
+    font-family:'Noto Sans KR',sans-serif; font-size:12.5px; font-weight:600; color:inherit;
+    transition:transform .16s cubic-bezier(.34,1.3,.64,1), border-color .2s;
+  }
+  .repeat-btn:active{ transform:scale(.97); }
+  html[data-theme="dark"] .repeat-btn{ border-color:rgba(255,255,255,.2); }
+
+  /* ── 결재자 확인 중 ── */
+  .watching{
+    display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--muted);
+  }
+  .watching b{ width:6px; height:6px; border-radius:50%; background:#7BC98F; display:inline-block;
+    animation:livePulse 1.4s ease-in-out infinite; }
+  @keyframes livePulse{ 0%,100%{opacity:.35; transform:scale(.85);} 50%{opacity:1; transform:scale(1.15);} }
+
+  /* ── 월별 기록 ── */
+  .month-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:8px; }
+  .month-grid .d{
+    aspect-ratio:1; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    font-size:10.5px; font-family:'Noto Sans KR',sans-serif;
+    background:rgba(0,0,0,.045); color:var(--muted);
+  }
+  html[data-theme="dark"] .month-grid .d{ background:rgba(255,255,255,.05); }
+  .month-grid .d.lv1{ background:#FBE3C8; color:#8A6424; }
+  .month-grid .d.lv2{ background:#F6C98E; color:#714E14; }
+  .month-grid .d.lv3{ background:#EFA85C; color:#fff; }
+  .month-grid .d.head{ background:none; font-size:10px; opacity:.6; }
+  .month-nav{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .month-nav button{
+    border:0; background:rgba(0,0,0,.05); border-radius:8px; padding:5px 11px; cursor:pointer;
+    font-size:14px; color:inherit;
+  }
+  html[data-theme="dark"] .month-nav button{ background:rgba(255,255,255,.08); }
+
+  /* ── 스와이프 힌트 ── */
+  .app-panel{ touch-action:pan-y; }
+
   @media (prefers-reduced-motion: reduce){
     *, *::before, *::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
   }
@@ -650,6 +735,8 @@
   </button>
 </div>
 
+<div class="daily-strip" id="dailyStrip" style="display:none"><div class="inner" id="dailyInner"></div></div>
+
 <div class="splash" id="siteSplash" aria-hidden="true">
   <img class="glyph" id="splashGlyph" alt="">
   <div class="label" id="splashLabel">유흥연차</div>
@@ -820,6 +907,34 @@ window.FX = (function(){
     return html + '</div>';
   }
 
+  /* 신나는 토끼 */
+  function happy(iconSrc){
+    if(reduce) return;
+    var layer = document.createElement('div');
+    layer.className = 'happy';
+    var img = document.createElement('img');
+    img.src = iconSrc;
+    layer.appendChild(img);
+    var marks = ['\u2728','\ud83c\udf89','\ud83d\udcab','\u2764\ufe0f','\u2728'];
+    for(var i=0;i<9;i++){
+      var p = document.createElement('i');
+      p.textContent = marks[i % marks.length];
+      p.style.left = 'calc(50% + '+(-54 + Math.random()*108)+'px)';
+      p.style.top = 'calc(50% - '+(Math.random()*30)+'px)';
+      p.style.setProperty('--dx', (-56 + Math.random()*112)+'px');
+      p.style.animationDelay = (0.15 + Math.random()*0.8)+'s';
+      layer.appendChild(p);
+    }
+    document.body.appendChild(layer);
+    setTimeout(function(){ layer.remove(); }, 2200);
+  }
+
+  function greeting(name){
+    var h = new Date().getHours();
+    var when = h < 6 ? '늦은 밤이네요' : h < 12 ? '좋은 아침이에요' : h < 18 ? '좋은 오후예요' : '수고 많으셨어요';
+    return when + ', ' + name + '님! 오늘도 파이팅 하자!';
+  }
+
   function flashStatus(root){
     if(reduce || !root) return;
     root.querySelectorAll('.status').forEach(function(s){
@@ -831,7 +946,7 @@ window.FX = (function(){
 
   return { toast:toast, confetti:confetti, smoke:smoke, rollNumber:rollNumber,
            inkSpread:inkSpread, pop:pop, haptic:haptic, puff:puff,
-           skeleton:skeleton, flashStatus:flashStatus,
+           skeleton:skeleton, flashStatus:flashStatus, happy:happy, greeting:greeting,
            COMBO_ICON:COMBO_ICON, ICONS:ICONS, reduce:reduce };
 })();
 </script>
@@ -1114,6 +1229,12 @@ function renderApplicant(){
         </label>
       </div>
       <button class="action btn-primary" id="L-submitBtn" disabled>신청서 제출</button>
+      ${(function(){
+        const last = state.requests.filter(r=>r.status!=='rejected')
+          .sort((a,b)=>b.submittedAt.localeCompare(a.submittedAt))[0];
+        if(!last) return '';
+        return `<button class="repeat-btn" id="L-repeatBtn">↻ 지난번처럼 (${escapeHTML(last.place||'')})</button>`;
+      })()}
     </div>
 
     <div class="card">
@@ -1165,6 +1286,22 @@ function renderApplicant(){
       warnText.textContent = '';
     }
   }
+  const lRepeat = document.getElementById('L-repeatBtn');
+  if(lRepeat){
+    lRepeat.addEventListener('click', ()=>{
+      const last = state.requests.filter(r=>r.status!=='rejected')
+        .sort((a,b)=>b.submittedAt.localeCompare(a.submittedAt))[0];
+      if(!last) return;
+      if(last.startTime) startT.value = last.startTime;
+      if(last.endTime) endT.value = last.endTime;
+      document.getElementById('L-place').value = last.place || '';
+      document.getElementById('L-companion').value = last.companion || '';
+      validate();
+      FX.haptic(10);
+      FX.toast('지난번 내용을 불러왔어요');
+    });
+  }
+
   dateInput.addEventListener('change', validate);
   startT.addEventListener('change', validate);
   endT.addEventListener('change', validate);
@@ -1201,6 +1338,7 @@ function renderApplicant(){
     ackCheck.checked = false;
     refreshSubmitState();
     warnText.textContent='';
+    FX.happy(FX.ICONS.leave);
     FX.toast('제출되었어요! 구마구마님의 결재를 기다려주세요');
     renderApplicant();
   });
@@ -1564,6 +1702,15 @@ document.getElementById('L-btnAdmin').addEventListener('click', ()=>{
   renderAdmin();
 });
 
+window.__leaveSummary = function(){
+  if(!state || !state.requests) return '';
+  const wait = state.requests.filter(r=>r.status==='pending').length;
+  const parts = [];
+  if(wait) parts.push('유흥연차 ' + wait + '건 대기');
+  parts.push('잔여 ' + state.balance + '일');
+  return parts.join(' · ');
+};
+
 window.addEventListener('error', (ev)=>{
   const el = document.getElementById(view === 'admin' ? 'L-view-admin' : 'L-view-applicant');
   if(el && !state){
@@ -1611,6 +1758,7 @@ try{
 let adminUnlocked = false;
 let view = 'applicant';
 let tickInterval = null;
+let monthOffset = 0;
 
 function defaultState(){
   return {
@@ -1778,6 +1926,7 @@ function renderApplicant(){
         <div class="req-meta">${current.minutes}분 신청 · ${escapeHTML(current.memo || '')}
           <span class="status ${current.status}">${statusLabel[current.status]}</span>
         </div>
+        ${current.status === 'pending' ? '<div class="watching"><b></b> 이토끼님 확인을 기다리는 중</div>' : ''}
         ${current.status === 'approved' ? (started ? `
           <button class="action btn-reject" id="S-finishBtn" style="margin-top:8px; width:100%; padding:12px;">✅ 마무리</button>
         ` : `
@@ -1847,12 +1996,74 @@ function renderApplicant(){
           <input type="text" id="S-memo" placeholder="예) 잠깐 바람쐬러">
         </div>
         <button class="action btn-primary" id="S-submitBtn">신청하기</button>
+        ${(function(){
+          const last = state.requests.filter(r=>r.status!=='rejected')
+            .sort((a,b)=>b.submittedAt.localeCompare(a.submittedAt))[0];
+          if(!last) return '';
+          return `<button class="repeat-btn" id="S-repeatBtn">↻ 지난번처럼 (${last.minutes}분${last.memo?' · '+escapeHTML(last.memo):''})</button>`;
+        })()}
+      </div>
+      <div class="card">
+        <h2>이번 달 기록</h2>
+        <div id="S-monthBox"></div>
       </div>
       <div class="card">
         <h2>최근 내역</h2>
         <div id="S-historyMine"></div>
       </div>
     `;
+    // 월별 기록 그리드
+    (function(){
+      const box = document.getElementById('S-monthBox');
+      if(!box) return;
+      const base = new Date();
+      base.setMonth(base.getMonth() + (monthOffset||0));
+      const y = base.getFullYear(), m = base.getMonth();
+      const ym = y+'-'+String(m+1).padStart(2,'0');
+      const counts = {};
+      state.requests.forEach(r=>{
+        if(r.status!=='approved') return;
+        const d = (r.date || (r.submittedAt||'').slice(0,10));
+        if((d||'').indexOf(ym)!==0) return;
+        counts[d] = (counts[d]||0)+1;
+      });
+      const total = Object.values(counts).reduce((a,b)=>a+b,0);
+      const first = new Date(y, m, 1).getDay();
+      const days = new Date(y, m+1, 0).getDate();
+      let html = '<div class="month-nav"><button id="S-monthPrev">‹</button>'+
+        '<span style="font-size:13px;">'+y+'년 '+(m+1)+'월 · 총 '+total+'회</span>'+
+        '<button id="S-monthNext">›</button></div>';
+      html += '<div class="month-grid">';
+      ['일','월','화','수','목','금','토'].forEach(d=>{ html += '<div class="d head">'+d+'</div>'; });
+      for(let i=0;i<first;i++) html += '<div></div>';
+      for(let d=1; d<=days; d++){
+        const key = ym+'-'+String(d).padStart(2,'0');
+        const n = counts[key]||0;
+        const lv = n===0 ? '' : n<=1 ? ' lv1' : n<=3 ? ' lv2' : ' lv3';
+        html += '<div class="d'+lv+'" title="'+n+'회">'+d+'</div>';
+      }
+      html += '</div>';
+      box.innerHTML = html;
+      const prev = document.getElementById('S-monthPrev');
+      const next = document.getElementById('S-monthNext');
+      if(prev) prev.addEventListener('click', ()=>{ monthOffset = (monthOffset||0)-1; renderApplicant(); });
+      if(next) next.addEventListener('click', ()=>{ if((monthOffset||0)<0){ monthOffset++; renderApplicant(); } });
+    })();
+
+    // 지난번처럼 다시 신청
+    const repeatBtn = document.getElementById('S-repeatBtn');
+    if(repeatBtn){
+      repeatBtn.addEventListener('click', ()=>{
+        const last = state.requests.filter(r=>r.status!=='rejected')
+          .sort((a,b)=>b.submittedAt.localeCompare(a.submittedAt))[0];
+        if(!last) return;
+        document.getElementById('S-minutes').value = last.minutes;
+        document.getElementById('S-memo').value = last.memo || '';
+        FX.haptic(10);
+        FX.toast('지난번 내용을 불러왔어요');
+      });
+    }
+
     el.querySelectorAll('button[data-quick-memo]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         document.getElementById('S-memo').value = btn.dataset.quickMemo;
@@ -1871,6 +2082,13 @@ function renderApplicant(){
       await saveState();
       notifyTelegram(CHAT_ID_이토끼, `💨 구마구마님이 흡연 ${minutes}분 신청했어요${memo ? ' — '+memo : ''}. 결재 부탁해요!`);
       FX.toast('신청했어요! 이토끼님의 결재를 기다려주세요');
+      (function(){
+        const today = new Date().toISOString().slice(0,10);
+        const n = state.requests.filter(r=>
+          (r.date||(r.submittedAt||'').slice(0,10))===today && r.status!=='rejected').length;
+        if(n > 5) setTimeout(()=>FX.toast('오늘 벌써 '+n+'번째예요... 고구마가 걱정해요', 'warn'), 2900);
+      })();
+      if(window.updateDailyStrip) window.updateDailyStrip();
       renderApplicant();
     });
   }
@@ -2181,6 +2399,18 @@ document.getElementById('S-btnAdmin').addEventListener('click', ()=>{
   renderAdmin();
 });
 
+window.__smokeSummary = function(){
+  if(!state || !state.requests) return '';
+  const today = new Date().toISOString().slice(0,10);
+  const list = state.requests.filter(r=>(r.date||(r.submittedAt||'').slice(0,10))===today);
+  const done = list.filter(r=>r.status==='approved').length;
+  const wait = list.filter(r=>r.status==='pending').length;
+  if(!done && !wait) return '';
+  let s = '오늘 흡연 ' + done + '회';
+  if(wait) s += ' · 대기 ' + wait + '건';
+  return s;
+};
+
 window.addEventListener('error', (ev)=>{
   const elx = document.getElementById(view === 'admin' ? 'S-view-admin' : 'S-view-applicant');
   if(elx && !state){
@@ -2312,6 +2542,53 @@ renderApplicant();
     });
     setTimeout(check, 3000);
     setInterval(check, 600000);
+  })();
+
+  /* ── 오늘 인사 + 요약 (하루 한 번) ── */
+  window.updateDailyStrip = function(){
+    var strip = document.getElementById('dailyStrip');
+    var inner = document.getElementById('dailyInner');
+    if(!strip || !inner) return;
+    var today = new Date().toISOString().slice(0,10);
+    var seen = null;
+    try{ seen = localStorage.getItem('dydy_greet'); }catch(e){}
+
+    var who = (current === 'smoke') ? '구마구마' : '이토끼';
+    var html = '';
+    if(seen !== today){
+      html += '<div class="hi">' + FX.greeting(who) + '</div>';
+    }
+
+    var bits = [];
+    if(window.__leaveSummary) bits.push(window.__leaveSummary());
+    if(window.__smokeSummary) bits.push(window.__smokeSummary());
+    bits = bits.filter(Boolean);
+    if(bits.length) html += bits.join(' · ');
+
+    if(html){ inner.innerHTML = html; strip.style.display = 'block'; }
+    else strip.style.display = 'none';
+
+    if(seen !== today){
+      try{ localStorage.setItem('dydy_greet', today); }catch(e){}
+    }
+  };
+  setTimeout(window.updateDailyStrip, 2100);
+
+  /* ── 스와이프로 탭 전환 ── */
+  (function(){
+    var sx = 0, sy = 0, tracking = false;
+    document.addEventListener('touchstart', function(e){
+      if(e.touches.length !== 1) return;
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY; tracking = true;
+    }, {passive:true});
+    document.addEventListener('touchend', function(e){
+      if(!tracking) return;
+      tracking = false;
+      var t = e.changedTouches[0];
+      var dx = t.clientX - sx, dy = t.clientY - sy;
+      if(Math.abs(dx) < 68 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+      if(dx < 0) showSmoke(); else showLeave();
+    }, {passive:true});
   })();
 
   document.getElementById('bootIcon').src = FX.COMBO_ICON;
