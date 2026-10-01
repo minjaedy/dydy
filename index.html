@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="2026-10-01-i">
+<meta name="app-version" content="2026-10-01-q">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -409,11 +409,366 @@
   }
   .switcher{ max-width:min(380px, calc(100% - 56px)); }
 
+  /* ── 승인 시 카드 뒤집기 ── */
+  .card.flip-approve{ animation:cardFlip .8s cubic-bezier(.4,.9,.3,1) both; transform-style:preserve-3d; }
+  @keyframes cardFlip{
+    0%{ transform:perspective(900px) rotateX(0); }
+    50%{ transform:perspective(900px) rotateX(-180deg); }
+    100%{ transform:perspective(900px) rotateX(-360deg); }
+  }
+
+  /* ── 대기 중 카드 은은한 빛 ── */
+  .glow-wait{ position:relative; }
+  .glow-wait::after{
+    content:''; position:absolute; inset:-1px; border-radius:inherit; pointer-events:none;
+    box-shadow:0 0 0 0 rgba(240,180,110,.55);
+    animation:waitGlow 2.4s ease-in-out infinite;
+  }
+  @keyframes waitGlow{
+    0%,100%{ box-shadow:0 0 0 0 rgba(240,180,110,0); }
+    50%{ box-shadow:0 0 18px 2px rgba(240,180,110,.42); }
+  }
+
+  /* ── 선물 반짝 (포상 연차) ── */
+  .gift{ position:fixed; inset:0; z-index:288; pointer-events:none;
+    display:flex; align-items:center; justify-content:center; }
+  .gift .box{
+    font-size:84px; animation:giftShake 2.1s cubic-bezier(.3,1.2,.4,1) both;
+    filter:drop-shadow(0 8px 24px rgba(0,0,0,.3));
+  }
+  @keyframes giftShake{
+    0%{ transform:scale(.4) rotate(0); opacity:0; }
+    14%{ transform:scale(1.1) rotate(0); opacity:1; }
+    24%{ transform:scale(1) rotate(-13deg); }
+    34%{ transform:scale(1) rotate(13deg); }
+    44%{ transform:scale(1) rotate(-10deg); }
+    54%{ transform:scale(1) rotate(10deg); }
+    64%{ transform:scale(1.22) rotate(0); }
+    80%{ transform:scale(1.1) rotate(0); opacity:1; }
+    100%{ transform:scale(1.5) rotate(0); opacity:0; }
+  }
+  .gift i{
+    position:absolute; width:4px; height:4px; border-radius:50%; background:#FFD98A;
+    box-shadow:0 0 8px 2px rgba(255,217,138,.85);
+    animation:sparkOut 1.5s ease-out forwards;
+  }
+  @keyframes sparkOut{
+    0%{ transform:translate(0,0) scale(0); opacity:0; }
+    20%{ opacity:1; transform:scale(1.6); }
+    100%{ transform:translate(var(--sx,0), var(--sy,0)) scale(.2); opacity:0; }
+  }
+
+  /* ── 화면 가장자리 빛 번짐 ── */
+  .edge-flash{
+    position:fixed; inset:0; z-index:284; pointer-events:none;
+    animation:edgeFlash .9s ease-out forwards;
+  }
+  @keyframes edgeFlash{
+    0%{ box-shadow:inset 0 0 0 0 var(--fc, rgba(130,200,150,.8)); opacity:0; }
+    22%{ box-shadow:inset 0 0 70px 14px var(--fc, rgba(130,200,150,.8)); opacity:1; }
+    100%{ box-shadow:inset 0 0 0 0 var(--fc, rgba(130,200,150,0)); opacity:0; }
+  }
+
+  /* ── 버튼 물결 ── */
+  .ripple{ position:absolute; border-radius:50%; transform:translate(-50%,-50%);
+    background:rgba(255,255,255,.55); pointer-events:none;
+    animation:rippleOut .62s ease-out forwards; }
+  @keyframes rippleOut{
+    0%{ width:0; height:0; opacity:.7; }
+    100%{ width:260px; height:260px; opacity:0; }
+  }
+  #app-leave button, #app-smoke button, .seg, .theme-btn{ position:relative; overflow:hidden; }
+
+  /* ── 타이머 원형 게이지 ── */
+  .ring-wrap{ position:relative; display:inline-flex; align-items:center; justify-content:center; }
+  .ring-wrap svg{ transform:rotate(-90deg); }
+  .ring-wrap .track{ stroke:rgba(0,0,0,.08); fill:none; stroke-width:7; }
+  .ring-wrap .prog{ stroke:var(--ok,#6FA8A0); fill:none; stroke-width:7; stroke-linecap:round;
+    transition:stroke-dashoffset 1s linear, stroke .5s ease; }
+  .ring-wrap.urgent .prog{ stroke:#D96C7A; }
+  .ring-wrap .inside{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  html[data-theme="dark"] .ring-wrap .track{ stroke:rgba(255,255,255,.1); }
+
+  /* ── 숫자 깜빡 ── */
+  .flash-in{ animation:flashIn .5s ease both; }
+  @keyframes flashIn{
+    0%{ opacity:0; transform:translateY(-6px) scale(.9); }
+    60%{ transform:translateY(0) scale(1.08); }
+    100%{ opacity:1; transform:scale(1); }
+  }
+
   /* iOS 입력 시 자동 확대 방지 — 16px 미만이면 확대됨 */
   #app-leave input, #app-leave textarea, #app-leave select,
   #app-smoke input, #app-smoke textarea, #app-smoke select{
     font-size:16px !important;
   }
+
+  /* iOS date/time 입력칸이 넘치지 않도록 */
+  #app-leave input[type="date"], #app-leave input[type="time"],
+  #app-smoke input[type="date"], #app-smoke input[type="time"]{
+    -webkit-appearance:none; appearance:none;
+    min-width:0; max-width:100%; width:100%;
+  }
+  #app-leave .row2, #app-smoke .row2{ min-width:0; }
+  #app-leave .row2 > div, #app-smoke .row2 > div{ min-width:0; flex:1 1 0; }
+  #app-leave .field, #app-smoke .field{ min-width:0; }
+  #app-leave main, #app-smoke main{ overflow-x:hidden; }
+
+  /* ── 입력칸 포커스 ── */
+  #app-leave .field input:focus, #app-leave .field textarea:focus, #app-leave .field select:focus,
+  #app-smoke .field input:focus, #app-smoke .field textarea:focus, #app-smoke .field select:focus{
+    outline:none;
+    border-color:var(--lavender, var(--slate));
+    box-shadow:0 0 0 3px rgba(160,140,200,.16);
+    transition:border-color .2s, box-shadow .2s;
+  }
+  #app-smoke .field input:focus, #app-smoke .field textarea:focus, #app-smoke .field select:focus{
+    box-shadow:0 0 0 3px rgba(120,160,185,.16);
+  }
+
+  /* ── 체크박스 ── */
+  #app-leave input[type="checkbox"], #app-smoke input[type="checkbox"]{
+    accent-color:var(--lavender, #9BB7C9);
+    transition:transform .18s cubic-bezier(.34,1.5,.64,1);
+  }
+  #app-leave input[type="checkbox"]:checked, #app-smoke input[type="checkbox"]:checked{
+    transform:scale(1.14);
+  }
+
+  /* ── 카드 순차 등장 ── */
+  #app-leave .card:nth-child(1), #app-smoke .card:nth-child(1){ animation-delay:0s; }
+  #app-leave .card:nth-child(2), #app-smoke .card:nth-child(2){ animation-delay:.05s; }
+  #app-leave .card:nth-child(3), #app-smoke .card:nth-child(3){ animation-delay:.1s; }
+  #app-leave .card:nth-child(4), #app-smoke .card:nth-child(4){ animation-delay:.15s; }
+  #app-leave .card:nth-child(5), #app-smoke .card:nth-child(5){ animation-delay:.2s; }
+
+  /* ── 비활성 버튼 ── */
+  #app-leave button:disabled, #app-smoke button:disabled{
+    opacity:.55; cursor:not-allowed; filter:grayscale(.3);
+  }
+  #app-leave button:disabled:active, #app-smoke button:disabled:active{ transform:none; }
+
+  /* ── 토스트 겹침 방지 ── */
+  .fx-toast{ bottom:calc(34px + env(safe-area-inset-bottom, 0px)); }
+
+  /* ── 스크롤바 ── */
+  ::-webkit-scrollbar{ width:9px; height:9px; }
+  ::-webkit-scrollbar-thumb{ background:rgba(0,0,0,.16); border-radius:9px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  html[data-theme="dark"] ::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.16); }
+
+  /* ── 텍스트 선택 색 ── */
+  ::selection{ background:rgba(245,175,192,.4); }
+
+  /* ── 스크롤 시 헤더 그림자 ── */
+  .top-banner{ transition:background .5s ease, box-shadow .3s ease; }
+  .top-banner.scrolled{ box-shadow:0 4px 18px rgba(0,0,0,.1); }
+  html[data-theme="dark"] .top-banner.scrolled{ box-shadow:0 4px 18px rgba(0,0,0,.4); }
+
+  /* ── 버튼 길게 눌러도 선택 안 되게 ── */
+  .seg, .theme-btn, #app-leave button, #app-smoke button{
+    user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
+  }
+
+  /* ── 라벨 간격 다듬기 ── */
+  #app-leave .field label, #app-smoke .field label{ letter-spacing:.01em; }
+
+  /* ── 상태 배지 글꼴 통일 ── */
+  .status, .badge{ font-variant-numeric:tabular-nums; }
+
+  /* ── 타이머 숫자 자릿수 흔들림 방지 ── */
+  #app-smoke .timer-num{ font-variant-numeric:tabular-nums; }
+
+  /* ── 카드 눌림 ── */
+  #app-leave .card, #app-smoke .card{ transition:box-shadow .25s ease; }
+
+  /* ── 탭 썸 이동 시 잔상 ── */
+  .switcher .thumb::after{
+    content:''; position:absolute; inset:0; border-radius:inherit;
+    background:inherit; opacity:0; filter:blur(10px);
+    transition:opacity .4s ease;
+  }
+  .switcher.moving .thumb::after{ opacity:.55; }
+
+  /* ── 삭제/취소 시 사라지는 애니메이션 ── */
+  .vanish{ animation:vanishOut .4s cubic-bezier(.5,0,.75,0) both; }
+  @keyframes vanishOut{
+    0%{ opacity:1; transform:translateX(0) scale(1); max-height:400px; }
+    60%{ opacity:0; transform:translateX(-36px) scale(.94); }
+    100%{ opacity:0; transform:translateX(-36px) scale(.9); max-height:0; margin:0; padding-top:0; padding-bottom:0; }
+  }
+
+  /* ── 확인 대기 버튼 ── */
+  .btn-ghost[data-confirming="1"], .action[data-confirming="1"]{
+    animation:confirmPulse 1s ease-in-out infinite;
+  }
+  @keyframes confirmPulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(217,108,122,.4); }
+    50%{ box-shadow:0 0 0 7px rgba(217,108,122,0); }
+  }
+
+  /* ── 시작 버튼 숨쉬기 ── */
+  #S-startBtn{ animation:readyBreathe 2.2s ease-in-out infinite; }
+  @keyframes readyBreathe{
+    0%,100%{ box-shadow:0 0 0 0 rgba(111,168,160,.45); transform:scale(1); }
+    50%{ box-shadow:0 0 0 9px rgba(111,168,160,0); transform:scale(1.012); }
+  }
+
+  /* ── 잔여 연차 게이지 ── */
+  .balance-bar{
+    height:6px; border-radius:3px; background:rgba(0,0,0,.07);
+    overflow:hidden; margin:10px auto 0; max-width:180px;
+  }
+  .balance-bar i{
+    display:block; height:100%; border-radius:3px;
+    background:linear-gradient(90deg,#F5AFC0,#E890AC);
+    transition:width .9s cubic-bezier(.3,1,.4,1);
+  }
+  html[data-theme="dark"] .balance-bar{ background:rgba(255,255,255,.1); }
+
+  /* ── 월별 격자: 오늘 표시 & 최다일 ── */
+  .month-grid .d.today{ outline:2px solid var(--slate,#8899A5); outline-offset:-2px; font-weight:700; }
+  .month-grid .d.best{ position:relative; }
+  .month-grid .d.best::after{
+    content:'\2605'; position:absolute; top:-3px; right:-1px; font-size:8px; color:#E0A860;
+  }
+
+  /* ── 사진 열릴 때 ── */
+  #app-smoke img[data-photo-img]{ animation:photoIn .4s ease both; }
+  @keyframes photoIn{
+    from{ opacity:0; transform:scale(.96) translateY(-4px); }
+    to{ opacity:1; transform:none; }
+  }
+
+  /* ── 섹션 제목 포인트 ── */
+  #app-leave .card h2, #app-smoke .card h2{ position:relative; padding-left:11px; }
+  #app-leave .card h2::before, #app-smoke .card h2::before{
+    content:''; position:absolute; left:0; top:50%; transform:translateY(-50%);
+    width:3px; height:15px; border-radius:2px; background:var(--lavender, var(--slate)); opacity:.65;
+  }
+
+  /* ── 빈 목록 숨쉬기 ── */
+  #app-leave .empty, #app-smoke .empty{ animation:emptyFade 2.8s ease-in-out infinite; }
+  @keyframes emptyFade{ 0%,100%{opacity:.62;} 50%{opacity:.95;} }
+
+  /* ── 스탬프 그림자 ── */
+  #app-leave .stamp, #app-smoke .stamp{ text-shadow:0 1px 2px rgba(0,0,0,.08); }
+
+  /* ── 시무룩 캐릭터 (반려) ── */
+  .sad{ position:fixed; inset:0; z-index:287; pointer-events:none;
+    display:flex; align-items:center; justify-content:center; }
+  .sad img{
+    width:116px; height:116px; border-radius:26px; object-fit:cover;
+    box-shadow:0 10px 28px rgba(0,0,0,.26);
+    animation:sadSlump 2.1s cubic-bezier(.4,.9,.5,1) both;
+  }
+  @keyframes sadSlump{
+    0%{ transform:scale(.6) translateY(-18px) rotate(0); opacity:0; filter:grayscale(0); }
+    18%{ transform:scale(1.04) translateY(0) rotate(0); opacity:1; }
+    32%{ transform:scale(1) translateY(6px) rotate(-7deg); filter:grayscale(.5); }
+    46%{ transform:scale(.99) translateY(10px) rotate(-11deg); }
+    60%{ transform:scale(.99) translateY(8px) rotate(-8deg); }
+    74%{ transform:scale(.98) translateY(12px) rotate(-12deg); filter:grayscale(.65); }
+    88%{ transform:scale(.97) translateY(14px) rotate(-11deg); opacity:1; }
+    100%{ transform:scale(.9) translateY(26px) rotate(-11deg); opacity:0; filter:grayscale(.7); }
+  }
+  .sad i{
+    position:absolute; font-size:19px; opacity:0;
+    animation:dropFall 2.1s ease-in forwards;
+  }
+  @keyframes dropFall{
+    0%{ transform:translate(0,0) scale(.5); opacity:0; }
+    26%{ opacity:.9; transform:translate(0,10px) scale(1); }
+    100%{ transform:translate(var(--dx,0), 130px) scale(.85); opacity:0; }
+  }
+  .sad .cloud{
+    position:absolute; top:calc(50% - 118px); left:50%; transform:translateX(-50%);
+    font-size:40px; opacity:0;
+    animation:cloudIn 2.1s ease-out both;
+  }
+  @keyframes cloudIn{
+    0%{ opacity:0; transform:translateX(-50%) translateY(14px) scale(.7); }
+    24%{ opacity:.9; transform:translateX(-50%) translateY(0) scale(1); }
+    82%{ opacity:.9; }
+    100%{ opacity:0; transform:translateX(-50%) translateY(-8px) scale(1.05); }
+  }
+
+  /* ── 스플래시 아이콘 빛 번짐 ── */
+  .boot img{ position:relative; }
+  .boot::before{
+    content:''; position:absolute; top:50%; left:50%;
+    width:230px; height:230px; margin:-140px 0 0 -115px; border-radius:50%;
+    background:radial-gradient(circle, rgba(250,200,210,.5), rgba(250,200,210,0) 68%);
+    animation:auraPulse 2.6s ease-in-out infinite;
+  }
+  @keyframes auraPulse{
+    0%,100%{ transform:scale(.9); opacity:.55; }
+    50%{ transform:scale(1.08); opacity:.85; }
+  }
+  html[data-theme="dark"] .boot::before{
+    background:radial-gradient(circle, rgba(180,140,160,.3), rgba(180,140,160,0) 68%);
+  }
+
+  /* ── 제출 버튼 광택 ── */
+  #L-submitBtn:not(:disabled)::before, #S-submitBtn::before{
+    content:''; position:absolute; top:0; left:-60%; width:45%; height:100%;
+    background:linear-gradient(100deg, transparent, rgba(255,255,255,.4), transparent);
+    animation:sheen 3.4s ease-in-out 1.4s infinite;
+  }
+  @keyframes sheen{
+    0%{ left:-60%; } 28%{ left:120%; } 100%{ left:120%; }
+  }
+
+  /* ── 결재함 열릴 때 ── */
+  .unlock-in{ animation:unlockIn .55s cubic-bezier(.3,1.2,.4,1) both; }
+  @keyframes unlockIn{
+    0%{ opacity:0; transform:translateY(12px) scale(.97); filter:blur(3px); }
+    100%{ opacity:1; transform:none; filter:none; }
+  }
+
+  /* ── 날짜가 오늘이면 강조 ── */
+  .today-tag{
+    display:inline-block; margin-left:5px; padding:1px 7px; border-radius:999px;
+    font-size:10px; font-weight:700; background:var(--accent, #E0A860); color:#fff;
+    animation:todayBlink 2.4s ease-in-out infinite;
+  }
+  @keyframes todayBlink{ 0%,100%{opacity:.85;} 50%{opacity:1;} }
+
+  /* ── 사진 썸네일 둥글게 + 확대 ── */
+  #app-smoke img[data-photo-img]{ cursor:zoom-in; transition:transform .3s ease; }
+  #app-smoke img[data-photo-img]:active{ transform:scale(.985); }
+
+  /* ── 선택 중인 라디오/시간 강조 ── */
+  #app-smoke select:focus{ box-shadow:0 0 0 3px rgba(120,160,185,.2); }
+
+  /* ── 로딩 바 색 전환 ── */
+  .boot .bar i{ background:linear-gradient(90deg,#F0A9BC,#F6C46A,#F0A9BC); background-size:200% 100%;
+    animation:bootBar 1.25s ease-in-out infinite, barHue 2.4s linear infinite; }
+  @keyframes barHue{ 0%{background-position:0 0;} 100%{background-position:200% 0;} }
+
+  /* ── 토스트 아이콘 통통 ── */
+  .fx-toast.show svg{ animation:toastIconPop .5s cubic-bezier(.3,1.5,.5,1) .05s both; }
+  @keyframes toastIconPop{
+    0%{ transform:scale(.4); } 60%{ transform:scale(1.18); } 100%{ transform:scale(1); }
+  }
+
+  /* ── 상단 요약 띠 숫자 강조 ── */
+  .daily-strip b{ color:var(--accent,#C98BA0); font-weight:700; }
+
+  /* ── 결재 대기 개수 뱃지 ── */
+  .pending-dot{
+    position:absolute; top:6px; right:9px; width:8px; height:8px; border-radius:50%;
+    background:#E8734E; box-shadow:0 0 0 2px rgba(255,255,255,.85);
+    animation:dotPing 1.8s ease-out infinite;
+  }
+  @keyframes dotPing{
+    0%{ box-shadow:0 0 0 0 rgba(232,115,78,.55), 0 0 0 2px rgba(255,255,255,.85); }
+    70%{ box-shadow:0 0 0 9px rgba(232,115,78,0), 0 0 0 2px rgba(255,255,255,.85); }
+    100%{ box-shadow:0 0 0 0 rgba(232,115,78,0), 0 0 0 2px rgba(255,255,255,.85); }
+  }
+
+  /* ── 긴 글 줄바꿈 ── */
+  #app-leave .req-reason, #app-smoke .req-reason{ overflow-wrap:anywhere; }
 
   /* ── 신나는 토끼 ── */
   .happy{ position:fixed; inset:0; z-index:287; pointer-events:none;
@@ -736,9 +1091,11 @@
     <div class="thumb" aria-hidden="true"></div>
     <button class="seg" id="siteTabLeave" role="tab" aria-selected="true">
       <img id="segIconLeave" alt=""><span>유흥연차</span>
+      <span class="pending-dot" id="dotLeave" style="display:none"></span>
     </button>
     <button class="seg" id="siteTabSmoke" role="tab" aria-selected="false">
       <img id="segIconSmoke" alt=""><span>흡연결재</span>
+      <span class="pending-dot" id="dotSmoke" style="display:none"></span>
     </button>
   </div>
   <button class="theme-btn" id="themeBtn" aria-label="밝기 전환">
@@ -947,6 +1304,102 @@ window.FX = (function(){
     return when + ', ' + name + '님! 오늘도 파이팅 하자!';
   }
 
+  /* 선물 상자 반짝 */
+  function gift(){
+    if(reduce) return;
+    var layer = document.createElement('div');
+    layer.className = 'gift';
+    var box = document.createElement('div');
+    box.className = 'box';
+    box.textContent = '\ud83c\udf81';
+    layer.appendChild(box);
+    for(var i=0;i<22;i++){
+      var s = document.createElement('i');
+      var ang = (Math.PI*2) * (i/22);
+      var dist = 90 + Math.random()*110;
+      s.style.left = '50%'; s.style.top = '50%';
+      s.style.setProperty('--sx', Math.cos(ang)*dist+'px');
+      s.style.setProperty('--sy', Math.sin(ang)*dist+'px');
+      s.style.animationDelay = (0.55 + Math.random()*0.35)+'s';
+      layer.appendChild(s);
+    }
+    document.body.appendChild(layer);
+    setTimeout(function(){ layer.remove(); }, 2300);
+  }
+
+  /* 화면 가장자리 빛 번짐 */
+  function edgeFlash(color){
+    if(reduce) return;
+    var d = document.createElement('div');
+    d.className = 'edge-flash';
+    d.style.setProperty('--fc', color || 'rgba(130,200,150,.8)');
+    document.body.appendChild(d);
+    setTimeout(function(){ d.remove(); }, 1000);
+  }
+
+  /* 버튼 물결 */
+  function attachRipple(){
+    document.addEventListener('click', function(e){
+      var btn = e.target.closest('#app-leave button, #app-smoke button, .seg, .theme-btn');
+      if(!btn || reduce) return;
+      var r = btn.getBoundingClientRect();
+      var w = document.createElement('span');
+      w.className = 'ripple';
+      w.style.left = (e.clientX - r.left)+'px';
+      w.style.top = (e.clientY - r.top)+'px';
+      btn.appendChild(w);
+      setTimeout(function(){ w.remove(); }, 700);
+    }, true);
+  }
+
+  /* 카드 뒤집기 */
+  function flipCard(cardEl){
+    if(reduce || !cardEl) return;
+    cardEl.classList.remove('flip-approve');
+    void cardEl.offsetWidth;
+    cardEl.classList.add('flip-approve');
+  }
+
+  /* 아직 못 본 결재 결과가 있으면 알려줌 */
+  function pickUnseen(key, items){
+    var seen = {};
+    try{ seen = JSON.parse(localStorage.getItem(key) || '{}'); }catch(e){}
+    var fresh = [];
+    var next = {};
+    items.forEach(function(it){
+      next[it.id] = it.status;
+      if(seen[it.id] !== undefined && seen[it.id] !== it.status) fresh.push(it);
+    });
+    try{ localStorage.setItem(key, JSON.stringify(next)); }catch(e){}
+    return fresh;
+  }
+
+  /* 시무룩한 캐릭터 */
+  function sad(iconSrc){
+    if(reduce) return;
+    var layer = document.createElement('div');
+    layer.className = 'sad';
+    var cloud = document.createElement('div');
+    cloud.className = 'cloud';
+    cloud.textContent = '\ud83c\udf27\ufe0f';
+    layer.appendChild(cloud);
+    var img = document.createElement('img');
+    img.src = iconSrc;
+    layer.appendChild(img);
+    var marks = ['\ud83d\udca7','\ud83d\ude22','\ud83d\udca7'];
+    for(var i=0;i<7;i++){
+      var p = document.createElement('i');
+      p.textContent = marks[i % marks.length];
+      p.style.left = 'calc(50% + '+(-46 + Math.random()*92)+'px)';
+      p.style.top = 'calc(50% - '+(20 + Math.random()*24)+'px)';
+      p.style.setProperty('--dx', (-18 + Math.random()*36)+'px');
+      p.style.animationDelay = (0.3 + Math.random()*0.8)+'s';
+      layer.appendChild(p);
+    }
+    document.body.appendChild(layer);
+    setTimeout(function(){ layer.remove(); }, 2400);
+  }
+
   function flashStatus(root){
     if(reduce || !root) return;
     root.querySelectorAll('.status').forEach(function(s){
@@ -959,6 +1412,8 @@ window.FX = (function(){
   return { toast:toast, confetti:confetti, smoke:smoke, rollNumber:rollNumber,
            inkSpread:inkSpread, pop:pop, haptic:haptic, puff:puff,
            skeleton:skeleton, flashStatus:flashStatus, happy:happy, greeting:greeting,
+           gift:gift, edgeFlash:edgeFlash, flipCard:flipCard, attachRipple:attachRipple,
+           pickUnseen:pickUnseen, sad:sad,
            COMBO_ICON:COMBO_ICON, ICONS:ICONS, reduce:reduce };
 })();
 </script>
@@ -1111,6 +1566,7 @@ function refreshCurrentView(){
     const ack = document.getElementById('L-ackCheck');
     if(submitBtn && ack) submitBtn.disabled = !ack.checked;
     if(dateInput) dateInput.dispatchEvent(new Event('change'));
+    setTimeout(celebrateUnseenLeave, 300);
   } else {
     const draft = captureDraft(ADMIN_FIELD_IDS);
     renderAdmin();
@@ -1203,6 +1659,7 @@ function renderApplicant(){
     <div class="card balance-hero">
       <div class="balance-num"><span class="num-roll" data-balance>${state.balance}</span><span style="font-size:18px">일</span></div>
       <div class="balance-label">이토끼의 보유 유흥연차</div>
+      <div class="balance-bar"><i style="width:${Math.max(0, Math.min(100, (state.balance / (ANNUAL_GRANT + MAX_BONUS)) * 100))}%"></i></div>
       <div class="rule-note">${state.balance <= 0 ? '<span class="sad-rabbit">🐰</span> 남은 유흥연차가 없어요...' : '🐰 6·7·8월은 유흥연차를 쓸 수 없어요'}<br>매년 1월 ${ANNUAL_GRANT}일이 새로 채워지고, 남은 유흥연차는 다음 해로 이월되지 않아요</div>
     </div>
 
@@ -1401,6 +1858,9 @@ function renderApplicant(){
         return;
       }
       cancelMyRequests([btn.dataset.myCancelId]);
+      FX.haptic(18);
+      const host = btn.closest('div');
+      if(host && !FX.reduce){ host.classList.add('vanish'); await new Promise(r=>setTimeout(r,330)); }
       await saveState();
       renderApplicant();
     });
@@ -1544,7 +2004,7 @@ function renderAdmin(){
 
   const pendingList = document.getElementById('L-pendingList');
   pendingList.innerHTML += pending.map(item => `
-    <div class="card" data-id="${item.id}" style="margin:10px 0 0;">
+    <div class="card glow-wait" data-id="${item.id}" style="margin:10px 0 0;">
       <div class="req-meta">${fmtReq(item)} · ${item.days}일</div>
       <div class="req-reason">${describeTrip(item)}</div>
       <div class="actions">
@@ -1586,6 +2046,8 @@ function renderAdmin(){
         stampSpan.appendChild(stamp);
         FX.inkSpread(stamp);
         FX.haptic(action==='approve' ? [14, 40, 20] : 26);
+        FX.edgeFlash(action==='approve' ? 'rgba(130,200,150,.75)' : 'rgba(190,170,160,.7)');
+        setTimeout(function(){ FX.flipCard(card); }, 620);
       }
       await saveState();
       notifyTelegram(CHAT_ID_이토끼, action==='approve'
@@ -1654,7 +2116,9 @@ function renderAdmin(){
     state.balance = Math.round((state.balance + amt) * 10) / 10;
     state.history.unshift({ note:`포상 유흥연차 지급: ${amt}일${reason ? ' — '+reason : ''}`, at:new Date().toISOString() });
     await saveState();
-    FX.confetti();
+    FX.gift();
+    setTimeout(()=>FX.confetti(), 700);
+    FX.edgeFlash('rgba(255,215,140,.8)');
     FX.toast(`포상 유흥연차 ${amt}일을 지급했어요!`);
     renderAdmin();
   });
@@ -1710,6 +2174,31 @@ document.getElementById('L-btnAdmin').addEventListener('click', ()=>{
   document.getElementById('L-view-applicant').style.display = 'none';
   renderAdmin();
 });
+
+/* 신청인이 나중에 들어와도 결재 결과 연출을 보여줌 */
+function celebrateUnseenLeave(){
+  if(!state || view !== 'applicant' || !state.requests) return;
+  const fresh = FX.pickUnseen('dydy_seen_leave', state.requests);
+  const approved = fresh.filter(r=>r.status==='approved');
+  const rejected = fresh.filter(r=>r.status==='rejected');
+  if(approved.length){
+    FX.happy(FX.ICONS.leave);
+    setTimeout(()=>FX.confetti(), 600);
+    FX.edgeFlash('rgba(130,200,150,.75)');
+    FX.haptic([14,40,20]);
+    FX.toast('유흥연차가 승인됐어요! 신나게 즐기세요');
+  } else if(rejected.length){
+    FX.sad(FX.ICONS.leave);
+    FX.edgeFlash('rgba(190,170,160,.7)');
+    FX.haptic(26);
+    FX.toast('아쉽지만 반려됐어요', 'warn');
+  }
+}
+
+window.__leavePending = function(){
+  if(!state || !state.requests) return 0;
+  return state.requests.filter(r=>r.status==='pending').length;
+};
 
 window.__leaveSummary = function(){
   if(!state || !state.requests) return '';
@@ -1876,6 +2365,7 @@ function refreshCurrentView(){
     const draft = captureDraft(APPLICANT_FIELD_IDS);
     renderApplicant();
     restoreDraft(APPLICANT_FIELD_IDS, draft);
+    setTimeout(celebrateUnseenSmoke, 300);
   } else {
     const draft = captureDraft(ADMIN_FIELD_IDS);
     renderAdmin();
@@ -1927,8 +2417,17 @@ function renderApplicant(){
   if(current){
     const started = current.status === 'approved' && !!current.actualStartAt;
     el.innerHTML = `
-      <div class="card timer-hero">
-        <div class="timer-num" id="S-timerNum">${current.status === 'pending' ? '⏳' : (started ? '--:--' : String(current.minutes).padStart(2,'0')+':00')}</div>
+      <div class="card timer-hero${current.status === 'pending' ? ' glow-wait' : ''}">
+        <div class="ring-wrap" id="S-ringWrap">
+          <svg width="168" height="168" viewBox="0 0 168 168">
+            <circle class="track" cx="84" cy="84" r="76"/>
+            <circle class="prog" id="S-ringProg" cx="84" cy="84" r="76"
+              stroke-dasharray="477.5" stroke-dashoffset="0"/>
+          </svg>
+          <div class="inside">
+            <div class="timer-num" id="S-timerNum">${current.status === 'pending' ? '⏳' : (started ? '--:--' : String(current.minutes).padStart(2,'0')+':00')}</div>
+          </div>
+        </div>
         <div class="timer-label" id="S-timerLabel">${current.status === 'pending' ? '결재 대기 중이에요' : (started ? '남은 시간' : '승인됐어요! 시작 버튼을 눌러주세요')}</div>
       </div>
       <div class="card">
@@ -1980,6 +2479,9 @@ function renderApplicant(){
         const idx = state.requests.findIndex(r=>r.id===current.id);
         if(idx > -1) state.requests.splice(idx,1);
         if(tickInterval) clearInterval(tickInterval);
+        FX.haptic(18);
+        const host = cancelBtn.closest('.card');
+        if(host && !FX.reduce){ host.classList.add('vanish'); await new Promise(r=>setTimeout(r,330)); }
         await saveState();
         renderApplicant();
       });
@@ -2045,11 +2547,15 @@ function renderApplicant(){
       html += '<div class="month-grid">';
       ['일','월','화','수','목','금','토'].forEach(d=>{ html += '<div class="d head">'+d+'</div>'; });
       for(let i=0;i<first;i++) html += '<div></div>';
+      const maxN = Math.max(0, ...Object.values(counts));
+      const todayKey = new Date().toISOString().slice(0,10);
       for(let d=1; d<=days; d++){
         const key = ym+'-'+String(d).padStart(2,'0');
         const n = counts[key]||0;
         const lv = n===0 ? '' : n<=1 ? ' lv1' : n<=3 ? ' lv2' : ' lv3';
-        html += '<div class="d'+lv+'" title="'+n+'회">'+d+'</div>';
+        const isToday = key===todayKey ? ' today' : '';
+        const isBest = (maxN>0 && n===maxN) ? ' best' : '';
+        html += '<div class="d'+lv+isToday+isBest+'" title="'+n+'회">'+d+'</div>';
       }
       html += '</div>';
       box.innerHTML = html;
@@ -2189,6 +2695,17 @@ function startTimer(current){
     const ss = String(remain%60).padStart(2,'0');
     elx.textContent = `${mm}:${ss}`;
     labelEl.textContent = '남은 시간';
+    // 원형 게이지
+    const ring = document.getElementById('S-ringProg');
+    const wrap = document.getElementById('S-ringWrap');
+    if(ring){
+      const C = 477.5;
+      ring.style.strokeDashoffset = C * (1 - remain / totalSec);
+    }
+    if(wrap){
+      if(remain <= 60) wrap.classList.add('urgent');
+      else wrap.classList.remove('urgent');
+    }
     // 초마다 똑딱, 1분 미만이면 맥박
     elx.classList.remove('tick');
     void elx.offsetWidth;
@@ -2301,7 +2818,7 @@ function renderAdmin(){
 
   const pendingList = document.getElementById('S-pendingList');
   pendingList.innerHTML += pending.map(item => `
-    <div class="card" data-id="${item.id}" style="margin:10px 0 0;">
+    <div class="card glow-wait" data-id="${item.id}" style="margin:10px 0 0;">
       <div class="req-meta">${fmtDateTime(item.submittedAt)} 신청 · ${item.minutes}분</div>
       ${item.memo ? `<div class="req-reason">${escapeHTML(item.memo)}</div>` : ''}
       <div class="actions">
@@ -2330,9 +2847,12 @@ function renderAdmin(){
         stampSpan.appendChild(stamp);
         FX.inkSpread(stamp);
         FX.haptic(action==='approve' ? [14, 40, 20] : 26);
+        FX.edgeFlash(action==='approve' ? 'rgba(130,200,150,.75)' : 'rgba(190,170,160,.7)');
+        setTimeout(function(){ FX.flipCard(card); }, 620);
       }
       await saveState();
       if(action==='approve') FX.puff(FX.ICONS.smoke);
+      else FX.sad(FX.ICONS.smoke);
       notifyTelegram(CHAT_ID_구마구마, action==='approve'
         ? `✅ 이토끼님이 흡연 ${item.minutes}분 승인했어요. 다녀오세요!`
         : `❌ 이토끼님이 흡연 신청을 반려했어요.`);
@@ -2405,6 +2925,30 @@ document.getElementById('S-btnAdmin').addEventListener('click', ()=>{
   renderAdmin();
 });
 
+/* 신청인이 나중에 들어와도 결재 결과 연출을 보여줌 */
+function celebrateUnseenSmoke(){
+  if(!state || view !== 'applicant' || !state.requests) return;
+  const fresh = FX.pickUnseen('dydy_seen_smoke', state.requests);
+  const approved = fresh.filter(r=>r.status==='approved');
+  const rejected = fresh.filter(r=>r.status==='rejected');
+  if(approved.length){
+    FX.puff(FX.ICONS.smoke);
+    FX.edgeFlash('rgba(130,200,150,.75)');
+    FX.haptic([14,40,20]);
+    FX.toast('승인됐어요! 다녀오세요');
+  } else if(rejected.length){
+    FX.sad(FX.ICONS.smoke);
+    FX.edgeFlash('rgba(190,170,160,.7)');
+    FX.haptic(26);
+    FX.toast('아쉽지만 반려됐어요', 'warn');
+  }
+}
+
+window.__smokePending = function(){
+  if(!state || !state.requests) return 0;
+  return state.requests.filter(r=>r.status==='pending').length;
+};
+
 window.__smokeSummary = function(){
   if(!state || !state.requests) return '';
   const today = new Date().toISOString().slice(0,10);
@@ -2466,6 +3010,8 @@ renderApplicant();
   document.getElementById('segIconSmoke').src = SPLASH_ICONS.smoke;
 
   function setMode(mode){
+    switcher.classList.add('moving');
+    setTimeout(function(){ switcher.classList.remove('moving'); }, 520);
     switcher.dataset.mode = mode;
     topBanner.dataset.mode = mode;
     siteTabLeave.setAttribute('aria-selected', mode==='leave' ? 'true' : 'false');
@@ -2551,6 +3097,13 @@ renderApplicant();
   })();
 
   /* ── 오늘 인사 + 요약 (하루 한 번) ── */
+  window.updatePendingDots = function(){
+    var dl = document.getElementById('dotLeave');
+    var ds = document.getElementById('dotSmoke');
+    if(dl) dl.style.display = (window.__leavePending && window.__leavePending()) ? 'block' : 'none';
+    if(ds) ds.style.display = (window.__smokePending && window.__smokePending()) ? 'block' : 'none';
+  };
+
   window.updateDailyStrip = function(){
     var strip = document.getElementById('dailyStrip');
     var inner = document.getElementById('dailyInner');
@@ -2565,8 +3118,20 @@ renderApplicant();
     if(html){ inner.innerHTML = html; strip.style.display = 'block'; }
     else strip.style.display = 'none';
   };
-  setTimeout(window.updateDailyStrip, 2100);
+  setTimeout(function(){ window.updateDailyStrip(); window.updatePendingDots(); }, 2100);
+  setInterval(function(){ if(window.updatePendingDots) window.updatePendingDots(); }, 4000);
 
+  (function(){
+    var banner = document.getElementById('topBanner');
+    function onScroll(){
+      if(window.scrollY > 6) banner.classList.add('scrolled');
+      else banner.classList.remove('scrolled');
+    }
+    window.addEventListener('scroll', onScroll, {passive:true});
+    onScroll();
+  })();
+
+  FX.attachRipple();
   document.getElementById('bootIcon').src = FX.COMBO_ICON;
   (function(){
     var g = document.getElementById('bootGreet');
