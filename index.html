@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="2026-10-01-h">
+<meta name="app-version" content="2026-10-01-i">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -261,6 +261,11 @@
     font-family:'Gaegu',cursive; font-size:19px; font-weight:700; color:#7B5E58;
     animation:bootFade .7s ease .22s both;
   }
+  .boot .greet{
+    font-size:13.5px; color:#8A716B; text-align:center; padding:0 28px; line-height:1.6;
+    animation:bootFade .7s ease .4s both;
+  }
+  html[data-theme="dark"] .boot .greet{ color:#A8958F; }
   .boot .bar{ width:92px; height:3px; border-radius:2px; background:rgba(0,0,0,.08); overflow:hidden; }
   .boot .bar i{ display:block; height:100%; width:40%; border-radius:2px; background:#F0A9BC; animation:bootBar 1.25s ease-in-out infinite; }
   @keyframes bootPop{
@@ -718,6 +723,7 @@
 <div class="boot" id="bootSplash">
   <img id="bootIcon" alt="">
   <div class="t">구마를 안은 행복한 토끼</div>
+  <div class="greet" id="bootGreet"></div>
   <div class="bar"><i></i></div>
 </div>
 
@@ -2549,16 +2555,7 @@ renderApplicant();
     var strip = document.getElementById('dailyStrip');
     var inner = document.getElementById('dailyInner');
     if(!strip || !inner) return;
-    var today = new Date().toISOString().slice(0,10);
-    var seen = null;
-    try{ seen = localStorage.getItem('dydy_greet'); }catch(e){}
-
-    var who = '이토끼, 구마구마';
     var html = '';
-    if(seen !== today){
-      html += '<div class="hi">' + FX.greeting(who) + '</div>';
-    }
-
     var bits = [];
     if(window.__leaveSummary) bits.push(window.__leaveSummary());
     if(window.__smokeSummary) bits.push(window.__smokeSummary());
@@ -2567,14 +2564,14 @@ renderApplicant();
 
     if(html){ inner.innerHTML = html; strip.style.display = 'block'; }
     else strip.style.display = 'none';
-
-    if(seen !== today){
-      try{ localStorage.setItem('dydy_greet', today); }catch(e){}
-    }
   };
   setTimeout(window.updateDailyStrip, 2100);
 
   document.getElementById('bootIcon').src = FX.COMBO_ICON;
+  (function(){
+    var g = document.getElementById('bootGreet');
+    if(g) g.textContent = FX.greeting('이토끼, 구마구마');
+  })();
   setTimeout(function(){
     var b = document.getElementById('bootSplash');
     if(b) b.remove();
