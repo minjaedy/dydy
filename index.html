@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="2026-10-01-q">
+<meta name="app-version" content="2026-10-01-r">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -754,6 +754,54 @@
 
   /* ── 상단 요약 띠 숫자 강조 ── */
   .daily-strip b{ color:var(--accent,#C98BA0); font-weight:700; }
+
+  /* ── 유흥연차 달력 ── */
+  .cal{
+    border:1.5px solid var(--pink-deep,#F0C9CF); border-radius:14px;
+    padding:12px; background:#fff;
+  }
+  html[data-theme="dark"] .cal{ background:#1E2025; border-color:#3C3038; }
+  .cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:9px; }
+  .cal-head .mon{ font-family:'Gaegu',cursive; font-size:17px; font-weight:700; }
+  .cal-head button{
+    border:0; background:rgba(0,0,0,.05); border-radius:9px; width:30px; height:30px;
+    cursor:pointer; font-size:15px; color:inherit; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+  }
+  html[data-theme="dark"] .cal-head button{ background:rgba(255,255,255,.08); }
+  .cal-head button:disabled{ opacity:.3; cursor:not-allowed; }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+  .cal-grid .dow{
+    text-align:center; font-size:10.5px; color:var(--muted,#A6968D); padding-bottom:3px;
+  }
+  .cal-grid .dow.sun{ color:#E08798; }
+  .cal-grid .dow.sat{ color:#8FA8D8; }
+  .cal-day{
+    aspect-ratio:1; border:0; background:transparent; border-radius:10px; cursor:pointer;
+    font-family:'Noto Sans KR',sans-serif; font-size:13px; color:inherit;
+    display:flex; align-items:center; justify-content:center; position:relative;
+    transition:background .18s ease, transform .18s cubic-bezier(.34,1.4,.64,1), color .18s;
+  }
+  .cal-day:hover:not(:disabled){ background:rgba(0,0,0,.05); }
+  html[data-theme="dark"] .cal-day:hover:not(:disabled){ background:rgba(255,255,255,.07); }
+  .cal-day:active:not(:disabled){ transform:scale(.9); }
+  .cal-day:disabled{ opacity:.26; cursor:not-allowed; }
+  .cal-day.sun{ color:#E08798; }
+  .cal-day.sat{ color:#8FA8D8; }
+  .cal-day.today::after{
+    content:''; position:absolute; bottom:4px; left:50%; transform:translateX(-50%);
+    width:4px; height:4px; border-radius:50%; background:var(--lavender,#C9B7E0);
+  }
+  .cal-day.picked{
+    background:linear-gradient(135deg,#FBD3DC,#F5AFC0) !important; color:#5A3B38 !important;
+    font-weight:700; box-shadow:0 3px 10px rgba(226,142,164,.4);
+    animation:pickPop .4s cubic-bezier(.3,1.5,.5,1);
+  }
+  .cal-day.picked::after{ background:#5A3B38; }
+  @keyframes pickPop{
+    0%{ transform:scale(.7); } 55%{ transform:scale(1.18); } 100%{ transform:scale(1); }
+  }
+  .cal-note{ font-size:11px; color:var(--muted,#A6968D); margin-top:8px; text-align:center; }
 
   /* ── 결재 대기 개수 뱃지 ── */
   .pending-dot{
@@ -1566,6 +1614,7 @@ function refreshCurrentView(){
     const ack = document.getElementById('L-ackCheck');
     if(submitBtn && ack) submitBtn.disabled = !ack.checked;
     if(dateInput) dateInput.dispatchEvent(new Event('change'));
+    if(window.__leaveRenderCal) window.__leaveRenderCal();
     setTimeout(celebrateUnseenLeave, 300);
   } else {
     const draft = captureDraft(ADMIN_FIELD_IDS);
@@ -1667,7 +1716,8 @@ function renderApplicant(){
       <h2>유흥연차 신청하기</h2>
       <div class="field">
         <label>날짜</label>
-        <input type="date" id="L-theDate">
+        <input type="hidden" id="L-theDate">
+        <div class="cal" id="L-cal"></div>
       </div>
       <div class="field">
         <label>시간</label>
@@ -1753,6 +1803,73 @@ function renderApplicant(){
       warnText.textContent = '';
     }
   }
+  // ── 달력 ──
+  let calYear, calMonth;
+  (function initCal(){
+    const now = new Date();
+    const cur = dateInput.value ? new Date(dateInput.value+'T00:00:00') : now;
+    calYear = cur.getFullYear(); calMonth = cur.getMonth();
+  })();
+
+  function renderCal(){
+    const box = document.getElementById('L-cal');
+    if(!box) return;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    const first = new Date(calYear, calMonth, 1).getDay();
+    const days = new Date(calYear, calMonth+1, 0).getDate();
+    const blocked = BLACKOUT_MONTHS.includes(calMonth);
+
+    // 과거 달로는 못 가게
+    const atStart = (calYear === today.getFullYear() && calMonth <= today.getMonth());
+
+    let h = '<div class="cal-head">'+
+      '<button type="button" id="L-calPrev" '+(atStart?'disabled':'')+'>‹</button>'+
+      '<span class="mon">'+calYear+'년 '+(calMonth+1)+'월</span>'+
+      '<button type="button" id="L-calNext">›</button>'+
+    '</div><div class="cal-grid">';
+    ['일','월','화','수','목','금','토'].forEach((d,i)=>{
+      h += '<div class="dow'+(i===0?' sun':i===6?' sat':'')+'">'+d+'</div>';
+    });
+    for(let i=0;i<first;i++) h += '<div></div>';
+    for(let d=1; d<=days; d++){
+      const key = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dow = new Date(calYear, calMonth, d).getDay();
+      const isPast = key < todayStr;
+      const dis = blocked || isPast;
+      const cls = ['cal-day'];
+      if(dow===0) cls.push('sun');
+      if(dow===6) cls.push('sat');
+      if(key===todayStr) cls.push('today');
+      if(key===dateInput.value) cls.push('picked');
+      h += '<button type="button" class="'+cls.join(' ')+'" data-date="'+key+'" '+(dis?'disabled':'')+'>'+d+'</button>';
+    }
+    h += '</div>';
+    if(blocked) h += '<div class="cal-note">6·7·8월에는 유흥연차를 사용할 수 없어요</div>';
+    box.innerHTML = h;
+
+    const prev = document.getElementById('L-calPrev');
+    const next = document.getElementById('L-calNext');
+    if(prev) prev.addEventListener('click', ()=>{
+      calMonth--; if(calMonth<0){ calMonth=11; calYear--; }
+      renderCal();
+    });
+    if(next) next.addEventListener('click', ()=>{
+      calMonth++; if(calMonth>11){ calMonth=0; calYear++; }
+      renderCal();
+    });
+    box.querySelectorAll('.cal-day[data-date]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        dateInput.value = btn.dataset.date;
+        FX.haptic(10);
+        renderCal();
+        validate();
+      });
+    });
+  }
+  renderCal();
+  window.__leaveRenderCal = renderCal;
+
   const lRepeat = document.getElementById('L-repeatBtn');
   if(lRepeat){
     lRepeat.addEventListener('click', ()=>{
