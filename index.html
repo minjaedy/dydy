@@ -2,7 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="app-version" content="2026-10-01-a">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -2280,6 +2284,34 @@ renderApplicant();
       btn.classList.add('flip');
       FX.haptic(10);
     });
+  })();
+
+  /* ── 새 버전 자동 감지 ── */
+  (function(){
+    var meta = document.querySelector('meta[name="app-version"]');
+    var MY_VERSION = meta ? meta.getAttribute('content') : null;
+    if(!MY_VERSION) return;
+
+    function check(){
+      if(document.hidden) return;
+      fetch(location.pathname + '?v=' + Date.now(), { cache:'no-store' })
+        .then(function(r){ return r.text(); })
+        .then(function(html){
+          var m = html.match(/<meta name="app-version" content="([^"]+)"/);
+          if(m && m[1] !== MY_VERSION){
+            FX.toast('새 버전이 있어요. 잠시 후 새로고침됩니다');
+            setTimeout(function(){ location.reload(true); }, 1800);
+          }
+        })
+        .catch(function(){});
+    }
+
+    // 앱을 다시 열거나 화면으로 돌아올 때, 그리고 10분마다 확인
+    document.addEventListener('visibilitychange', function(){
+      if(!document.hidden) check();
+    });
+    setTimeout(check, 3000);
+    setInterval(check, 600000);
   })();
 
   document.getElementById('bootIcon').src = FX.COMBO_ICON;
