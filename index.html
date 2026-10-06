@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261006-home-18">
+<meta name="app-version" content="20261006-home-19">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1208,7 +1208,13 @@ html[data-theme="dark"] .top-banner[data-mode="calendar"]{background:#28202a}
 .cc-field{display:block;font-size:12px;font-weight:600;margin-bottom:15px;min-width:0;line-height:1.6}
 .cc-field input,.cc-field select,.cc-field textarea{display:block;width:100%;min-width:0;max-width:100%;margin-top:6px;padding:11px 12px;border:1px solid var(--cc-line);border-radius:11px;background:var(--cc-bg);color:var(--cc-ink);font:16px/1.45 'Noto Sans KR',sans-serif}
 .cc-field textarea{resize:vertical}.cc-field input[type="date"]{min-height:47px}.cc-optional{font-weight:400;font-size:10px;color:var(--cc-muted);margin-left:3px}
-.cc-form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0}
+.cc-form-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0}
+.cc-dialog{box-sizing:border-box;max-width:calc(100% - 28px)}
+#cc-form{min-width:0}
+.cc-field input[type="date"],.cc-field input[type="time"]{box-sizing:border-box;min-width:0;width:100%;max-width:100%;min-height:47px;-webkit-appearance:none;appearance:none}
+.cc-field input::-webkit-date-and-time-value{min-width:0;text-align:left}
+.cc-field input::-webkit-datetime-edit{min-width:0;padding:0}
+@media(max-width:520px){.cc-datetime-row{grid-template-columns:minmax(0,1fr);gap:0}}
 .cc-repeat{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.5}.cc-repeat input{accent-color:var(--cc-accent);width:17px;height:17px}
 .cc-repeat-note{font-size:10px;color:var(--cc-muted);line-height:1.6;margin:6px 0 20px}
 .cc-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:22px;flex-wrap:wrap;font-size:12px}
@@ -1506,7 +1512,7 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
     <div class="cc-section-heading"><h2 id="cc-editor-title">우리의 새 약속</h2><button type="button" class="cc-close" id="cc-close" aria-label="일정 창 닫기">×</button></div>
     <label class="cc-field">자주 쓰는 일정 불러오기<select id="cc-favorite-select"><option value="">저장한 일정 선택</option></select></label>
     <label class="cc-field">일정 이름<input id="cc-title" name="title" required maxlength="80" placeholder="예: 함께 저녁 먹기" autocomplete="off"></label>
-    <div class="cc-form-row"><label class="cc-field">날짜<input id="cc-date" name="date" type="date" min="1900-01-01" max="2199-12-31" required></label><label class="cc-field">시간 <span class="cc-optional">선택</span><input id="cc-time" name="time" type="time"></label></div>
+    <div class="cc-form-row cc-datetime-row"><label class="cc-field">날짜<input id="cc-date" name="date" type="date" min="1900-01-01" max="2199-12-31" required></label><label class="cc-field">시간 <span class="cc-optional">선택</span><input id="cc-time" name="time" type="time"></label></div>
     <div class="cc-form-row"><label class="cc-field">누구의 일정인가요?<select id="cc-owner" name="owner"><option value="together">♥ 함께</option><option value="rabbit">🐰 이토끼</option><option value="sweet">🍠 구마구마</option></select></label><label class="cc-field">어떤 날인가요?<select id="cc-kind" name="kind"><option value="date">데이트</option><option value="anniversary">기념일</option><option value="daily">일상</option><option value="trip">여행</option></select></label></div>
     <label class="cc-repeat"><input id="cc-yearly" name="yearly" type="checkbox">매년 같은 날 기억하기</label>
     <p class="cc-repeat-note">생일·기념일에 좋아요. 2월 29일은 윤년에만 표시해요.</p>
