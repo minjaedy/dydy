@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261006-home-23">
+<meta name="app-version" content="20261006-home-25">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1429,6 +1429,8 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
 <style id="couple-ui-styles">
 /* Shared visual finish for the couple app. Keep character artwork unchanged. */
 .app-panel h1[tabindex="-1"]:focus{outline:none}
+.home-hero-art[data-season=spring]{background:radial-gradient(ellipse,#ffe1ed80,transparent 70%)}.home-hero-art[data-season=summer]{background:radial-gradient(ellipse,#def2ff90,transparent 70%)}.home-hero-art[data-season=autumn]{background:radial-gradient(ellipse,#ffe9cc88,transparent 70%)}.home-hero-art[data-season=winter]{background:radial-gradient(ellipse,#e4edff90,transparent 70%)}.home-hero-art[data-season] img{object-fit:contain}.home-hero-art[data-celebration=halloween]{background:radial-gradient(ellipse,#eaddff90,transparent 70%)}.home-hero-art[data-celebration=armed] img{animation:none}
+.home-hero-art[data-celebration=memorial] img{animation:none}.home-hero-art[data-celebration=memorial]{background:radial-gradient(ellipse,#e9eee988,transparent 70%)}.home-hero-art[data-celebration=newyear],.home-hero-art[data-celebration=yearend]{background:radial-gradient(ellipse,#fff0c888,transparent 70%)}.home-hero-art[data-celebration=seollal],.home-hero-art[data-celebration=chuseok]{background:radial-gradient(ellipse,#ffe8d877,transparent 70%)}
 .home-person-next{display:grid;gap:5px;margin:16px 0 0;max-width:300px}.home-surface .home-next-line{display:flex;align-items:center;gap:7px;min-width:0;width:100%;border:0;background:transparent;padding:5px 0;text-align:left;font-size:11px;min-height:29px}.home-next-name{flex:none;color:#9784b0;font-weight:600}.home-next-line[data-home-next-person=sweet] .home-next-name{color:#b09261}.home-next-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--hm-muted)}.home-next-dday{flex:none;font-size:10px;font-weight:600;color:var(--hm-pink);background:var(--hm-paper);border-radius:7px;padding:3px 6px;white-space:nowrap}.home-next-line:hover .home-next-title{color:var(--hm-ink)}
 @media(max-width:440px){.home-person-next{margin-top:12px;gap:3px}.home-surface .home-next-line{font-size:9px;gap:5px;padding:3px 0;min-height:25px}.home-next-dday{font-size:9px;padding:3px 5px}}
 .home-surface{--hm-bg:#f7f6fa;--hm-paper:#fff;--hm-ink:#393343;--hm-muted:#837b8e;--hm-line:#ece8f0;--hm-pink:#a26486;--hm-soft:#f5eaf1;--hm-rabbit:#f1edf9;--hm-sweet:#fbf3e5}
@@ -4510,7 +4512,7 @@ renderApplicant();
         render();
       }).catch(() => { holidayErrors.add(year); render(); });
   }
-  const specialDays = [['02-14','발렌타인데이'],['03-03','삼겹살데이'],['03-14','화이트데이'],['03-26','이토끼 생일','rabbit'],['05-14','로즈데이'],['06-14','키스데이'],['08-16','구마구마 생일','sweet'],['10-14','와인데이'],['11-11','빼빼로데이'],['12-14','허그데이'],['12-25','크리스마스']];
+  const specialDays = [["07-14", "실버데이"], ["08-14", "그린데이"], ["09-14", "포토데이"], ["11-14", "무비데이"], ["10-31", "할로윈"], ["04-01", "만우절"], ["04-05", "식목일"], ["05-08", "어버이날"], ["04-14", "블랙데이"], ["05-15", "스승의 날"], ["10-01", "국군의 날"], ["05-21", "부부의 날"],['02-14','발렌타인데이'],['03-03','삼겹살데이'],['03-14','화이트데이'],['03-26','이토끼 생일','rabbit'],['05-14','로즈데이'],['06-14','키스데이'],['08-16','구마구마 생일','sweet'],['10-14','와인데이'],['11-11','빼빼로데이'],['12-14','허그데이'],['12-25','크리스마스']];
   function automaticDates(year) {
     if (year < 1900 || year > 2199) return [];
     const result = specialDays.map(([md, title, owner]) => autoEvent(`${year}-${md}`, title, owner));
@@ -4734,6 +4736,12 @@ renderApplicant();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
   setInterval(() => { if (!document.hidden && (root.style.display !== 'none' || document.body.dataset.siteMode === 'home')) render(); }, 60000);
   window.CoupleCalendar = Object.freeze({
+    getHolidays(date = dateKey(new Date())) {
+      if (!parseDate(date)) return [];
+      const year = Number(date.slice(0, 4));
+      loadHolidays(year);
+      return (holidayData[year] || []).filter(e => e.date === date).map(e => ({ ...e }));
+    },
     getOverview() {
       const today = dateKey(new Date());
       return { today, ready, connected, failed, preview,
@@ -4890,7 +4898,7 @@ renderApplicant();
   const names = { rabbit: '이토끼', sweet: '구마구마' };
   const emotions = {'🥰':'행복해','🥱':'피곤해','🥺':'보고 싶어','😊':'기분 좋아','😌':'여유로워','😢':'속상해','💪':'힘내는 중'};
   const icons = { rabbit: 'assets/rabbit-daily-icon.webp', sweet: 'assets/sweet-daily-icon.webp' };
-  const heroAssets = {night:'assets/rabbit-night.webp',trip:'assets/travel-icon.webp',chocolate:'assets/duo-chocolate.webp',santa:'assets/duo-santa.webp',pepero:'assets/duo-pepero.webp',cake:'assets/duo-cake.webp',rose:'assets/duo-rose.webp',kiss:'assets/duo-kiss.webp',wine:'assets/duo-wine.webp',hug:'assets/duo-hug.webp',pork:'assets/duo-pork.webp',rabbitbirthday:'assets/duo-rabbitbirthday.webp',sweetbirthday:'assets/duo-sweetbirthday.webp'};
+  const heroAssets = {night:'assets/rabbit-night.webp',trip:'assets/travel-icon.webp',chocolate:'assets/duo-chocolate.webp',santa:'assets/duo-santa.webp',pepero:'assets/duo-pepero.webp',cake:'assets/duo-cake.webp',rose:'assets/duo-rose.webp',kiss:'assets/duo-kiss.webp',wine:'assets/duo-wine.webp',hug:'assets/duo-hug.webp',pork:'assets/duo-pork.webp',rabbitbirthday:'assets/duo-rabbitbirthday.webp',sweetbirthday:'assets/duo-sweetbirthday.webp',newyear:'assets/duo-newyear.webp',yearend:'assets/duo-yearend.webp',hanbok:'assets/duo-hanbok.webp',chuseok:'assets/duo-chuseok.webp',national:'assets/duo-national.webp',children:'assets/duo-children.webp',memorial:'assets/duo-memorial.webp',lotus:'assets/duo-lotus.webp',hangul:'assets/duo-hangul.webp',silver:'assets/duo-silver.webp',green:'assets/duo-green.webp',photo:'assets/duo-photo.webp',movie:'assets/duo-movie.webp',halloween:'assets/duo-halloween.webp',fools:'assets/duo-fools.webp',tree:'assets/duo-tree.webp',parents:'assets/duo-parents.webp',black:'assets/duo-black.webp',teacher:'assets/duo-teacher.webp',armed:'assets/duo-armed.webp',couple:'assets/duo-couple.webp',spring:'assets/duo-spring.webp',summer:'assets/duo-summer.webp',autumn:'assets/duo-autumn.webp',winter:'assets/duo-winter.webp'};
   const defaultHero = $('home-rabbit-art').src;
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(prefix + ':' + key)) ?? fallback; } catch { return fallback; } };
@@ -4945,7 +4953,8 @@ renderApplicant();
     entrance.addEventListener('click',e=>{const selected=e.target.closest('[data-enter-person]')?.dataset.enterPerson;if(!names[selected]||busy)return;$('social-person').value=selected;$('social-person').dispatchEvent(new Event('change',{bubbles:true}));entrance.close();window.SiteNav?.open('home');window.scrollTo({top:0,behavior:'instant'});const heading=$('app-home')?.querySelector('h1');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}});
     $('home-change-person')?.addEventListener('click',()=>{window.MiniGame?.pause();entrance.showModal();});
     const boot = $('bootSplash');
-    if (!boot) entrance.showModal?.();
+      if (preview && window.__coupleThemePreview) boot?.remove();
+      else if (!boot) entrance.showModal?.();
     else {
       window.__coupleBootManaged = true;
       if ($('bootGreet')) $('bootGreet').textContent = '토끼와 구마의 하루를 준비하고 있어요.';
@@ -5021,27 +5030,71 @@ renderApplicant();
     try {await mutate(owner,current=>{if(!current||current.version!==version)return undefined;const reactions={...current.reactions};if(reactions[person]===version)delete reactions[person];else reactions[person]=version;return {...current,reactions};});}catch(e){status(e.message||'하트를 보내지 못했어요. 다시 눌러 주세요.');}
   });
   function celebration(today){
+    return celebrations(today)[0] || null;
+  }
+  function celebrations(today, rows = window.CoupleCalendar?.getHolidays?.(today) || []){
+    const choices=[];
     const start=Date.UTC(2026,1,18),day=Math.round((Date.parse(today+'T00:00:00Z')-start)/86400000)+1;
     const [year,month,date]=today.split('-').map(Number),annual=month===2&&date===18&&year>2026;
-    if(month===3&&date===26)return {kind:'rabbitbirthday',label:'이토끼야, 생일 축하해 ♥',icons:['🎂']};
-    if(month===8&&date===16)return {kind:'sweetbirthday',label:'구마구마야, 생일 축하해 ♥',icons:['🎂']};
-    if(annual)return {kind:'anniversary',days:day,years:year-2026,label:(year-2026)+'주년, 함께라서 행복해 ♥',icons:['🎂','💝','✨']};
-    if(day>0&&day%100===0)return {kind:'hundred',days:day,label:'우리의 '+day+'일을 축하해 ♥',icons:['🎉','💖','✨']};
+    if(month===3&&date===26)choices.push({kind:'rabbitbirthday',label:'이토끼야, 생일 축하해 ♥',icons:['🎂']});
+    if(month===8&&date===16)choices.push({kind:'sweetbirthday',label:'구마구마야, 생일 축하해 ♥',icons:['🎂']});
+    if(annual)choices.push({kind:'anniversary',days:day,years:year-2026,label:(year-2026)+'주년, 함께라서 행복해 ♥',icons:['🎂','💝','✨']});
+    if(day>0&&day%100===0)choices.push({kind:'hundred',days:day,label:'우리의 '+day+'일을 축하해 ♥',icons:['🎉','💖','✨']});
     const holidays={'05-14':{kind:'rose',label:'장미보다 예쁜 우리 ♥'},'06-14':{kind:'kiss',label:'오늘은 볼에 쪽 ♥'},'10-14':{kind:'wine',label:'우리 둘을 위한 건배 ♥'},'12-14':{kind:'hug',label:'꼭 안아줄게 ♥'},'03-03':{kind:'pork',label:'함께 먹어서 더 맛있는 삼겹살 ♥'},'02-14':{kind:'valentine',label:'달콤한 발렌타인데이 ♥',icons:['🍫','💝','💕']},'03-14':{kind:'white',label:'사탕보다 달콤한 우리 ♥',icons:['🍬','🤍','💕']},'12-25':{kind:'christmas',label:'함께여서 따뜻한 크리스마스 ♥',icons:['🎄','🎅','❄️']},'11-11':{kind:'pepero',label:'빼빼로처럼 꼭 붙어 있자 ♥',icons:['🍫','🎀','💕']}};
-    return holidays[today.slice(5)]||null;
+    if(holidays[today.slice(5)])choices.push(holidays[today.slice(5)]);
+    const extraDays={"07-14": {"kind": "silver", "label": "반짝이는 커플 반지, 우리의 약속 ♥"}, "08-14": {"kind": "green", "label": "초록빛 숲에서 함께 쉬어요 ♥"}, "09-14": {"kind": "photo", "label": "오늘의 우리를 사진에 담아요 ♥"}, "11-14": {"kind": "movie", "label": "팝콘은 반씩, 영화는 함께 ♥"}, "10-31": {"kind": "halloween", "label": "토끼와 구마의 귀여운 할로윈 ♥"}, "04-01": {"kind": "fools", "label": "장난쳐도 좋아하는 마음은 진짜 ♥"}, "04-05": {"kind": "tree", "label": "작은 나무처럼 우리의 마음도 쑥쑥 ♥"}, "05-08": {"kind": "parents", "label": "카네이션에 감사하는 마음을 담아요 ♥"}, "04-14": {"kind": "black", "label": "짜장면도 토끼와 구마가 함께 ♥"}, "05-15": {"kind": "teacher", "label": "배움에 감사하는 따뜻한 하루 ♥"}, "10-01": {"kind": "armed", "label": "감사하는 마음으로 함께하는 국군의 날"}, "05-21": {"kind": "couple", "label": "둘이 함께라 더 행복한 하루 ♥"}};
+    if(extraDays[today.slice(5)])choices.push(extraDays[today.slice(5)]);
+    const publicThemes={
+      newyear:{kind:'newyear',label:'새해에도 토끼와 구마, 함께 ♥'},
+      yearend:{kind:'yearend',label:'올해도 함께해 줘서 고마워 ♥'},
+      seollal:{kind:'seollal',label:'토끼와 구마의 포근한 설날 ♥'},
+      chuseok:{kind:'chuseok',label:'보름달처럼 마음도 가득한 추석 ♥'},
+      independence:{kind:'independence',label:'함께 기억하는 삼일절'},
+      liberation:{kind:'liberation',label:'함께 기억하는 광복절'},
+      foundation:{kind:'foundation',label:'토끼와 구마의 개천절'},
+      constitution:{kind:'constitution',label:'함께하는 제헌절'},
+      children:{kind:'children',label:'오늘은 우리도 어린이처럼 ♥'},
+      memorial:{kind:'memorial',label:'감사하는 마음으로 기억하는 현충일'},
+      buddha:{kind:'buddha',label:'연등처럼 따뜻한 하루 ♥'},
+      hangul:{kind:'hangul',label:'한글로 쓰는 우리의 이야기 ♥'},
+      labor:{kind:'labor',label:'열심히 보낸 날들, 오늘은 함께 쉬어요 ♥'}
+    };
+    const fixed={'01-01':'newyear','12-31':'yearend','03-01':'independence','05-01':'labor','05-05':'children','06-06':'memorial','07-17':'constitution','08-15':'liberation','10-03':'foundation','10-09':'hangul'};
+    if(fixed[today.slice(5)])choices.push(publicThemes[fixed[today.slice(5)]]);
+    for(const row of rows){
+      const title=row.title||'', kind=/설날|Seollal|Lunar New Year/i.test(title)?'seollal':/추석|Chuseok/i.test(title)?'chuseok':/삼일절|Independence Movement/i.test(title)?'independence':/광복절|Liberation/i.test(title)?'liberation':/개천절|National Foundation/i.test(title)?'foundation':/제헌절|Constitution/i.test(title)?'constitution':/어린이날|Children/i.test(title)?'children':/현충일|Memorial/i.test(title)?'memorial':/부처님|Buddha/i.test(title)?'buddha':/한글날|Hangeul|Hangul/i.test(title)?'hangul':/노동절|근로자의 날|Labou?r/i.test(title)?'labor':/성탄절|Christmas/i.test(title)?'christmas':/신정|New Year/i.test(title)?'newyear':null;
+      if(kind)choices.push(kind==='christmas'?holidays['12-25']:publicThemes[kind]);
+    }
+    return choices.filter((item,index)=>choices.findIndex(other=>other.kind===item.kind)===index);
   }
-  function updateCharacter(now=new Date(), overview=window.CoupleCalendar?.getOverview()) {
+  let themeSelection=null;
+  function chooseCelebration(today){
+    const choices=celebrations(today);
+    if(!choices.length){themeSelection=null;return null;}
+    if(themeSelection?.date===today){const same=choices.find(x=>x.kind===themeSelection.kind);if(same)return same;}
+    const previous=read('last-home-theme',null);
+    const last=previous?.date===today?choices.findIndex(x=>x.kind===previous.kind):-1;
+    const selected=choices[(last+1)%choices.length];
+    if(document.body.dataset.siteMode && document.body.dataset.siteMode!=='home')return selected;
+    themeSelection={date:today,kind:selected.kind};
+    try{persist('last-home-theme',themeSelection);}catch{/* Keep this visit stable even without storage. */}
+    return selected;
+  }
+  function seasonForDate(today){const month=Number(today.slice(5,7));return month>=3&&month<=5?'spring':month>=6&&month<=8?'summer':month>=9&&month<=11?'autumn':'winter';}
+  function updateCharacter(now=new Date(), overview=window.CoupleCalendar?.getOverview(), previewKind=null) {
     const {hour,date:today}=clock(now); const trip=overview?.upcoming.find(x=>x.event.kind==='trip'&&x.event.owner==='together'&&x.date>=today&&Math.round((Date.parse(x.date)-Date.parse(today))/86400000)<=7);
-    const special=celebration(today),scene=special?'celebration':hour>=22||hour<7?'night':trip?'trip':'day';const art=$('home-rabbit-art');
-    const seasonalKey=special?({valentine:'chocolate',white:'chocolate',christmas:'santa',pepero:'pepero',hundred:'cake',anniversary:'cake',rose:'rose',kiss:'kiss',wine:'wine',hug:'hug',pork:'pork',rabbitbirthday:'rabbitbirthday',sweetbirthday:'sweetbirthday'})[special.kind]:null;
-    const src=seasonalKey?heroAssets[seasonalKey]:scene==='day'?defaultHero:heroAssets[scene];if(art.getAttribute('src')!==src)art.src=src;
-    const character=$('home-character');character.dataset.scene=scene;character.dataset.celebration=special?.kind||'';
+    const forcedKind=previewKind||(typeof window.__coupleThemePreview==='string'?window.__coupleThemePreview:null);
+    const special=(preview && forcedKind ? celebrations(today).find(x=>x.kind===forcedKind) : null)||chooseCelebration(today),scene=special?'celebration':hour>=22||hour<7?'night':trip?'trip':'day';const art=$('home-rabbit-art');
+    const seasonalKey=special?({valentine:'chocolate',white:'chocolate',christmas:'santa',pepero:'pepero',hundred:'cake',anniversary:'cake',rose:'rose',kiss:'kiss',wine:'wine',hug:'hug',pork:'pork',rabbitbirthday:'rabbitbirthday',sweetbirthday:'sweetbirthday',silver:'silver',green:'green',photo:'photo',movie:'movie',halloween:'halloween',fools:'fools',tree:'tree',parents:'parents',black:'black',teacher:'teacher',armed:'armed',couple:'couple',newyear:'newyear',yearend:'yearend',seollal:'hanbok',chuseok:'chuseok',independence:'national',liberation:'national',foundation:'national',constitution:'national',children:'children',memorial:'memorial',buddha:'lotus',hangul:'hangul',labor:'hug'})[special.kind]:null;
+    const season=seasonForDate(today);
+    const src=seasonalKey?heroAssets[seasonalKey]:scene==='day'?heroAssets[season]:heroAssets[scene];if(art.getAttribute('src')!==src)art.src=src;
+    const character=$('home-character');character.dataset.scene=scene;character.dataset.celebration=special?.kind||'';character.dataset.season=scene==='day'?season:'';
     let decorations=$('home-celebration');if(!decorations){decorations=document.createElement('span');decorations.id='home-celebration';decorations.setAttribute('aria-hidden','true');character.appendChild(decorations);}
     decorations.innerHTML=seasonalKey==='cake'?`<span class="cake-day-count">${special.kind==='anniversary'?special.years+'주년':special.days+'일'}</span>`:'';
-    const badge=$('home-brand-season');if(badge){badge.hidden=true;badge.innerHTML='';}const brandArt=$('home-brand-image');if(brandArt)brandArt.src=special?src:defaultHero;
-    art.alt=special?special.label+' · 토끼와 구마가 함께하는 그림':'';
+    const badge=$('home-brand-season');if(badge){badge.hidden=true;badge.innerHTML='';}const brandArt=$('home-brand-image');if(brandArt)brandArt.src=special||scene==='day'?src:defaultHero;
+    art.alt=special?special.label+' · 토끼와 구마가 함께하는 그림':scene==='day'?({spring:'벚꽃과 함께하는 봄',summer:'토끼와 구마의 여름휴가',autumn:'단풍 속 토끼와 구마',winter:'눈사람을 만드는 토끼와 구마'})[season]:'';
 
-    document.querySelector('.home-character-hint').textContent=special?special.label:scene==='night'?'잘 자, 내일도 함께 ♡':scene==='trip'?'곧 함께 떠나는 날! ♡':'살짝 눌러봐요 ♡';
+    document.querySelector('.home-character-hint').textContent=special?special.label:scene==='night'?'잘 자, 내일도 함께 ♡':scene==='trip'?'곧 함께 떠나는 날! ♡':({spring:'우리의 봄도 함께 🌸',summer:'여름에도 함께 시원하게 ☀',autumn:'단풍처럼 따뜻한 우리 🍁',winter:'겨울에도 함께 포근하게 ❄'})[season];
     return scene;
   }
   function inbox(owner=person) {const list=read('inbox:'+owner,[]);return Array.isArray(list)?list:[];}
@@ -5073,8 +5126,9 @@ renderApplicant();
   window.addEventListener('couple-calendar-change',()=>{updateCharacter();scanNotifications();});
   window.addEventListener('storage',e=>{if(!e.key?.startsWith(prefix+':'))return;if(preview&&e.key===prefix+':moods:'+date){moods=normalized(read('moods:'+date,{}));renderMoods();}renderInbox();renderSettings();});
   function refresh(){connectMoods();updateCharacter();scanNotifications();}
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});setInterval(()=>{if(!document.hidden)refresh();},60000);
-  window.CoupleHome=Object.freeze({getPerson:()=>person,updateCharacter,clock,celebration,notifyNewEvent});
+  window.addEventListener('site-mode-change',e=>{if(e.detail?.mode==='home'){themeSelection=null;updateCharacter();}});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(document.body.dataset.siteMode==='home')themeSelection=null;refresh();}});setInterval(()=>{if(!document.hidden)refresh();},60000);
+  window.CoupleHome=Object.freeze({getPerson:()=>person,updateCharacter,clock,celebration,celebrations,seasonForDate,notifyNewEvent});
   renderSettings();connectMoods();updateCharacter();scanNotifications();
 })();
 
