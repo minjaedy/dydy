@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261006-home-19">
+<meta name="app-version" content="20261006-home-23">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1369,6 +1369,22 @@ html[data-theme="dark"] .home-relationship{background:linear-gradient(110deg,#3d
 /* Compact app drawer: four familiar icons and names. */
 .home-app-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.home-surface .home-app-card{text-align:center;padding:16px 8px;border-radius:20px}.home-app-top{display:flex;justify-content:center;margin-bottom:9px}.home-app-card .home-app-arrow,.home-app-card p,.home-app-card .home-card-status,.home-app-card .home-soon,.home-apps .home-small-note{display:none}.home-app-card h3{font-size:21px;margin:0;white-space:nowrap}.home-app-symbol.home-app-image{width:64px;height:64px;border-radius:18px}@media(max-width:440px){.home-app-grid{gap:7px}.home-surface .home-app-card{padding:12px 3px;border-radius:16px}.home-app-symbol.home-app-image{width:52px;height:52px;border-radius:14px}.home-app-card h3{font-size:15px}.home-app-top{margin-bottom:7px}}@media(max-width:350px){.home-app-card h3{font-size:13px}.home-app-symbol.home-app-image{width:45px;height:45px}}
 
+/* Quiet surfaces and consistent spacing keep the character at the center. */
+.home-wrap{max-width:960px}
+.home-relationship{background:var(--hm-paper);padding:14px 20px;border-radius:18px;border-color:var(--hm-line)}
+.home-hero{padding:22px 22px 14px;gap:20px}
+.home-hero-copy>p:not(.home-eyebrow){font-size:12px;margin-bottom:8px}
+.home-section-heading{margin-bottom:12px}.home-section-heading h2{font-size:25px}
+.home-surface .home-app-card{box-shadow:none;border-color:transparent;background:var(--hm-paper);border-radius:18px}
+.home-apps{margin-bottom:22px}.home-dday-section{margin:0 0 22px}
+.home-surface .home-dday{padding:17px 18px}.home-ddays{border-radius:18px}
+.home-dday strong{font-size:30px;margin-bottom:5px}.home-dday-label{margin-bottom:7px}
+#home-calendar-state[data-state="ready"]{display:none}
+.home-together{border-style:solid;border-radius:16px;padding:12px 16px}
+.home-person-day{border-color:transparent;padding:16px;border-radius:16px}
+.home-footer{font-size:10px;opacity:.7}
+@media(max-width:440px){.home-wrap{padding:18px 16px 28px}.home-hero{padding:16px 0 12px;gap:12px}.home-hero-copy>p:not(.home-eyebrow){font-size:11px;line-height:1.6}.home-surface .home-dday{padding:14px 10px}.home-dday-label{font-size:10px}.home-dday small{font-size:10px}.home-relationship{padding:12px 15px}.home-section-heading h2{font-size:23px}.home-apps{margin-bottom:18px}}
+
 </style>
 <!-- couple-calendar-home-styles:end -->
 <!-- couple-calendar-social-styles:start -->
@@ -1396,6 +1412,9 @@ html[data-theme="dark"] .home-relationship{background:linear-gradient(110deg,#3d
 
 .home-hero-art[data-scene=celebration] img.home-season-guma{position:absolute;width:35%;max-width:90px;height:auto;aspect-ratio:1;left:-6%;bottom:3%;z-index:4;filter:drop-shadow(0 3px 4px #95636d20);animation:homeBreathe 4s ease-in-out infinite}.home-hero-art[data-celebration=hundred] img.home-season-guma,.home-hero-art[data-celebration=anniversary] img.home-season-guma{left:-8%;bottom:12%}#home-brand-season{left:23px;top:17px;z-index:3}#home-brand-season img{width:23px;height:23px;object-fit:contain}@media(prefers-reduced-motion:reduce){.home-hero-art[data-scene=celebration] img.home-season-guma{animation:none}}
 
+/* Keep startup visible until the entrance portraits have finished loading. */
+.boot{animation:none}
+
 </style>
 <!-- couple-calendar-social-styles:end -->
 <!-- couple-calendar-game-styles:start -->
@@ -1406,11 +1425,47 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
 
 </style>
 <!-- couple-calendar-game-styles:end -->
+<!-- couple-calendar-polish-styles:start -->
+<style id="couple-ui-styles">
+/* Shared visual finish for the couple app. Keep character artwork unchanged. */
+.app-panel h1[tabindex="-1"]:focus{outline:none}
+.home-person-next{display:grid;gap:5px;margin:16px 0 0;max-width:300px}.home-surface .home-next-line{display:flex;align-items:center;gap:7px;min-width:0;width:100%;border:0;background:transparent;padding:5px 0;text-align:left;font-size:11px;min-height:29px}.home-next-name{flex:none;color:#9784b0;font-weight:600}.home-next-line[data-home-next-person=sweet] .home-next-name{color:#b09261}.home-next-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--hm-muted)}.home-next-dday{flex:none;font-size:10px;font-weight:600;color:var(--hm-pink);background:var(--hm-paper);border-radius:7px;padding:3px 6px;white-space:nowrap}.home-next-line:hover .home-next-title{color:var(--hm-ink)}
+@media(max-width:440px){.home-person-next{margin-top:12px;gap:3px}.home-surface .home-next-line{font-size:9px;gap:5px;padding:3px 0;min-height:25px}.home-next-dday{font-size:9px;padding:3px 5px}}
+.home-surface{--hm-bg:#f7f6fa;--hm-paper:#fff;--hm-ink:#393343;--hm-muted:#837b8e;--hm-line:#ece8f0;--hm-pink:#a26486;--hm-soft:#f5eaf1;--hm-rabbit:#f1edf9;--hm-sweet:#fbf3e5}
+#topBanner{background:#ffffffed;border-bottom:1px solid #ece8f0;box-shadow:0 2px 18px #43364f04;padding:13px max(20px,calc((100vw - 840px)/2));min-height:74px}
+.home-brand strong{font-family:'Noto Sans KR',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.7px;line-height:1.5}
+.home-brand small{font-size:10px;color:#8b8293;margin-top:1px}.home-brand img{width:38px;height:38px;border-radius:12px}
+#topBanner .social-bell{border:1px solid #ece8f0;background:#f8f6fa;color:#74657e;border-radius:14px;padding:10px 12px;margin-right:0;min-height:40px}
+.home-wrap{max-width:880px;padding:25px 24px 38px}.home-date-row{font-size:11px;margin-bottom:15px;letter-spacing:.02em}
+.home-relationship{margin-top:0;border:0;background:linear-gradient(110deg,#efe8f5,#faf0f2);padding:17px 22px;border-radius:20px}
+.home-relationship>div{font-size:13px;font-weight:500}.home-relationship-heart{font-size:24px;color:#bf7897}.home-relationship strong{font:700 27px/1.2 'Noto Sans KR',sans-serif;letter-spacing:-1px;color:#895c81}.home-relationship-since{font-size:10px}
+.home-hero{padding:25px 26px 20px;gap:20px}.home-hero h1{font-size:43px;line-height:1.12;letter-spacing:-1.4px}.home-hero h1 span{color:#916b8f}.home-hero-copy>p:not(.home-eyebrow){font-size:12px;margin:14px 0}.home-hero-copy>.home-text-link{display:inline-flex;align-items:center;gap:12px;background:var(--hm-paper);border:1px solid var(--hm-line);border-radius:12px;padding:10px 13px;font-size:11px;min-height:40px;color:var(--hm-ink)}
+.home-section-heading{margin-bottom:13px;align-items:center}.home-section-heading h2{font:700 16px/1.5 'Noto Sans KR',sans-serif;letter-spacing:-.5px}.home-text-link{font-size:11px;color:var(--hm-pink)}
+.home-apps{background:var(--hm-paper);padding:21px 20px 16px;border:1px solid var(--hm-line);border-radius:22px;margin-top:0;margin-bottom:22px;box-shadow:0 4px 16px #51436103}
+.home-app-grid{gap:12px}.home-surface .home-app-card{background:transparent;border:0;border-radius:16px;padding:11px 5px}.home-app-card h3{font:500 12px/1.5 'Noto Sans KR',sans-serif;letter-spacing:-.4px}.home-app-symbol.home-app-image{width:65px;height:65px;border-radius:18px;box-shadow:0 3px 10px #59466009}.home-app-top{margin-bottom:10px}.home-app-card:hover{background:var(--hm-bg);box-shadow:none!important}
+.home-ddays{background:var(--hm-paper);border:1px solid var(--hm-line);border-radius:20px;box-shadow:0 4px 16px #51436103}.home-dday strong{font:700 26px/1.3 'Noto Sans KR',sans-serif;letter-spacing:-.9px}.home-dday-label{font-size:11px}.home-dday small{font-size:11px;line-height:1.6}
+.home-person-days{gap:12px}.home-person-day{background:var(--hm-paper);border:1px solid var(--hm-line);border-radius:18px;padding:17px}.home-person-name{font-weight:600;font-size:11px}.home-person-name img{width:26px;height:26px}.home-together{background:var(--hm-paper);border:1px solid var(--hm-line);border-radius:15px;margin-top:10px;font-size:11px}
+.home-moods{margin:23px 0}.social-mood-card{border:1px solid var(--hm-line);box-shadow:0 3px 12px #51436103}.social-mood-card header{font-weight:600}.social-emotion-label{color:var(--hm-muted)}.social-heart{background:var(--hm-bg);border-color:transparent}.mood-edit{border-radius:8px;min-height:30px;padding:4px 7px}
+.home-game-section{margin-top:23px}.home-game-section .home-section-heading p{font-size:10px}.home-game-person{border:1px solid var(--hm-line);box-shadow:none;border-radius:18px}.home-game-person[data-play-person=rabbit]{background:var(--hm-rabbit)}.home-game-person[data-play-person=sweet]{background:var(--hm-sweet)}.home-game-person strong{font:700 22px/1.4 'Noto Sans KR',sans-serif;letter-spacing:-.8px}.home-game-person small{font-size:9px}
+.home-device-settings{margin-top:28px;padding:18px 0;font-size:10px;gap:10px}.home-device-settings>button:not(#themeBtn){font-size:10px;min-height:36px;border-radius:10px}.home-footer{margin-top:8px}.home-footer>span{display:none}
+.home-entrance{background:radial-gradient(ellipse at 50% 30%,#efe9f8,transparent 65%),#faf8fc;color:#393343;font-family:'Noto Sans KR',sans-serif}.entrance-content{max-width:520px}.entrance-content>.home-eyebrow{font-size:11px;letter-spacing:.06em;color:#9b789b;font-weight:600}.entrance-content h1{font:700 27px/1.5 'Noto Sans KR',sans-serif;letter-spacing:-1.2px;margin:13px 0 8px}.entrance-content>p:not(.home-eyebrow){font-size:12px;color:#837b8e}.entrance-people{gap:16px;margin:30px 0 24px}.entrance-people button{background:#ffffffd9;border:1px solid #fff;border-radius:25px;padding:25px 16px 22px;box-shadow:0 10px 30px #5c487009;transition:transform .2s,border-color .2s}.entrance-people button[data-enter-person=rabbit]{background:linear-gradient(160deg,#fff,#f4effa)}.entrance-people button[data-enter-person=sweet]{background:linear-gradient(160deg,#fff,#fff6e9)}.entrance-people button:hover{border-color:#c8b4d7}.entrance-people strong{font:700 18px/1.6 'Noto Sans KR',sans-serif;margin:16px 0 4px;letter-spacing:-.5px}.entrance-people span{display:inline-block;font-size:10px;background:#ffffffba;border:1px solid #eae5ee;border-radius:20px;padding:7px 12px;color:#7b6c85}.entrance-content>small{font-size:10px;color:#99909f}
+.social-dialog{border-radius:24px;background:var(--hm-paper,#fff);color:var(--hm-ink,#393343);box-shadow:0 22px 80px #3c284f26}.social-dialog h2{font:700 19px/1.5 'Noto Sans KR',sans-serif;letter-spacing:-.5px}.social-dialog details{background:#f8f6fa;border-color:#ece8f0}.social-notice{border-color:#ece8f0}.social-dialog #social-notice-days{border:1px solid #e7dfea;border-radius:8px;padding:6px;background:#fff;color:#54445e}
+#app-calendar,.cc-dialog{--cc-bg:#f7f6fa;--cc-paper:#fff;--cc-ink:#393343;--cc-muted:#837b8e;--cc-line:#ece8f0;--cc-accent:#9d6487;--cc-soft:#f5eaf1;--cc-lilac:#f1edf9;--cc-green:#fbf3e5}
+#app-calendar{background:var(--cc-bg)}.cc-wrap{max-width:1010px;padding-top:27px}.cc-hero h1{font:700 31px/1.3 'Noto Sans KR',sans-serif;letter-spacing:-1px}.cc-hero .cc-sub{font-size:12px}.cc-paper{border-radius:22px;border-color:var(--cc-line);box-shadow:0 4px 18px #51436103}.cc-month-head h2{font:700 23px/1.4 'Noto Sans KR',sans-serif;letter-spacing:-.7px}.cc-sidebar h2,.cc-dialog h2{font:700 16px/1.5 'Noto Sans KR',sans-serif;letter-spacing:-.5px}.cc-person-card strong{font:600 15px/1.6 'Noto Sans KR',sans-serif}.cc-dday{font:700 14px/1.5 'Noto Sans KR',sans-serif;min-width:53px}.cc-dialog{box-shadow:0 22px 80px #3c284f26}.cc-field input,.cc-field select,.cc-field textarea{background:#faf9fc;border-color:var(--cc-line);border-radius:12px}.cc-field input:focus,.cc-field select:focus,.cc-field textarea:focus{outline:2px solid #d9c1dc;outline-offset:1px}.cc-filters{gap:7px}#app-calendar .cc-filters button{border-radius:20px;padding:7px 11px;min-height:36px;font-size:11px}#app-calendar .cc-filters button[aria-pressed=true]{border-color:#d8bfd4}
+html[data-theme=dark] #topBanner{background:#29242f;border-color:#433a4b}html[data-theme=dark] .home-brand{color:#efe7f4}html[data-theme=dark] #topBanner .social-bell{background:#37303e;border-color:#4c4057;color:#dfcce7}html[data-theme=dark] .home-relationship{background:linear-gradient(110deg,#3d3146,#3e303b)}html[data-theme=dark] .home-relationship strong{color:#e3b7d6}html[data-theme=dark] .home-hero h1 span{color:#d4b0d3}html[data-theme=dark] .social-dialog,html[data-theme=dark] .social-dialog details,html[data-theme=dark] .social-notice{background:#30272e;color:#f0dce1;border-color:#51404a}html[data-theme=dark] .cc-field input,html[data-theme=dark] .cc-field select,html[data-theme=dark] .cc-field textarea{background:var(--cc-bg)}
+@media(max-width:720px){.cc-wrap{padding:22px 16px 32px}.cc-hero h1{font-size:27px}.cc-paper{padding:21px 17px}.cc-hero .cc-sub{font-size:11px}.home-wrap{max-width:610px}}
+@media(max-width:440px){#topBanner{padding:12px 17px;min-height:68px}.home-brand strong{font-size:13px;letter-spacing:-.6px}.home-brand small{font-size:9px}.home-brand img{width:33px;height:33px}.home-brand{gap:8px}#topBanner .social-bell{padding:9px;min-height:36px;font-size:10px}.home-wrap{padding:20px 17px 28px}.home-date-row{font-size:10px;margin-bottom:12px}.home-relationship{padding:15px 17px;gap:6px}.home-relationship>div{font-size:12px;gap:8px}.home-relationship strong{font-size:25px}.home-relationship-since{font-size:9px;margin-left:28px}.home-hero{padding:20px 3px 15px;gap:8px}.home-hero h1{font-size:33px;letter-spacing:-1.2px}.home-hero-copy>p:not(.home-eyebrow){font-size:10px;margin:12px 0}.home-hero-copy>.home-text-link{font-size:9px;gap:5px;padding:8px 9px;min-height:35px}.home-hero-art{min-height:190px}.home-section-heading h2{font-size:15px}.home-apps{padding:17px 13px 12px;margin-bottom:18px;border-radius:20px}.home-app-grid{gap:4px}.home-surface .home-app-card{padding:8px 1px}.home-app-symbol.home-app-image{width:53px;height:53px;border-radius:15px}.home-app-card h3{font-size:10px;letter-spacing:-.5px}.home-app-top{margin-bottom:9px}.home-dday strong{font-size:21px}.home-dday-label,.home-dday small{font-size:9px}.home-person-day{padding:13px}.home-person-name{font-size:10px}.home-person-name img{width:22px;height:22px}.home-game-person strong{font-size:19px}.home-device-settings{gap:8px;font-size:9px}.home-device-settings>button:not(#themeBtn){font-size:9px;padding:7px 9px}.entrance-content h1{font-size:22px;letter-spacing:-1px}.entrance-people{gap:12px}.entrance-people button{padding:21px 10px 17px}.entrance-people strong{font-size:16px}.entrance-people span{font-size:9px;padding:6px 10px}.cc-month-head h2{font-size:20px}.cc-person-card strong{font-size:13px}.cc-person-card small{font-size:9px}.cc-dialog{padding:21px}.home-text-link{font-size:10px}}
+@media(max-width:350px){.home-brand strong{font-size:12px}.home-hero h1{font-size:29px}.home-app-symbol.home-app-image{width:45px;height:45px}.home-app-card h3{font-size:9px}.home-relationship strong{font-size:23px}.entrance-content h1{font-size:19px}.entrance-people span{font-size:8px}.cc-month-head h2{font-size:18px}}
+
+</style>
+<!-- couple-calendar-polish-styles:end -->
+<link rel="preload" as="image" href="assets/rabbit-daily-icon.webp" fetchpriority="high">
+<link rel="preload" as="image" href="assets/sweet-daily-icon.webp" fetchpriority="high">
 </head>
 <body>
 
 <div class="boot" id="bootSplash">
-  <img id="bootIcon" alt="">
+  <img decoding="async" loading="eager" fetchpriority="high" id="bootIcon" alt="">
   <div class="t">구마를 안은 행복한 토끼</div>
   <div class="greet" id="bootGreet"></div>
   <div class="bar"><i></i></div>
@@ -1421,15 +1476,15 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
 </div>
 
 <div class="top-banner" id="topBanner" data-mode="home">
-  <button type="button" class="home-brand" id="home-brand-button" data-open-app="home" aria-label="구마를 안은 행복한 토끼 홈으로 돌아가기"><span class="home-brand-back" aria-hidden="true">‹</span><img id="home-brand-image" alt=""><span><strong>구마를 안은 행복한 토끼</strong><small id="home-brand-caption">토끼와 구마의 작은 일상</small></span></button>
+  <button type="button" class="home-brand" id="home-brand-button" data-open-app="home" aria-label="구마를 안은 행복한 토끼 홈으로 돌아가기"><span class="home-brand-back" aria-hidden="true">‹</span><img decoding="async" loading="eager" fetchpriority="high" id="home-brand-image" alt=""><span><strong>구마를 안은 행복한 토끼</strong><small id="home-brand-caption">토끼와 구마의 작은 일상</small></span></button>
   <div class="switcher" id="switcher" data-mode="leave" role="tablist">
     <div class="thumb" aria-hidden="true"></div>
     <button class="seg" id="siteTabLeave" aria-controls="app-leave" role="tab" aria-selected="true">
-      <img id="segIconLeave" alt=""><span>유흥연차</span>
+      <img decoding="async" loading="lazy" id="segIconLeave" alt=""><span>유흥연차</span>
       <span class="pending-dot" id="dotLeave" style="display:none"></span>
     </button>
     <button class="seg" id="siteTabSmoke" aria-controls="app-smoke" role="tab" aria-selected="false">
-      <img id="segIconSmoke" alt=""><span>흡연결재</span>
+      <img decoding="async" loading="lazy" id="segIconSmoke" alt=""><span>흡연결재</span>
       <span class="pending-dot" id="dotSmoke" style="display:none"></span>
     </button>
     <button class="seg" id="siteTabCalendar" role="tab" aria-selected="false" aria-controls="app-calendar"><span class="cc-tab-icon" aria-hidden="true">♡</span><span>커플 캘린더</span></button>
@@ -1443,7 +1498,7 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
 <div class="daily-strip" id="dailyStrip" style="display:none"><div class="inner" id="dailyInner"></div></div>
 
 <div class="splash" id="siteSplash" aria-hidden="true">
-  <img class="glyph" id="splashGlyph" alt="">
+  <img decoding="async" loading="lazy" class="glyph" id="splashGlyph" alt="">
   <div class="label" id="splashLabel">유흥연차</div>
 </div>
 
@@ -1486,14 +1541,14 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
   <main class="cc-wrap">
     <header class="cc-hero">
       <div><p class="cc-eyebrow">토끼와 구마의 캘린더</p><h1>our days</h1><p class="cc-sub">토끼와 구마, 함께라서 특별한 날들.</p></div>
-      <div class="cc-portraits" aria-hidden="true"><img src="assets/rabbit-daily-icon.png" alt=""><span>♥</span><img src="assets/sweet-daily-icon.png" alt=""></div>
+      <div class="cc-portraits" aria-hidden="true"><img decoding="async" loading="lazy" src="assets/rabbit-daily-icon.webp" alt=""><span>♥</span><img decoding="async" loading="lazy" src="assets/sweet-daily-icon.webp" alt=""></div>
     </header>
     <div class="cc-sync-line"><p id="cc-sync" role="status">공유 캘린더를 불러오는 중…</p><button type="button" id="cc-retry" hidden>다시 연결</button></div>
     <div id="cc-person-overview" class="cc-person-overview" role="group" aria-label="서로의 다음 일정"></div>
     <div class="cc-layout">
       <section class="cc-paper cc-month" aria-label="월간 캘린더">
         <div class="cc-month-head"><div><p class="cc-eyebrow" id="cc-year"></p><h2 id="cc-month-title"></h2></div><div class="cc-month-actions"><button type="button" id="cc-prev" aria-label="이전 달">‹</button><button type="button" id="cc-today">오늘</button><button type="button" id="cc-next" aria-label="다음 달">›</button></div></div>
-        <div class="cc-filters" role="group" aria-label="일정 주인 필터"><button type="button" data-cc-filter="all" aria-pressed="true">모두</button><button type="button" data-cc-filter="together" aria-pressed="false">♥ 함께</button><button type="button" data-cc-filter="rabbit" aria-pressed="false"><img src="assets/rabbit-daily-icon.png" alt=""> 이토끼</button><button type="button" data-cc-filter="sweet" aria-pressed="false"><img src="assets/sweet-daily-icon.png" alt=""> 구마구마</button></div>
+        <div class="cc-filters" role="group" aria-label="일정 주인 필터"><button type="button" data-cc-filter="all" aria-pressed="true">모두</button><button type="button" data-cc-filter="together" aria-pressed="false">♥ 함께</button><button type="button" data-cc-filter="rabbit" aria-pressed="false"><img decoding="async" loading="lazy" src="assets/rabbit-daily-icon.webp" alt=""> 이토끼</button><button type="button" data-cc-filter="sweet" aria-pressed="false"><img decoding="async" loading="lazy" src="assets/sweet-daily-icon.webp" alt=""> 구마구마</button></div>
         <div class="cc-weekdays" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
         <div id="cc-grid" class="cc-grid" role="group" aria-labelledby="cc-month-title"></div>
         <p class="cc-calendar-note">이름을 누르면 각자의 일정만 모아볼 수 있어요.<br><span id="cc-holiday-status" role="status">기념일·생일·공휴일 자동 표시</span></p>
@@ -1533,16 +1588,16 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
     <div class="home-date-row"><span id="home-date"></span><span id="home-preview-note" hidden>미리보기 · 예시 일정</span></div>
     <div class="home-relationship" aria-label="만난 날부터 함께한 날짜"><div><span class="home-relationship-heart" aria-hidden="true">♥</span><span>함께한 지 <strong id="home-relationship-days"></strong><span id="home-relationship-unit"> 일째</span></span></div><span class="home-relationship-since">2026.02.18, 우리의 첫날</span></div>
     <header class="home-hero">
-      <div class="home-hero-copy"><h1>오늘도,<br><span>함께여서 좋아.</span></h1><p>토끼의 하루와 구마의 하루가<br>만나는 우리만의 작은 공간.</p><button type="button" class="home-text-link" data-home-action="add">오늘의 약속 남기기 <span aria-hidden="true">↗</span></button></div>
-      <button type="button" id="home-character" class="home-hero-art" aria-label="토끼에게 하트 보내기"><span class="home-orbit orbit-one" aria-hidden="true">♡</span><span class="home-orbit orbit-two" aria-hidden="true">✧</span><img id="home-rabbit-art" src="assets/rabbit-sweetpotato.png" alt=""><span class="home-character-hint">살짝 눌러봐요 ♡</span></button>
+      <div class="home-hero-copy"><h1>오늘도,<br><span>함께여서 좋아.</span></h1><div id="home-person-next" class="home-person-next" aria-label="토끼와 구마의 다가오는 일정"></div><p>토끼와 구마의 작은 일상.</p><button type="button" class="home-text-link" data-home-action="add">오늘의 약속 남기기 <span aria-hidden="true">↗</span></button></div>
+      <button type="button" id="home-character" class="home-hero-art" aria-label="토끼에게 하트 보내기"><span class="home-orbit orbit-one" aria-hidden="true">♡</span><span class="home-orbit orbit-two" aria-hidden="true">✧</span><img decoding="async" loading="eager" fetchpriority="high" id="home-rabbit-art" src="assets/rabbit-sweetpotato.webp" alt=""><span class="home-character-hint">살짝 눌러봐요 ♡</span></button>
     </header>
     <section class="home-apps" aria-labelledby="home-apps-title">
       <div class="home-section-heading"><div><h2 id="home-apps-title">우리의 일상 서랍</h2></div><span class="home-small-note">필요할 때, 하나씩 꺼내요</span></div>
       <div class="home-app-grid">
-        <button type="button" class="home-app-card home-calendar-card" data-open-app="calendar"><span class="home-app-top"><span class="home-app-symbol home-app-image" aria-hidden="true"><img src="assets/calendar-icon.png" alt=""></span><span class="home-app-arrow" aria-hidden="true">↗</span></span><h3>커플 캘린더</h3><p>너의 일정, 나의 일정.<br>함께 보는 우리의 날들.</p><span id="home-calendar-status" class="home-card-status">일정과 기념일 모아보기</span></button>
-        <button type="button" class="home-app-card home-smoke-card" data-open-app="smoke"><span class="home-app-top"><span class="home-app-symbol home-app-image" aria-hidden="true"><img src="assets/smoke-icon-vape.png" alt=""></span><span class="home-app-arrow" aria-hidden="true">↗</span></span><h3>흡연결재</h3><p>구마의 잠깐 쉬는 시간,<br>토끼와 약속해요.</p><span id="home-smoke-status" class="home-card-status">신청과 진행 상태 확인</span></button>
-        <button type="button" class="home-app-card home-leave-card" data-open-app="leave"><span class="home-app-top"><span class="home-app-symbol home-app-image" aria-hidden="true"><img src="assets/leave-icon-tweed.png" alt=""></span><span class="home-app-arrow" aria-hidden="true">↗</span></span><h3>유흥연차</h3><p>토끼의 자유 시간,<br>구마에게 살짝 물어봐요.</p><span id="home-leave-status" class="home-card-status">연차와 신청 내역 확인</span></button>
-        <button type="button" class="home-app-card home-travel-card" data-open-app="travel"><span class="home-app-top"><span class="home-app-symbol home-app-image" aria-hidden="true"><img src="assets/travel-icon.png" alt=""></span><span class="home-soon">준비 중</span></span><h3>여행 플래너</h3><p>가고 싶은 곳부터<br>함께 떠나는 날까지.</p><span class="home-card-status">다음 여행을 위한 빈 페이지</span></button>
+        <button type="button" class="home-app-card home-calendar-card" data-open-app="calendar"><span class="home-app-top"><span class="home-app-symbol home-app-image" aria-hidden="true"><img decoding="async" loading="lazy" src="assets/calendar-icon.webp" alt=""></span><span class="home-app-arrow" aria-hidden="true">↗</span></span><h3>커플 캘린더</h3><p>너의 일정, 나의 일정.<br>함께 보는 우리의 날들.</p><span id="home-calendar-status" class="home-card-status">일정과 기념일 모아보기</span></button>
+        <button type="button" class="home-app-card home-smoke-card" data-open-app="smoke"><span class="home-app-top"><span class="home-app-symbol home-app-image" aria-hidden="true"><img decoding="async" loading="lazy" src="assets/smoke-icon-vape.webp" alt=""></span><span class="home-app-arrow" aria-hidden="true">↗</span></span><h3>흡연결재</h3><p>구마의 잠깐 쉬는 시간,<br>토끼와 약속해요.</p><span id="home-smoke-status" class="home-card-status">신청과 진행 상태 확인</span></button>
+        <button type="button" class="home-app-card home-leave-card" data-open-app="leave"><span class="home-app-top"><span class="home-app-symbol home-app-image" aria-hidden="true"><img decoding="async" loading="lazy" src="assets/leave-icon-tweed.webp" alt=""></span><span class="home-app-arrow" aria-hidden="true">↗</span></span><h3>유흥연차</h3><p>토끼의 자유 시간,<br>구마에게 살짝 물어봐요.</p><span id="home-leave-status" class="home-card-status">연차와 신청 내역 확인</span></button>
+        <button type="button" class="home-app-card home-travel-card" data-open-app="travel"><span class="home-app-top"><span class="home-app-symbol home-app-image" aria-hidden="true"><img decoding="async" loading="lazy" src="assets/travel-icon.webp" alt=""></span><span class="home-soon">준비 중</span></span><h3>여행 플래너</h3><p>가고 싶은 곳부터<br>함께 떠나는 날까지.</p><span class="home-card-status">다음 여행을 위한 빈 페이지</span></button>
       </div>
     </section>
     <section class="home-dday-section" aria-label="기다리는 날들"><div id="home-ddays" class="home-ddays"></div><p id="home-calendar-state" class="home-sync" role="status"></p></section>
@@ -1566,7 +1621,7 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
   </main>
 </section>
 <section id="app-travel" class="app-panel home-surface" aria-label="여행 플래너 준비 중" style="display:none">
-  <main class="home-wrap travel-wrap"><span class="travel-sticker" aria-hidden="true"><img src="assets/travel-icon.png" alt=""></span><p class="home-eyebrow">OUR NEXT ADVENTURE</p><h1>다음엔, 어디로 갈까?</h1><span class="home-soon">여행 플래너 준비 중</span><p class="travel-intro">가고 싶은 곳을 모으고, 함께 하루를 계획하는 공간.<br>우리의 다음 여행을 위해 이 자리를 비워두었어요.</p><div class="travel-features"><div><span>01</span><h2>가고 싶은 곳</h2><p>숙소, 맛집, 꼭 가볼 장소</p></div><div><span>02</span><h2>하루하루의 계획</h2><p>날짜별 일정과 이동 동선</p></div><div><span>03</span><h2>함께 챙기는 준비</h2><p>준비물과 여행 예산</p></div></div><p class="travel-note">여행 날짜가 정해졌다면 먼저 남겨둘 수 있어요.<br>캘린더에 기록하면 홈에서 여행 D-day를 볼 수 있어요.</p><button type="button" class="home-primary" data-home-action="trip">여행 날짜 먼저 기록하기 ↗</button><button type="button" class="home-text-link travel-home" data-open-app="home">홈으로 돌아가기</button></main>
+  <main class="home-wrap travel-wrap"><span class="travel-sticker" aria-hidden="true"><img decoding="async" loading="lazy" src="assets/travel-icon.webp" alt=""></span><p class="home-eyebrow">OUR NEXT ADVENTURE</p><h1>다음엔, 어디로 갈까?</h1><span class="home-soon">여행 플래너 준비 중</span><p class="travel-intro">가고 싶은 곳을 모으고, 함께 하루를 계획하는 공간.<br>우리의 다음 여행을 위해 이 자리를 비워두었어요.</p><div class="travel-features"><div><span>01</span><h2>가고 싶은 곳</h2><p>숙소, 맛집, 꼭 가볼 장소</p></div><div><span>02</span><h2>하루하루의 계획</h2><p>날짜별 일정과 이동 동선</p></div><div><span>03</span><h2>함께 챙기는 준비</h2><p>준비물과 여행 예산</p></div></div><p class="travel-note">여행 날짜가 정해졌다면 먼저 남겨둘 수 있어요.<br>캘린더에 기록하면 홈에서 여행 D-day를 볼 수 있어요.</p><button type="button" class="home-primary" data-home-action="trip">여행 날짜 먼저 기록하기 ↗</button><button type="button" class="home-text-link travel-home" data-open-app="home">홈으로 돌아가기</button></main>
 </section>
 
 <dialog id="social-notifications" class="social-dialog" aria-labelledby="social-notification-title">
@@ -1577,7 +1632,7 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
 </dialog>
 
 <dialog id="home-entrance" class="home-entrance" aria-labelledby="entrance-title">
-  <div class="entrance-content"><p class="home-eyebrow">구마를 안은 행복한 토끼</p><h1 id="entrance-title">오늘은 누구의 하루인가요?</h1><p>나를 골라 우리 공간에 들어가요.</p><div class="entrance-people"><button type="button" data-enter-person="rabbit"><img src="assets/rabbit-daily-icon.png" alt=""><strong>이토끼</strong><span>토끼로 들어가기 ↗</span></button><button type="button" data-enter-person="sweet"><img src="assets/sweet-daily-icon.png" alt=""><strong>구마구마</strong><span>구마로 들어가기 ↗</span></button></div><small>선택한 이름으로 기분과 알림을 확인해요.</small></div>
+  <div class="entrance-content"><p class="home-eyebrow">구마를 안은 행복한 토끼</p><h1 id="entrance-title">오늘은 누구의 하루인가요?</h1><p>나를 골라 우리 공간에 들어가요.</p><div class="entrance-people"><button type="button" data-enter-person="rabbit"><img decoding="async" loading="eager" fetchpriority="high" data-entrance-portrait width="320" height="320" src="assets/rabbit-daily-icon.webp" alt=""><strong>이토끼</strong><span>토끼로 들어가기 ↗</span></button><button type="button" data-enter-person="sweet"><img decoding="async" loading="eager" fetchpriority="high" data-entrance-portrait width="320" height="320" src="assets/sweet-daily-icon.webp" alt=""><strong>구마구마</strong><span>구마로 들어가기 ↗</span></button></div><small>선택한 이름으로 기분과 알림을 확인해요.</small></div>
 </dialog>
 
 <!-- couple-calendar-home-layout:end -->
@@ -1586,7 +1641,7 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
 <section id="app-game" class="app-panel home-surface" aria-label="토끼와 구마 미니게임" style="display:none">
   <main class="home-wrap game-wrap">
     <header class="game-heading"><div><p class="home-eyebrow">우리의 작은 놀이터</p><h1>토끼와 구마, 피해라!</h1><p id="game-description">떨어지는 구마를 피해 오래 버텨봐요.</p></div><button type="button" class="home-text-link" data-open-app="home">홈으로 ↗</button></header>
-    <div class="game-person-toggle" role="group" aria-label="게임 캐릭터 선택"><button type="button" data-game-person="rabbit" aria-pressed="true"><img src="assets/rabbit-daily-icon.png" alt="">이토끼로 플레이</button><button type="button" data-game-person="sweet" aria-pressed="false"><img src="assets/sweet-daily-icon.png" alt="">구마구마로 플레이</button></div>
+    <div class="game-person-toggle" role="group" aria-label="게임 캐릭터 선택"><button type="button" data-game-person="rabbit" aria-pressed="true"><img decoding="async" loading="lazy" src="assets/rabbit-daily-icon.webp" alt="">이토끼로 플레이</button><button type="button" data-game-person="sweet" aria-pressed="false"><img decoding="async" loading="lazy" src="assets/sweet-daily-icon.webp" alt="">구마구마로 플레이</button></div>
     <div class="game-stats"><div><span>지금 점수</span><strong id="game-score">0</strong></div><div><span>내 최고 점수</span><strong id="game-best">0</strong></div><div><span>버틴 시간</span><strong id="game-time">0.0초</strong></div></div>
     <div class="game-stage"><canvas id="game-canvas" width="360" height="480" tabindex="0" aria-label="떨어지는 상대를 피해 좌우로 움직이는 게임. 방향키 또는 A와 D로 이동"></canvas><div id="game-overlay" class="game-overlay"><span id="game-overlay-icon" aria-hidden="true">♡</span><h2 id="game-overlay-title">준비됐어?</h2><p id="game-overlay-detail">토끼는 구마를, 구마는 토끼를 피해요.<br>오래 버틸수록 점수가 올라가요.</p><button type="button" id="game-start" class="home-primary">게임 시작</button></div></div>
     <div class="game-controls"><button type="button" id="game-left" aria-label="왼쪽으로 이동">←</button><button type="button" id="game-pause">잠깐 쉬기</button><button type="button" id="game-right" aria-label="오른쪽으로 이동">→</button></div>
@@ -4238,7 +4293,7 @@ renderApplicant();
   })();
   setTimeout(function(){
     var b = document.getElementById('bootSplash');
-    if(b) b.remove();
+    if(b && !window.__coupleBootManaged) b.remove();
   }, 1850);
 
   /* ── 당겨서 새로고침 ── */
@@ -4712,11 +4767,12 @@ renderApplicant();
   const $ = id => document.getElementById(id);
   const esc = text => String(text ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
   const people = { rabbit: '이토끼', sweet: '구마구마' };
-  const dailyIcons = { rabbit: 'assets/rabbit-daily-icon.png', sweet: 'assets/sweet-daily-icon.png' };
+  const dailyIcons = { rabbit: 'assets/rabbit-daily-icon.webp', sweet: 'assets/sweet-daily-icon.webp' };
   const ddayTypes = [ { kind: 'anniversary', icon: '♡', label: '우리의 기념일', empty: '기억할 날', hint: '기념일을 남겨요' },
     { kind: 'date', icon: '☕', label: '다음 데이트', empty: '언제 만날까?', hint: '함께할 약속 남기기' },
     { kind: 'trip', icon: '✈', label: '함께 떠날 날', empty: '어디로 갈까?', hint: '다음 여행을 꿈꿔요' } ];
   let upcomingByKind = {};
+  let upcomingByPerson = {};
   function openCalendar(options = {}) { window.SiteNav.open('calendar'); window.CoupleCalendar?.open(options); }
   function eventButton(e, shared = false) {
     return `<button type="button" class="home-event-link" data-home-event="${esc(e.id)}"><time>${e.time || '종일'}</time><span>${esc(e.title)}${shared && e.place ? `<small> · ${esc(e.place)}</small>` : ''}</span></button>`;
@@ -4736,6 +4792,13 @@ renderApplicant();
     $('home-calendar-state').dataset.state = state.failed ? 'error' : state.ready && state.connected ? 'ready' : 'waiting';
     $('home-calendar-state').textContent = state.preview ? '예시 일정으로 둘러보는 중 · 변경은 이 브라우저에만 저장돼요' : state.failed ? '공유 일정을 연결하지 못했어요. 캘린더에서 다시 연결해 주세요.' : !state.ready ? '우리의 일정을 불러오고 있어요.' : !state.connected ? '연결을 기다리는 중 · 마지막으로 확인한 일정을 보여드려요.' : '우리의 캘린더와 함께 업데이트돼요';
     const loaded = state.ready;
+    upcomingByPerson = {};
+    if ($('home-person-next')) $('home-person-next').innerHTML = Object.entries(people).map(([owner, name]) => {
+      const next = state.upcoming.find(({ event }) => event.owner === owner);
+      upcomingByPerson[owner] = next;
+      const title = next ? next.event.title : loaded ? '예정된 일정 없음' : state.failed ? '연결 확인 필요' : '불러오는 중';
+      return `<button type="button" class="home-next-line" data-home-next-person="${owner}" aria-label="${name}: ${esc(title)}${next ? ', ' + esc(next.dday) : ''}"><span class="home-next-name">${owner === 'rabbit' ? '토끼' : '구마'}</span><span class="home-next-title">${esc(title)}</span>${next ? `<span class="home-next-dday">${esc(next.dday)}</span>` : ''}</button>`;
+    }).join('');
     upcomingByKind = {};
     $('home-ddays').innerHTML = ddayTypes.map(type => {
       const next = anniversary&&type.kind==='anniversary'?{date:day.year+'-02-18',dday:(day.year-2026)+'주년',event:{title:'우리의 '+(day.year-2026)+'주년'}}:state.upcoming.find(({event}) => event.kind === type.kind && event.owner === 'together');
@@ -4758,6 +4821,10 @@ renderApplicant();
   }
   document.addEventListener('click', event => {
     const button = event.target.closest('button'); if (!button) return;
+    if (button.dataset.homeNextPerson) {
+      const owner = button.dataset.homeNextPerson, next = upcomingByPerson[owner];
+      openCalendar(next ? { owner, date: next.date, eventId: next.event.id } : { owner });
+    }
     if (button.dataset.homeOwner) openCalendar({ owner: button.dataset.homeOwner });
     if (button.dataset.homeEvent) openCalendar({ eventId: button.dataset.homeEvent });
     if (button.dataset.homeDday) {
@@ -4822,8 +4889,8 @@ renderApplicant();
   const prefix = preview ? 'couple-social-preview-v1' : 'couple-social-v1';
   const names = { rabbit: '이토끼', sweet: '구마구마' };
   const emotions = {'🥰':'행복해','🥱':'피곤해','🥺':'보고 싶어','😊':'기분 좋아','😌':'여유로워','😢':'속상해','💪':'힘내는 중'};
-  const icons = { rabbit: 'assets/rabbit-daily-icon.png', sweet: 'assets/sweet-daily-icon.png' };
-  const heroAssets = {night:'assets/rabbit-night.png',trip:'assets/travel-icon.png',chocolate:'assets/duo-chocolate.png',santa:'assets/duo-santa.png',pepero:'assets/duo-pepero.png',cake:'assets/duo-cake.png',rose:'assets/duo-rose.png',kiss:'assets/duo-kiss.png',wine:'assets/duo-wine.png',hug:'assets/duo-hug.png',pork:'assets/duo-pork.png',rabbitbirthday:'assets/duo-rabbitbirthday.png',sweetbirthday:'assets/duo-sweetbirthday.png'};
+  const icons = { rabbit: 'assets/rabbit-daily-icon.webp', sweet: 'assets/sweet-daily-icon.webp' };
+  const heroAssets = {night:'assets/rabbit-night.webp',trip:'assets/travel-icon.webp',chocolate:'assets/duo-chocolate.webp',santa:'assets/duo-santa.webp',pepero:'assets/duo-pepero.webp',cake:'assets/duo-cake.webp',rose:'assets/duo-rose.webp',kiss:'assets/duo-kiss.webp',wine:'assets/duo-wine.webp',hug:'assets/duo-hug.webp',pork:'assets/duo-pork.webp',rabbitbirthday:'assets/duo-rabbitbirthday.webp',sweetbirthday:'assets/duo-sweetbirthday.webp'};
   const defaultHero = $('home-rabbit-art').src;
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(prefix + ':' + key)) ?? fallback; } catch { return fallback; } };
@@ -4877,7 +4944,28 @@ renderApplicant();
     entrance.addEventListener('cancel',e=>e.preventDefault());
     entrance.addEventListener('click',e=>{const selected=e.target.closest('[data-enter-person]')?.dataset.enterPerson;if(!names[selected]||busy)return;$('social-person').value=selected;$('social-person').dispatchEvent(new Event('change',{bubbles:true}));entrance.close();window.SiteNav?.open('home');window.scrollTo({top:0,behavior:'instant'});const heading=$('app-home')?.querySelector('h1');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}});
     $('home-change-person')?.addEventListener('click',()=>{window.MiniGame?.pause();entrance.showModal();});
-    entrance.showModal?.();
+    const boot = $('bootSplash');
+    if (!boot) entrance.showModal?.();
+    else {
+      window.__coupleBootManaged = true;
+      if ($('bootGreet')) $('bootGreet').textContent = '토끼와 구마의 하루를 준비하고 있어요.';
+      const portraits = [...entrance.querySelectorAll('img')];
+      const waitForPortrait = image => new Promise(resolve => {
+        image.loading = 'eager'; image.fetchPriority = 'high';
+        let finished = false;
+        const finish = () => {
+          if (finished) return; finished = true; clearTimeout(timer);
+          image.removeEventListener('load', finish); image.removeEventListener('error', finish);
+          resolve();
+        };
+        const timer = setTimeout(finish, 4000);
+        if (image.complete) finish();
+        else { image.addEventListener('load', finish); image.addEventListener('error', finish); }
+      });
+      Promise.all([...portraits.map(waitForPortrait), new Promise(resolve => setTimeout(resolve, 900))]).then(() => {
+        boot.remove(); entrance.showModal?.();
+      });
+    }
   }
   function status(message) { $('social-status').textContent = message || (preview ? '미리보기 · 기분과 하트는 이 브라우저에 저장돼요' : ready && connected ? '오늘의 기분과 하트가 서로에게 공유돼요' : '공유 연결을 기다리고 있어요.'); $('social-mood-save').disabled = busy || !ready || !connected; }
   function normalized(value) {
@@ -5016,8 +5104,8 @@ renderApplicant();
   'use strict';
   const $=id=>document.getElementById(id),root=$('app-game');if(!root)return;
   const rules=window.CoupleDodgeRules,canvas=$('game-canvas'),ctx=canvas.getContext('2d');if(!ctx)return;
-  const names={rabbit:'이토끼',sweet:'구마구마'},sources={rabbit:'assets/rabbit-daily-icon.png',sweet:'assets/sweet-daily-icon.png'};
-  const spriteSources={rabbit:'assets/rabbit-game-character.png',sweet:'assets/sweet-game-character.png'};
+  const names={rabbit:'이토끼',sweet:'구마구마'},sources={rabbit:'assets/rabbit-daily-icon.webp',sweet:'assets/sweet-daily-icon.webp'};
+  const spriteSources={rabbit:'assets/rabbit-game-character.webp',sweet:'assets/sweet-game-character.webp'};
   const sprites={};for(const owner of Object.keys(names)){sprites[owner]=new Image();sprites[owner].src=spriteSources[owner];sprites[owner].onload=()=>{if(!running)draw();};}
   const preview=document.getElementById('app-calendar').dataset.preview==='true',storageKey='couple-game-preview-v1';
   let person=window.CoupleHome?.getPerson()||'rabbit',state=rules.create(),running=false,paused=false,frame=0,lastTime=0,keys=new Set(),held=0,target=null,pointer=null;
