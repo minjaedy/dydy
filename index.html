@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261006-home-17">
+<meta name="app-version" content="20261006-home-18">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1235,6 +1235,12 @@ html[data-theme="dark"] #app-calendar{background:var(--cc-bg)}
 #app-calendar [data-cc-automatic]{cursor:default;border-style:dashed}
 #app-calendar [data-cc-automatic] .cc-event-meta{opacity:.8}
 #cc-holiday-status{font-size:11px}
+.cc-favorite-row{display:flex;align-items:center;gap:6px;margin:8px 0}
+#app-calendar .cc-favorite-row button:first-child{flex:1;min-width:0;text-align:left;background:var(--cc-soft);padding:10px 12px;border:0;border-radius:12px}
+.cc-favorite-row strong,.cc-favorite-row small{display:block;overflow-wrap:anywhere}
+.cc-favorite-row strong{font-size:12px}.cc-favorite-row small{font-size:10px;margin-top:4px;color:var(--cc-muted)}
+#app-calendar .cc-favorite-row button:last-child{flex:none;width:32px;height:32px;padding:0;border:0;background:transparent;color:var(--cc-muted)}
+.cc-favorite-save{width:100%;padding:12px;border-radius:12px;background:var(--cc-soft);color:var(--cc-accent);border:1px solid var(--cc-line)}
 
 </style>
 <!-- couple-calendar-styles:end -->
@@ -1487,6 +1493,7 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
         <p class="cc-calendar-note">이름을 누르면 각자의 일정만 모아볼 수 있어요.<br><span id="cc-holiday-status" role="status">기념일·생일·공휴일 자동 표시</span></p>
       </section>
       <aside class="cc-sidebar">
+        <section class="cc-paper cc-favorites" aria-labelledby="cc-favorites-title"><h2 id="cc-favorites-title">⭐ 자주 쓰는 일정</h2><p class="cc-calendar-note">골라 둔 날짜에 빠르게 추가해요.</p><div id="cc-favorites"></div><p id="cc-favorites-status" class="cc-calendar-note" role="status"></p></section>
         <section class="cc-paper cc-day-section" aria-labelledby="cc-day-title"><div class="cc-section-heading"><div><p class="cc-eyebrow" id="cc-day-weekday"></p><h2 id="cc-day-title"></h2></div><span class="cc-count" id="cc-day-count"></span></div><div id="cc-day-events"></div><button type="button" class="cc-primary cc-add" id="cc-add" disabled>＋ 일정 추가하기</button></section>
         <section class="cc-paper cc-upcoming" aria-labelledby="cc-upcoming-title"><p class="cc-eyebrow">LOOKING FORWARD TO</p><h2 id="cc-upcoming-title">곧 만날 좋은 날</h2><div id="cc-upcoming-events"></div></section>
       </aside>
@@ -1497,6 +1504,7 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
 <dialog id="cc-editor" class="cc-dialog" aria-labelledby="cc-editor-title">
   <form id="cc-form">
     <div class="cc-section-heading"><h2 id="cc-editor-title">우리의 새 약속</h2><button type="button" class="cc-close" id="cc-close" aria-label="일정 창 닫기">×</button></div>
+    <label class="cc-field">자주 쓰는 일정 불러오기<select id="cc-favorite-select"><option value="">저장한 일정 선택</option></select></label>
     <label class="cc-field">일정 이름<input id="cc-title" name="title" required maxlength="80" placeholder="예: 함께 저녁 먹기" autocomplete="off"></label>
     <div class="cc-form-row"><label class="cc-field">날짜<input id="cc-date" name="date" type="date" min="1900-01-01" max="2199-12-31" required></label><label class="cc-field">시간 <span class="cc-optional">선택</span><input id="cc-time" name="time" type="time"></label></div>
     <div class="cc-form-row"><label class="cc-field">누구의 일정인가요?<select id="cc-owner" name="owner"><option value="together">♥ 함께</option><option value="rabbit">🐰 이토끼</option><option value="sweet">🍠 구마구마</option></select></label><label class="cc-field">어떤 날인가요?<select id="cc-kind" name="kind"><option value="date">데이트</option><option value="anniversary">기념일</option><option value="daily">일상</option><option value="trip">여행</option></select></label></div>
@@ -1504,6 +1512,7 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
     <p class="cc-repeat-note">생일·기념일에 좋아요. 2월 29일은 윤년에만 표시해요.</p>
     <label class="cc-field">장소 <span class="cc-optional">선택</span><input id="cc-place" name="place" maxlength="120" placeholder="어디에서 만날까요?"></label>
     <label class="cc-field">메모 <span class="cc-optional">선택</span><textarea id="cc-note" name="note" maxlength="500" rows="3" placeholder="잊지 말아야 할 작은 것들"></textarea></label>
+    <button type="button" id="cc-favorite-save" class="cc-favorite-save">☆ 자주 쓰는 일정에 저장</button><p id="cc-favorite-feedback" class="cc-calendar-note" role="status"></p>
     <p id="cc-form-error" class="cc-error" role="alert" hidden></p>
     <div id="cc-delete-confirm" class="cc-delete-confirm" hidden><p>이 일정을 삭제할까요? 매년 반복되는 일정은 모든 해에서 삭제돼요.</p><button type="button" id="cc-delete-cancel">돌아가기</button><button type="button" id="cc-delete-yes">삭제하기</button></div>
     <div class="cc-form-actions"><button type="button" id="cc-delete" class="cc-danger" hidden>일정 삭제</button><button type="button" id="cc-cancel">취소</button><button type="submit" id="cc-save" class="cc-primary">저장하기</button></div>
@@ -4341,6 +4350,59 @@ renderApplicant();
   let editingId = null, editingSnapshot = null, previousFocus = null;
   const dialog = $('cc-editor');
   const form = $('cc-form');
+  let favorites = {}, favoritesReady = false, favoritesFailed = false, favoriteSaving = false;
+  let favoritesRef = null, favoritesHandler = null;
+  const favoritesKey = `${previewKey}-favorites`;
+  function normalizeFavorites(raw) {
+    const input = Object.fromEntries(Object.entries(raw && typeof raw === 'object' ? raw : {}).map(([id, value]) => [id, { ...value, date:'2026-02-18' }]));
+    return Object.fromEntries(Object.entries(normalize(input)).map(([id, e]) => [id, { id, title:e.title, time:e.time, owner:e.owner, kind:e.kind, yearly:e.yearly, place:e.place, note:e.note }]));
+  }
+  function favoriteFields() {
+    return { title:$('cc-title').value.trim(), time:$('cc-time').value, owner:$('cc-owner').value, kind:$('cc-kind').value, yearly:$('cc-yearly').checked, place:$('cc-place').value.trim(), note:$('cc-note').value.trim() };
+  }
+  function favoriteSignature(e) { return JSON.stringify([e.title,e.time,e.owner,e.kind,e.yearly,e.place,e.note]); }
+  function renderFavorites() {
+    const list = Object.values(favorites).sort((a,b) => a.title.localeCompare(b.title,'ko'));
+    const visible = list.filter(e => filter === 'all' || e.owner === filter);
+    $('cc-favorites').innerHTML = visible.length ? visible.map(e => `<div class="cc-favorite-row"><button type="button" data-cc-favorite="${e.id}"><strong>${esc(e.title)}</strong><small>${owners[e.owner]}${e.time ? ' · '+e.time : ''}</small></button><button type="button" data-cc-favorite-remove="${e.id}" aria-label="${esc(e.title)} 자주 쓰는 목록에서 빼기">×</button></div>`).join('') : '<p class="cc-calendar-note">일정 입력 창에서 ☆를 눌러 저장해요.</p>';
+    const selectedFavorite = $('cc-favorite-select').value;
+    $('cc-favorite-select').innerHTML = '<option value="">저장한 일정 선택</option>' + list.map(e => `<option value="${e.id}">${esc(e.title)} · ${owners[e.owner]}</option>`).join('');
+    if (favorites[selectedFavorite]) $('cc-favorite-select').value = selectedFavorite;
+    $('cc-favorites-status').textContent = favoritesFailed ? '목록을 연결하지 못했어요. 다시 연결을 눌러 주세요.' : !favoritesReady ? '저장한 일정을 불러오는 중…' : preview ? '미리보기 · 이 브라우저에 저장돼요' : '저장한 목록도 둘이 함께 볼 수 있어요.';
+    $('cc-favorite-save').disabled = favoriteSaving || !favoritesReady || !connected || favoritesFailed || saving;
+    $('cc-favorite-select').disabled = !favoritesReady || saving;
+    if (favoritesFailed && !preview) $('cc-retry').hidden = false;
+  }
+  function applyFavorite(id) {
+    const e = favorites[id]; if (!e) return;
+    for (const field of ['title','time','owner','kind','place','note']) $(`cc-${field}`).value = e[field];
+    $('cc-yearly').checked = e.yearly;
+    $('cc-favorite-select').value = id;
+    $('cc-favorite-feedback').textContent = '날짜를 확인한 뒤 저장하면 새 일정으로 추가돼요.';
+    $('cc-date').focus();
+  }
+  async function writeFavorite(id, data) {
+    if (!favoritesReady || !connected || favoritesFailed) throw Error('목록 연결을 확인한 뒤 다시 시도해 주세요.');
+    if (preview) {
+      const stored = normalizeFavorites(JSON.parse(localStorage.getItem(favoritesKey) || '{}'));
+      if (data) stored[id] = data; else delete stored[id];
+      localStorage.setItem(favoritesKey, JSON.stringify(stored)); favorites = normalizeFavorites(stored); renderFavorites();
+    } else await favoritesRef.child(id).set(data);
+  }
+  $('cc-favorite-save').addEventListener('click', async () => {
+    if (favoriteSaving || saving) return;
+    const data = favoriteFields();
+    if (!data.title) { $('cc-favorite-feedback').textContent = '먼저 일정 이름을 적어 주세요.'; $('cc-title').focus(); return; }
+    const existing = Object.values(favorites).find(e => favoriteSignature(e) === favoriteSignature(data));
+    if (existing) { $('cc-favorite-feedback').textContent = '이미 저장한 일정이에요.'; return; }
+    favoriteSaving = true; renderFavorites();
+    try {
+      const id = preview ? `f${Date.now()}${Math.random().toString(36).slice(2,8)}` : favoritesRef.push().key;
+      await writeFavorite(id, data); $('cc-favorite-feedback').textContent = '⭐ 저장했어요. 다음에는 목록에서 바로 골라요.';
+    } catch { $('cc-favorite-feedback').textContent = '목록에 저장하지 못했어요. 입력 내용은 그대로 있어요.'; }
+    finally { favoriteSaving = false; renderFavorites(); }
+  });
+  $('cc-favorite-select').addEventListener('change', () => applyFavorite($('cc-favorite-select').value));
   // Automatic dates are derived locally, never written into either partner's data.
   // 2026/2027 include actual holidays and substitutes (KASA annual almanac).
   const holidaySnapshots = {
@@ -4417,17 +4479,19 @@ renderApplicant();
       .sort((a, b) => a.date.localeCompare(b.date) || a.event.time.localeCompare(b.event.time) || a.event.title.localeCompare(b.event.title, 'ko'));
   }
   function syncUI(message) {
+    renderFavorites();
     const available = ready && connected && !failed;
     $('cc-sync').dataset.state = failed ? 'error' : available ? 'ready' : 'waiting';
     $('cc-sync').textContent = message || (preview ? '미리보기 · 이 브라우저에 저장돼요' : failed ? '공유 일정에 연결하지 못했어요. 다시 연결해 주세요.' : available ? '둘이 함께 보는 캘린더 · 변경 내용이 자동으로 공유돼요' : ready ? '연결이 끊겼어요. 다시 연결되면 일정을 저장할 수 있어요.' : '공유 캘린더를 불러오는 중…');
     $('cc-add').disabled = !available;
-    $('cc-retry').hidden = preview || !failed;
+    $('cc-retry').hidden = preview || (!failed && !favoritesFailed);
     $('cc-save').disabled = saving || !available;
     $('cc-delete').disabled = saving || !available;
     $('cc-delete-yes').disabled = saving || !available;
     window.dispatchEvent(new CustomEvent('couple-calendar-change'));
   }
   function render() {
+    renderFavorites();
     loadHolidays(month.getFullYear());
     const holidayStatus = $('cc-holiday-status');
     if (holidayStatus) holidayStatus.textContent = holidayData[month.getFullYear()] ? '기념일·생일·공휴일 자동 표시' : holidayErrors.has(month.getFullYear()) ? '기념일·생일 자동 표시 · 공휴일을 불러오지 못했어요' : '기념일·생일 자동 표시 · 공휴일 확인 중…';
@@ -4475,6 +4539,7 @@ renderApplicant();
     editingId = id; editingSnapshot = e ? JSON.stringify(e) : null;
     previousFocus = document.activeElement;
     form.reset(); error(''); $('cc-delete-confirm').hidden = true;
+    $('cc-favorite-feedback').textContent = '';
     $('cc-editor-title').textContent = e ? '우리의 약속' : '우리의 새 약속';
     $('cc-title').value = e?.title || '';
     $('cc-date').value = e?.date || selected;
@@ -4546,6 +4611,10 @@ renderApplicant();
   $('cc-add').addEventListener('click', () => openEditor());
   root.addEventListener('click', event => {
     const b = event.target.closest('button'); if (!b) return;
+    if (b.dataset.ccFavorite) { openEditor(); applyFavorite(b.dataset.ccFavorite); }
+    if (b.dataset.ccFavoriteRemove) {
+      void writeFavorite(b.dataset.ccFavoriteRemove, null).catch(() => { $('cc-favorites-status').textContent = '목록에서 빼지 못했어요. 다시 시도해 주세요.'; });
+    }
     if (b.dataset.ccDate) chooseDate(b.dataset.ccDate, true);
     if (b.dataset.ccFilter) { filter = b.dataset.ccFilter; render(); }
     if (b.dataset.ccEdit) openEditor(b.dataset.ccEdit);
@@ -4566,10 +4635,14 @@ renderApplicant();
     clearTimeout(connectTimer);
     if (ref && valueHandler) ref.off('value', valueHandler);
     if (connectionRef && connectionHandler) connectionRef.off('value', connectionHandler);
+    if (favoritesRef && favoritesHandler) favoritesRef.off('value', favoritesHandler);
   }
   function connect() {
     disconnect(); failed = false; ready = false; connected = false; syncUI();
+    favoritesReady = false; favoritesFailed = false;
     if (preview) {
+      try { favorites = normalizeFavorites(JSON.parse(localStorage.getItem(favoritesKey) || '{}')); favoritesReady = true; }
+      catch { favoritesFailed = true; }
       try { events = normalize(JSON.parse(localStorage.getItem(previewKey) || '{}')); ready = connected = true; }
       catch { failed = true; syncUI('미리보기 저장공간을 읽을 수 없어요. 브라우저 저장 설정을 확인해 주세요.'); render(); return; }
       syncUI(); render(); return;
@@ -4577,6 +4650,9 @@ renderApplicant();
     try {
       const db = window.firebase.app().database();
       ref = db.ref('couple_calendar_v1/events');
+      favoritesRef = db.ref('couple_calendar_v1/templates');
+      favoritesHandler = snap => { favorites = normalizeFavorites(snap.val()); favoritesReady = true; favoritesFailed = false; renderFavorites(); };
+      favoritesRef.on('value', favoritesHandler, () => { favoritesFailed = true; renderFavorites(); });
       connectionRef = db.ref('.info/connected');
       connectionHandler = snap => { connected = snap.val() === true; syncUI(); };
       valueHandler = snap => { events = normalize(snap.val()); ready = true; failed = false; clearTimeout(connectTimer); syncUI(); render(); };
@@ -4587,6 +4663,10 @@ renderApplicant();
   }
   $('cc-retry').addEventListener('click', connect);
   window.addEventListener('storage', event => {
+    if (preview && event.key === favoritesKey) {
+      try { favorites = normalizeFavorites(JSON.parse(event.newValue || '{}')); renderFavorites(); } catch { /* Preserve last valid list. */ }
+      return;
+    }
     if (!preview || event.key !== previewKey) return;
     try { events = normalize(JSON.parse(event.newValue || '{}')); render(); } catch { /* Keep last valid state. */ }
   });
