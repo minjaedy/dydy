@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-chat-daily-auth-50">
+<meta name="app-version" content="20261007-chat-keyboard-51">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1715,6 +1715,16 @@ body[data-site-mode=chat] .chat-shell{width:100%;max-width:none;border:0;border-
 .chat-row{position:relative}.chat-content{position:relative;z-index:1;touch-action:pan-y}.chat-swipe-hint{position:absolute;top:35px;opacity:0;color:#c58aa1;font-size:23px;transform:scale(.65);pointer-events:none;transition:opacity .12s,transform .12s}.chat-heart-pop{position:absolute;left:50%;top:20px;z-index:3;font-size:30px;color:#d08da8;pointer-events:none;animation:chat-heart-pop .6s ease-out both}@keyframes chat-heart-pop{0%{opacity:0;transform:translate(-50%,6px) scale(.4)}30%{opacity:1;transform:translate(-50%,-8px) scale(1.2)}100%{opacity:0;transform:translate(-50%,-34px) scale(.9)}}@media(prefers-reduced-motion:reduce){.chat-heart-pop{animation:none;opacity:1}.chat-content{transition:none!important}}
 
 .chat-shell .chat-content .chat-message-heart{display:none;position:absolute;right:-7px;bottom:18px;z-index:2;width:27px;height:25px;padding:0!important;border:1px solid var(--cl)!important;border-radius:13px;background:var(--cp)!important;box-shadow:0 2px 7px #9e6e8517;font-size:18px!important;line-height:23px;color:#d08ca5!important;text-align:center}.chat-shell .chat-content .chat-message-heart.on{display:block;animation:chat-heart-attach .28s cubic-bezier(.2,1.5,.5,1) both}.chat-row.mine .chat-content .chat-message-heart{right:auto;left:-7px}.chat-meta{padding-top:3px}@keyframes chat-heart-attach{from{transform:translateY(3px) scale(.4);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}@media(prefers-reduced-motion:reduce){.chat-shell .chat-content .chat-message-heart.on{animation:none}}
+
+body[data-site-mode=chat] #app-chat{animation:none!important;transform:none!important;transition:none!important}
+body[data-site-mode=chat] .chat-shell{position:relative;animation:none!important;transform:none!important}
+body[data-site-mode=chat] .chat-bottom{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;max-height:55%;background:var(--cp);z-index:4;box-sizing:border-box}
+body[data-site-mode=chat] .chat-bottom>*{flex-shrink:0}
+body[data-site-mode=chat] .chat-bottom #chat-tray{min-height:0;flex:1 1 auto;max-height:220px;overflow:auto}
+body[data-site-mode=chat] #chat-feed{padding-bottom:calc(20px + var(--chat-bottom-height,94px));scroll-padding-bottom:var(--chat-bottom-height,94px)}
+body[data-chat-keyboard=true][data-site-mode=chat] #app-chat{padding-bottom:0!important}
+body[data-site-mode=chat] .chat-bottom #chat-form{padding-bottom:8px}
+body[data-chat-keyboard=true][data-site-mode=chat] .chat-bottom #chat-form{padding-bottom:8px}
 
 </style>
 <!-- couple-calendar-chat-styles:end -->
@@ -5949,10 +5959,14 @@ if(preview){dock.hidden=false;status('미리보기 · 실제 대화는 공개 �
 })();
 
 (function(){
-const viewport=window.visualViewport,root=document.documentElement;
-function sizeChat(){if(document.body.dataset.siteMode!=='chat'){delete document.body.dataset.chatKeyboard;return}const keyboard=!!viewport&&window.innerHeight-viewport.height>120;document.body.dataset.chatKeyboard=String(keyboard);const offset=viewport?.offsetTop||0;const top=Math.max(offset,document.getElementById('topBanner')?.getBoundingClientRect().bottom||0);root.style.setProperty('--chat-screen-top',top+'px');root.style.setProperty('--chat-screen-height',Math.max(0,(viewport?.height||window.innerHeight)+offset-top)+'px')}
-function entered(){sizeChat();if(document.body.dataset.siteMode==='chat'){const tray=document.getElementById('chat-tray');if(tray)tray.hidden=true;document.getElementById('chat-input')?.focus({preventScroll:true});requestAnimationFrame(sizeChat)}}
-window.addEventListener('site-mode-change',entered);window.addEventListener('resize',sizeChat);viewport?.addEventListener('resize',sizeChat);viewport?.addEventListener('scroll',sizeChat);sizeChat();
+const viewport=window.visualViewport,root=document.documentElement,shell=document.querySelector('.chat-shell');if(!shell)return;
+const bottom=document.createElement('div');bottom.className='chat-bottom';for(const node of [document.getElementById('chat-tray'),shell.querySelector('.chat-reply-bar'),document.getElementById('chat-form'),shell.querySelector('.chat-retention')])if(node)bottom.append(node);shell.append(bottom);
+let baseline=Math.max(window.innerHeight,document.documentElement.clientHeight,viewport?.height||0),frame=0;
+function sizeChat(){frame=0;if(document.body.dataset.siteMode!=='chat'){delete document.body.dataset.chatKeyboard;return}const height=viewport?.height||window.innerHeight,offset=viewport?.offsetTop||0;baseline=Math.max(baseline,height,document.documentElement.clientHeight,window.innerHeight);const keyboard=baseline-height>100&&document.activeElement?.closest('#app-chat')!==null;document.body.dataset.chatKeyboard=String(keyboard);root.style.setProperty('--chat-screen-top',offset+'px');root.style.setProperty('--chat-screen-height',height+'px');root.style.setProperty('--chat-bottom-height',bottom.getBoundingClientRect().height+'px')}
+function schedule(){if(!frame)frame=requestAnimationFrame(sizeChat)}
+function settled(){schedule();for(const delay of [80,240,500])setTimeout(schedule,delay)}
+function entered(){sizeChat();if(document.body.dataset.siteMode==='chat'){const tray=document.getElementById('chat-tray');if(tray)tray.hidden=true;document.getElementById('chat-input')?.focus({preventScroll:true});settled()}}
+window.addEventListener('site-mode-change',entered);window.addEventListener('resize',schedule);window.addEventListener('orientationchange',()=>{baseline=0;settled()});document.addEventListener('focusin',settled);document.addEventListener('focusout',settled);viewport?.addEventListener('resize',sizeChat);viewport?.addEventListener('scroll',sizeChat);if(window.ResizeObserver)new ResizeObserver(schedule).observe(bottom);sizeChat();
 })();
 
 </script>
