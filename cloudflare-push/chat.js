@@ -17,6 +17,15 @@ export async function cleanChat(env){const cutoff=Date.now()-CHAT_RETENTION_MS;a
 export async function deliverChat(env,send){const rows=(await sql(env,'SELECT id,owner,kind,payload FROM chat_messages m WHERE notified=0 AND created_at>? AND NOT EXISTS (SELECT 1 FROM chat_presence p WHERE p.owner!=m.owner AND p.active_until>?) ORDER BY seq LIMIT 20',Date.now()-86400000,Date.now()).all()).results;for(const m of rows){const p=JSON.parse(m.payload);try{const active=await sql(env,'SELECT id FROM chat_presence WHERE owner=? AND active_until>? LIMIT 1',other(m.owner),Date.now()).first();if(active)continue;await send(env,other(m.owner),'chat-'+m.id,m.kind==='text'?p.text.slice(0,180):m.kind==='photo'?'사진을 보냈어요.':m.kind==='sticker'?'이모티콘을 보냈어요.':p.title,'chat');await sql(env,'UPDATE chat_messages SET notified=1 WHERE id=?',m.id).run()}catch{/* Retry from cron; do not fail a saved message. */}}}
 export async function chatRoute(request,env,current,ctx,send){
  const url=new URL(request.url),path=url.pathname,owner=current.owner,cutoff=Date.now()-CHAT_RETENTION_MS;
+ if(path==='/chat/delete'&&request.method==='POST'){
+ const b=await request.json();if(typeof b.id!=='string')return json({error:'메시지를 확인해 주세요.'},400);
+ const m=await sql(env,'SELECT owner FROM chat_messages WHERE id=?',b.id).first();if(!m)return json({error:'이미 정리된 대화예요.'},404);if(m.owner!==owner)return json({error:'내가 보낸 메시지만 삭제할 수 있어요.'},403);
+ await env.DB.batch([
+ sql(env,'UPDATE chat_messages SET kind=?,payload=?,pinned=0,notified=1 WHERE id=? AND owner=?','text',JSON.stringify({deleted:true}),b.id,owner),
+ sql(env,'DELETE FROM chat_photos WHERE message_id=?',b.id),sql(env,'DELETE FROM chat_hearts WHERE message_id=?',b.id),
+ sql(env,"UPDATE chat_messages SET payload=json_set(payload,'$.reply.text','삭제된 메시지') WHERE json_extract(payload,'$.reply.id')=?",b.id)
+ ]);return json({ok:true})
+ }
  if(path==='/chat/typing'&&request.method==='POST'){const b=await request.json();await sql(env,'UPDATE chat_presence SET typing_until=? WHERE id=?',b.typing===true?Date.now()+5000:0,current.token_hash).run();return json({ok:true})}
  if(path==='/chat/heart'&&request.method==='POST'){const b=await request.json();const m=await sql(env,`SELECT id FROM chat_messages WHERE id=? AND ${live}`,String(b.id||''),cutoff).first();if(!m)return json({error:'이미 정리된 대화예요.'},404);if(b.on===true)await sql(env,'INSERT OR IGNORE INTO chat_hearts(message_id,owner) VALUES(?,?)',m.id,owner).run();else await sql(env,'DELETE FROM chat_hearts WHERE message_id=? AND owner=?',m.id,owner).run();return json({ok:true})}
  if(path==='/chat/presence'&&request.method==='POST'){const b=await request.json();await sql(env,'INSERT INTO chat_presence(id,owner,active_until) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET active_until=excluded.active_until',current.token_hash,owner,b.active===true?Date.now()+45000:0).run();return json({ok:true})}
@@ -32,7 +41,7 @@ export async function chatRoute(request,env,current,ctx,send){
  if(path==='/chat/messages'&&request.method==='POST'){
  if(Number(request.headers.get('Content-Length'))>250000)return json({error:'사진 용량이 너무 커요.'},413);
  const body=await request.json();let payload;try{payload=validateMessage(body)}catch(e){return json({error:e.message},400)}
- if(payload.replyTo){const original=await sql(env,`SELECT id,owner,kind,payload FROM chat_messages WHERE id=? AND ${live}`,payload.replyTo,cutoff).first();if(original){const p=JSON.parse(original.payload);payload.reply={id:original.id,owner:original.owner,text:original.kind==='text'?p.text.slice(0,120):original.kind==='photo'?'사진':original.kind==='sticker'?'이모티콘':p.title}}delete payload.replyTo;}
+ if(payload.replyTo){const original=await sql(env,`SELECT id,owner,kind,payload FROM chat_messages WHERE id=? AND ${live}`,payload.replyTo,cutoff).first();if(original&&!JSON.parse(original.payload).deleted){const p=JSON.parse(original.payload);payload.reply={id:original.id,owner:original.owner,text:original.kind==='text'?p.text.slice(0,120):original.kind==='photo'?'사진':original.kind==='sticker'?'이모티콘':p.title}}delete payload.replyTo;}
  const existing=await sql(env,'SELECT owner FROM chat_messages WHERE id=?',body.id).first();if(existing)return existing.owner===owner?json({ok:true,id:body.id}):json({error:'메시지 번호가 중복됐어요.'},409);
  const rate=await sql(env,'SELECT COUNT(*) AS count FROM chat_messages WHERE owner=? AND created_at>?',owner,Date.now()-60000).first();if(rate.count>=40)return json({error:'잠시 쉬었다가 다시 보내 주세요.'},429);
  const photo=body.kind==='photo'?payload.data:null;
@@ -45,7 +54,7 @@ export async function chatRoute(request,env,current,ctx,send){
 }
 export async function recordAppCards(env,calendar,leave,smoke){
  const start=await sql(env,"SELECT value FROM meta WHERE id='chatStartedAt'").first();if(!start)return;const cutoff=Math.max(Number(start.value),Date.now()-CHAT_RETENTION_MS);
- const put=async(id,owner,kind,payload,at)=>{const p=JSON.stringify(payload);await sql(env,'INSERT INTO chat_messages(id,owner,kind,payload,created_at,notified) VALUES(?,?,?,?,?,1) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload WHERE chat_messages.payload!=excluded.payload',id,owner,kind,p,at).run()};
+ const put=async(id,owner,kind,payload,at)=>{const p=JSON.stringify(payload);await sql(env,`INSERT INTO chat_messages(id,owner,kind,payload,created_at,notified) VALUES(?,?,?,?,?,1) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload WHERE chat_messages.payload!=excluded.payload AND COALESCE(json_extract(chat_messages.payload,'$.deleted'),0)!=1`,id,owner,kind,p,at).run()};
  for(const [id,e] of Object.entries(calendar||{}))if(e?.createdAt>=cutoff&&['rabbit','sweet'].includes(e.createdBy))await put('event-'+id,e.createdBy,'calendar',{title:String(e.title).slice(0,120),detail:e.date+(e.time?' · '+e.time:'')+'\n'+(e.owner==='rabbit'?'이토끼':e.owner==='sweet'?'구마구마':'함께')+'의 일정',ref:id,date:e.date},e.createdAt);
  for(const [kind,data,owner] of [['leave',leave,'rabbit'],['smoke',smoke,'sweet']])for(const r of Object.values(data?.requests||{})){const at=Date.parse(r?.submittedAt);if(!r?.id||!(at>=cutoff))continue;await put(kind+'-'+r.id,owner,kind,{title:kind==='leave'?'유흥연차 신청':'흡연결재 신청',detail:[r.date,r.reason,r.minutes?String(r.minutes)+'분':''].filter(x=>typeof x==='string').join(' · ').slice(0,600),ref:r.id,status:r.status},at)}
 }
