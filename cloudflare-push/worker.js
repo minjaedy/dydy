@@ -1,5 +1,7 @@
 import webpush from 'web-push';
 import specialDays from './special-days.json' with {type:'json'};
+export const DELIVERY_RETENTION_MS = 7*86400000;
+export const notificationCutoff = (started, now=Date.now()) => Math.max(started, now-DELIVERY_RETENTION_MS);
 const PEOPLE = ['rabbit', 'sweet'];
 const DATABASES = {calendar:'https://dydy-96bb1-default-rtdb.firebaseio.com/couple_calendar_v1/events.json',leave:'https://dydy-96bb1-default-rtdb.firebaseio.com/leave_app_v2.json',smoke:'https://smoke-a9b2e-default-rtdb.firebaseio.com/smoke_app_v1.json'};
 export const hash = async text => [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text)))].map(n=>n.toString(16).padStart(2,'0')).join('');
@@ -24,6 +26,19 @@ export function reminders(saved,today) {
   for(const year of new Set([+today.slice(0,4),+tomorrow.slice(0,4)]))for(const e of anniversaries(year))if([today,tomorrow].includes(e.date)&&!result.some(x=>x.date===e.date&&titleKey(x.title)===titleKey(e.title)))result.push(e);
   return result;
 }
+export function hourlyReminders(saved,now=new Date()) {
+  const today=dateKey(now),tomorrow=new Date(Date.parse(today)+86400000).toISOString().slice(0,10),result=[];
+  for(const [id,e] of Object.entries(saved||{})){
+    if(!e||typeof e.title!=='string'||!/^([01]\d|2[0-3]):[0-5]\d$/.test(e.time||''))continue;
+    for(const date of [today,tomorrow]){
+      if(e.date!==date&&!(e.yearly===true&&e.date<=date&&e.date.slice(5)===date.slice(5)))continue;
+      const starts=Date.parse(date+'T'+e.time+':00+09:00'),due=starts-3600000;
+      // A short retry window tolerates delayed cron runs without stale reminders.
+      if(now.getTime()>=due&&now.getTime()<due+5*60000)result.push({...e,id,date});
+    }
+  }
+  return result;
+}
 async function read(url){const r=await fetch(url,{signal:AbortSignal.timeout(10000)});if(!r.ok)throw Error('Database unavailable');return await r.json();}
 async function device(env,request){const token=request.headers.get('Authorization')?.replace(/^Bearer /,'')||'';if(token.length<32)return null;return sql(env,'SELECT id,owner FROM devices WHERE token_hash=?',await hash(token)).first();}
 function validSubscription(s){if(!s||typeof s.endpoint!=='string'||!s.keys)return false;try{const u=new URL(s.endpoint);return u.protocol==='https:'&&['web.push.apple.com','fcm.googleapis.com','updates.push.services.mozilla.com'].some(host=>u.hostname===host||u.hostname.endsWith('.'+host))&&typeof s.keys.p256dh==='string'&&typeof s.keys.auth==='string'&&s.keys.p256dh.length<200&&s.keys.auth.length<100;}catch{return false;}}
@@ -32,7 +47,7 @@ export function notificationTitle(screen,key,body=''){
     const label=screen==='leave'?'🐰 유흥연차':'💨 흡연 결재';
     return label+' '+(key.includes('-approved-')?'승인':key.includes('-rejected-')?'반려':'신청');
   }
-  if(screen==='calendar')return key.startsWith('new-')?'🗓 새 일정':body.split('\n')[0].includes('기념일')?'💝 기념일 알림':'🗓 오늘의 일정';
+  if(screen==='calendar')return key.startsWith('hour-')?'⏰ 1시간 전 알림':key.startsWith('new-')?'🗓 새 일정':body.split('\n')[0].includes('기념일')?'💝 기념일 알림':'🗓 오늘의 일정';
   return '🐰🍠 앱 알림 연결';
 }
 async function send(env,owner,key,body,screen,deviceId=null){
@@ -58,7 +73,7 @@ async function scan(env){
   const [calendar,leave,smoke,preferences]=await Promise.all([read(DATABASES.calendar),read(DATABASES.leave),read(DATABASES.smoke),read('https://dydy-96bb1-default-rtdb.firebaseio.com/couple_home_v1/preferences.json')]);
   const baseline=await sql(env,"SELECT value FROM meta WHERE id='startedAt'").first();
   if(!baseline){await sql(env,"INSERT OR IGNORE INTO meta(id,value) VALUES('startedAt',?)",String(Date.now())).run();return;}
-  const started=Number(baseline.value),names={rabbit:'이토끼님',sweet:'구마구마님'};
+  const started=notificationCutoff(Number(baseline.value)),names={rabbit:'이토끼님',sweet:'구마구마님'};
   for(const [id,e] of Object.entries(calendar||{}))if(e&&e.createdAt>=started&&PEOPLE.includes(e.createdBy)){
     const owner=e.createdBy==='rabbit'?'sweet':'rabbit';
     if(preferences?.[owner]?.newEvents!==false)await send(env,owner,'new-'+id,names[e.createdBy]+'이 새 일정을 남겼어요.\n'+String(e.title).slice(0,80),'calendar');
@@ -73,10 +88,16 @@ async function scan(env){
     if(preferences?.[owner]?.[e.kind]===false)continue;
     await send(env,owner,'reminder-'+e.id+'-'+e.date+'-'+today,(e.date===today?'오늘':'내일')+'의 '+(e.kind==='anniversary'?'기념일':'일정')+'\n'+(names[e.owner]?names[e.owner]+' · ':'함께 · ')+e.title+(e.time?' · '+e.time:''),'calendar');
   }
+  for(const e of hourlyReminders(calendar,now))for(const owner of reminderRecipients(e)){
+    if(preferences?.[owner]?.[e.kind]===false)continue;
+    await send(env,owner,'hour-'+e.id+'-'+e.date+'-'+e.time,'1시간 뒤 일정이 있어요.\n'+(names[e.owner]?names[e.owner]+' · ':'함께 · ')+e.title+' · '+e.time,'calendar');
+  }
   await sql(env,'DELETE FROM pairing_attempts WHERE expires<?',Date.now()).run();
-  await sql(env,'DELETE FROM deliveries WHERE sent_at<?',Date.now()-90*86400000).run();
+  await sql(env,'DELETE FROM deliveries WHERE sent_at<?',Date.now()-DELIVERY_RETENTION_MS).run();
 }
-export async function sync(env){
+export async function sync(env,immediate=false){
+  // Delivery claims prevent duplicates even when an immediate scan overlaps cron.
+  if(immediate){await scan(env);return;}
   const now=Date.now();
   const lock=await sql(env,"INSERT INTO meta(id,value) VALUES('syncLease',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value WHERE CAST(meta.value AS INTEGER)<?",String(now+60000),now).run();
   if(!lock.meta.changes)return;
@@ -107,7 +128,7 @@ export default {
           const body=await request.json();if(!validSubscription(body))response=json({error:'지원하지 않는 알림 주소예요.'},400);
           else{await sql(env,'UPDATE devices SET subscription=? WHERE id=?',JSON.stringify(body),current.id).run();response=json({ok:true});}
         }else if(path==='/subscription'&&request.method==='DELETE'){await sql(env,'UPDATE devices SET subscription=NULL WHERE id=?',current.id).run();response=json({ok:true});}
-        else if(path==='/sync'&&request.method==='POST'){ctx.waitUntil(sync(env));response=json({ok:true},202);}
+        else if(path==='/sync'&&request.method==='POST'){await sync(env,true);response=json({ok:true});}
         else if(path==='/test'&&request.method==='POST'){await send(env,current.owner,'test-'+crypto.randomUUID(),'토끼와 구마의 앱 알림이 연결됐어요 ♥','home',current.id);response=json({ok:true});}
         else response=json({error:'Not found'},404);
       }

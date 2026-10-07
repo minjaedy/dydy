@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-push-30">
+<meta name="app-version" content="20261007-push-31">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -5389,7 +5389,7 @@ renderApplicant();
   let busy=false;
   async function api(path,data,method='POST'){
     if(preview||!SERVER.startsWith('https://'))throw Error('미리보기에서는 실제 알림을 연결하지 않아요.');
-    const r=await fetch(SERVER+path,{method,headers:{'Content-Type':'application/json',...(identity?.token?{Authorization:'Bearer '+identity.token}:{})},...(data?{body:JSON.stringify(data)}:{}),signal:AbortSignal.timeout(20000)});
+    const r=await fetch(SERVER+path,{method,keepalive:true,headers:{'Content-Type':'application/json',...(identity?.token?{Authorization:'Bearer '+identity.token}:{})},...(data?{body:JSON.stringify(data)}:{}),signal:AbortSignal.timeout(20000)});
     const result=await r.json();if(!r.ok)throw Error(result.error||'연결하지 못했어요.');return result;
   }
   async function registration(){await navigator.serviceWorker.register('./app-sw.js');return navigator.serviceWorker.ready;}
@@ -5405,7 +5405,7 @@ renderApplicant();
   $('push-enable').addEventListener('click',()=>{if(preview)return;const permission=Notification.requestPermission();void action(async()=>{if(await permission!=='granted')throw Error('아이폰 설정에서 우리 앱의 알림을 허용해 주세요.');const reg=await registration(),config=await api('/config',null,'GET');const raw=atob(config.publicKey.replace(/-/g,'+').replace(/_/g,'/'));const key=Uint8Array.from(raw,c=>c.charCodeAt(0));const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});await api('/subscription',sub.toJSON());await render();});});
   $('push-test').addEventListener('click',()=>void action(async()=>{await api('/test',{});status('테스트 알림을 보냈어요. 잠금화면이나 알림센터에서 확인해 주세요.');}));
   $('push-disable').addEventListener('click',()=>void action(async()=>{await api('/subscription',null,'DELETE');const sub=await(await registration()).pushManager.getSubscription();await sub?.unsubscribe();await render();status('이 기기의 앱 알림을 껐어요.');}));
-  window.CouplePush=Object.freeze({sync:async()=>{if(preview||!identity)return;try{await api('/sync',{});}catch{/* The server's next scan retries. */}}});
+  window.CouplePush=Object.freeze({sync:async()=>{if(preview||!identity)return;for(let attempt=0;attempt<3;attempt++){try{await api('/sync',{});return;}catch{if(attempt<2)await new Promise(resolve=>setTimeout(resolve,1000*(attempt+1)));}}}});
   void render();
 })();
 
