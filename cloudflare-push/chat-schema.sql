@@ -9,3 +9,5 @@ CREATE INDEX IF NOT EXISTS chat_messages_owner_time ON chat_messages(owner,creat
 
 CREATE TABLE IF NOT EXISTS chat_hearts(message_id TEXT NOT NULL,owner TEXT NOT NULL,PRIMARY KEY(message_id,owner));
 INSERT OR IGNORE INTO meta(id,value) VALUES('chatStartedAt',CAST(unixepoch('now')*1000 AS TEXT));
+
+CREATE INDEX IF NOT EXISTS chat_messages_notify ON chat_messages(notified,created_at);

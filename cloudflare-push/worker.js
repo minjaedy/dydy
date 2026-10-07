@@ -1,4 +1,4 @@
-import {chatRoute,cleanChat,deliverChat,recordAppCards} from './chat.js';
+import {chatRoute,scheduledChatCleanup,deliverChat,recordAppCards} from './chat.js';
 import {authRoute,cleanAuth,session} from './auth.js';
 import webpush from 'web-push';
 import specialDays from './special-days.json' with {type:'json'};
@@ -142,5 +142,5 @@ export default {
     }catch{response=json({error:'연결하지 못했어요. 잠시 후 다시 시도해 주세요.'},500);}
     return new Response(response.body,{status:response.status,headers:{...Object.fromEntries(response.headers),...headers}});
   },
-  async scheduled(event,env,ctx){ctx.waitUntil(Promise.allSettled([sync(env),cleanChat(env),deliverChat(env,send)]));}
+  async scheduled(event,env,ctx){ctx.waitUntil(Promise.allSettled([sync(env),scheduledChatCleanup(env),deliverChat(env,send)]));}
 };

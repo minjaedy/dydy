@@ -17,3 +17,5 @@ CREATE INDEX IF NOT EXISTS chat_presence_owner ON chat_presence(owner,active_unt
 CREATE INDEX IF NOT EXISTS chat_messages_owner_time ON chat_messages(owner,created_at);
 
 CREATE TABLE IF NOT EXISTS chat_hearts(message_id TEXT NOT NULL,owner TEXT NOT NULL,PRIMARY KEY(message_id,owner));
+
+CREATE INDEX IF NOT EXISTS chat_messages_notify ON chat_messages(notified,created_at);
