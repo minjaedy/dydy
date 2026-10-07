@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-lounge-ui-42">
+<meta name="app-version" content="20261007-character-reactions-43">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1656,6 +1656,12 @@ html:not([data-theme=dark]) #app-smoke .reward-wallet button{background:#ad925d;
 
 </style>
 <!-- couple-calendar-approval-styles:end -->
+<!-- couple-calendar-reaction-styles:start -->
+<style>
+.couple-reaction[hidden]{display:none!important}.couple-reaction{position:fixed;z-index:260;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;width:max-content;max-width:calc(100vw - 28px);padding:15px 34px 15px 13px;border:1px solid #eedbe5;border-radius:21px;background:#fffafded;box-shadow:0 10px 40px #533a6425;backdrop-filter:blur(15px);color:#573f50;pointer-events:none;animation:reaction-appear .35s ease-out both}.couple-reaction img{width:65px;height:74px;object-fit:contain;animation:reaction-hop .65s ease-in-out 2}.couple-reaction[data-kind=packing] img{width:82px}.couple-reaction strong{display:block;font:700 13px/1.6 'Noto Sans KR',sans-serif}.couple-reaction small{display:block;font:400 10px/1.7 'Noto Sans KR',sans-serif;color:#927a88}.couple-reaction button{position:absolute;right:7px;top:7px;border:0;background:transparent;color:inherit;width:28px;height:28px;font-size:18px;pointer-events:auto;cursor:pointer}.reaction-gift{font-size:24px;animation:reaction-hop .7s ease-in-out 2}.couple-reaction i{position:absolute;left:calc(12% + var(--i)*12%);top:20%;width:5px;height:8px;background:#d79bb8;transform:rotate(calc(var(--i)*37deg));animation:reaction-spark 1.3s ease-out both;animation-delay:calc(var(--i)*.06s);pointer-events:none}.couple-reaction i:nth-of-type(even){background:#dbc28b}.couple-reaction[data-kind=packing]{border-color:#e6ddcb;background:#fffdf5ed}html[data-theme=dark] .couple-reaction{background:#302631ed;border-color:#614455;color:#f4e5ee}html[data-theme=dark] .couple-reaction small{color:#c5aeba}html[data-theme=dark] .couple-reaction[data-kind=packing]{background:#302d26ed;border-color:#675c43}@keyframes reaction-appear{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}@keyframes reaction-hop{0%,100%{translate:0 0;rotate:0deg}45%{translate:0 -7px;rotate:-5deg}70%{rotate:4deg}}@keyframes reaction-spark{0%{opacity:0;translate:0 8px}20%{opacity:1}100%{opacity:0;translate:0 -45px;rotate:80deg}}@media(prefers-reduced-motion:reduce){.couple-reaction,.couple-reaction *{animation:none!important}.couple-reaction i{display:none}}
+
+</style>
+<!-- couple-calendar-reaction-styles:end -->
 <link rel="preload" as="image" href="assets/rabbit-daily-icon.webp" fetchpriority="high">
 <link rel="preload" as="image" href="assets/sweet-daily-icon.webp" fetchpriority="high">
 </head>
@@ -5483,7 +5489,7 @@ window.CoupleAuth=Object.freeze({
       const current=JSON.parse(localStorage.getItem(key)||'{}');
       if(current.month===month)return {awarded:false,message:'이번 달 소원권은 이미 받았어요.'};
       sweetWallet={...current,halfTickets:(Number.isInteger(current.halfTickets)?current.halfTickets:0)+1,month,runId:record.runId};
-      localStorage.setItem(key,JSON.stringify(sweetWallet));return {awarded:true,message:'미리보기 · 소원권 +0.5장 (실제 지급 안 됨)',prize:'소원권 +0.5장'};
+      localStorage.setItem(key,JSON.stringify(sweetWallet));return {awarded:true,message:'미리보기 · 소원권 +0.5장 (실제 지급 안 됨)',issued:sweetWallet.halfTickets%2===0,prize:'소원권 +0.5장'};
     }
     if(!sweetRewardRef||!sweetRewardReady||!connected)throw Error('소원권 연결을 확인한 뒤 다시 저장해 주세요.');
     const month=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date());
@@ -5494,7 +5500,7 @@ window.CoupleAuth=Object.freeze({
       return {...current,halfTickets:Math.max(0,Number.isInteger(current?.halfTickets)?current.halfTickets:0)+1,month,runId:record.runId,score:record.score,at:Date.now()};
     },undefined,false);
     if(result.committed)sweetWallet=result.snapshot.val();
-    return {awarded:result.committed,message:result.committed?'소원권 0.5장을 받았어요!':message,prize:'소원권 +0.5장'};
+    return {awarded:result.committed,message:result.committed?'소원권 0.5장을 받았어요!':message,issued:sweetWallet.halfTickets%2===0,prize:'소원권 +0.5장'};
   }
   async function claimReward(record){
     if(record.owner==='rabbit'?record.score<=3000:record.score<3500)return null;
@@ -5506,7 +5512,7 @@ window.CoupleAuth=Object.freeze({
     if(previewRewards.claims[record.runId])return {awarded:false,message:'이 기록의 보상은 이미 받았어요.'};
     if(Object.keys(previewRewards.claims).length>=2)return {awarded:false,message:'이번 달 보상을 모두 받았어요.'};
     previewRewards.claims[record.runId]={score:record.score};previewRewards.totalAwards=(previewRewards.totalAwards||0)+1;localStorage.setItem(key,JSON.stringify(previewRewards));
-    return {awarded:true,message:'미리보기 · 포상 연차 0.1일 적립 (실제 지급 안 됨)',prize:'포상 연차 0.1일 적립'};
+    return {awarded:true,issued:previewRewards.totalAwards%10===0,message:'미리보기 · 포상 연차 0.1일 적립 (실제 지급 안 됨)',prize:'포상 연차 0.1일 적립'};
   }
   function drawSprite(owner,x,y,size){
     const img=sprites[owner];
@@ -5532,7 +5538,7 @@ window.CoupleAuth=Object.freeze({
       if(preview){const latest=normalize(JSON.parse(localStorage.getItem(storageKey)||'{}'));const old=latest[record.owner];latest[record.owner]={best:Math.max(old.best,record.score),last:record.score,updatedAt:record.at};localStorage.setItem(storageKey,JSON.stringify(latest));scores=latest;ready=true;renderScores();}
       else{if(!ref||!connected||!ready)throw Error('연결을 확인한 뒤 점수를 다시 저장해 주세요.');const result=await ref.child(record.owner).transaction(current=>{const old=normalize({[record.owner]:current})[record.owner];return {best:Math.max(old.best,record.score),last:old.updatedAt>record.at?old.last:record.score,updatedAt:Math.max(old.updatedAt,record.at)};},undefined,false);if(!result.committed)throw Error('점수를 저장하지 못했어요. 다시 시도해 주세요.');}
       const reward=await claimReward(record);renderReward();
-      if(reward?.awarded){$('game-overlay-icon').textContent='🎁';$('game-overlay-detail').textContent+=' · '+reward.prize;window.FX?.toast(reward.message);}
+      if(reward?.awarded){if(reward.issued)window.CoupleReaction?.show('reward',record.owner);$('game-overlay-icon').textContent='🎁';$('game-overlay-detail').textContent+=' · '+reward.prize;window.FX?.toast(reward.message);}
       pending=null;$('game-save-status').textContent=preview?'점수를 저장했어요. 홈에서도 확인할 수 있어요.':'최고 점수를 함께 저장했어요.';if(reward)$('game-save-status').textContent+=' '+reward.message;
     }catch(e){$('game-save-status').textContent=e.message||'점수를 저장하지 못했어요. 다시 저장해 주세요.';$('game-retry').hidden=false;}
     finally{saving=false;}
@@ -5591,11 +5597,11 @@ window.CoupleAuth=Object.freeze({
  function tripToday(date=dayKey()){return state.trips.find(t=>t.start<=date&&t.end>=date)||null;}
  const trip=()=>state.trips.find(t=>t.id===state.active);
  function syncStatus(message){$('tp-save').textContent=message|| (preview?'미리보기 · 이 기기에 저장됨':syncReady&&syncConnected?'✓ Firebase 실시간 공유 중':'공유 연결 대기 중 · 저장할 수 없어요');$('tp-sync-note').textContent=preview?'미리보기 데이터예요. 실제 Firebase에는 쓰지 않아요.':'두 사람의 여행 계획·준비물·지출을 Firebase로 공유해요.';}
- function save(){if(preview){try{localStorage.setItem(key,JSON.stringify(state));syncStatus();return true;}catch{syncStatus('저장 공간이 부족해요.');return false;}}
+ function save(onSaved){if(preview){try{localStorage.setItem(key,JSON.stringify(state));syncStatus();if(typeof onSaved==='function')onSaved();return true;}catch{syncStatus('저장 공간이 부족해요.');return false;}}
   if(!syncReady||!syncConnected||saveBusy){syncStatus('공유 연결을 확인한 뒤 다시 저장해 주세요.');return false;}
   const t=trip(),draft=JSON.parse(JSON.stringify(t)),expected=knownRevisions.get(t.id)||0;saveBusy=true;root.inert=true;syncStatus('공유 저장 중…');
   const pending=sharedRef.child(t.id).transaction(current=>{if((current?.revision||0)!==expected)return;return {...draft,revision:expected+1};});
-  pending.then(result=>{if(!result.committed){syncStatus('상대가 먼저 수정했어요. 최신 내용을 확인하고 다시 수정해 주세요.');const current=result.snapshot?.val();if(current){const i=state.trips.findIndex(x=>x.id===t.id);state.trips[i]=normalizeTrip(current,t.id);knownRevisions.set(t.id,current.revision||0);render();}}else{knownRevisions.set(t.id,expected+1);syncStatus();}}).catch(()=>{syncStatus('저장 실패 · 변경 내용은 아직 공유되지 않았어요. 다시 저장해 주세요.');}).finally(()=>{saveBusy=false;root.inert=false;});return true;
+  pending.then(result=>{if(!result.committed){syncStatus('상대가 먼저 수정했어요. 최신 내용을 확인하고 다시 수정해 주세요.');const current=result.snapshot?.val();if(current){const i=state.trips.findIndex(x=>x.id===t.id);state.trips[i]=normalizeTrip(current,t.id);knownRevisions.set(t.id,current.revision||0);render();}}else{knownRevisions.set(t.id,expected+1);syncStatus();if(typeof onSaved==='function')onSaved();}}).catch(()=>{syncStatus('저장 실패 · 변경 내용은 아직 공유되지 않았어요. 다시 저장해 주세요.');}).finally(()=>{saveBusy=false;root.inert=false;});return true;
  }
  function normalizeTrip(raw,id){return {...raw,id,stops:Array.isArray(raw.stops)?raw.stops:[],expenses:Array.isArray(raw.expenses)?raw.expenses:[],packing:Array.isArray(raw.packing)?raw.packing:[],ratio:Number(raw.ratio??50),revision:Number(raw.revision||0)};}
  function connectShared(){if(preview){syncStatus();return;}try{const db=window.firebase.app().database();sharedRef=db.ref('couple_travel_v1/trips');db.ref('.info/connected').on('value',snap=>{syncConnected=snap.val()===true;syncStatus();});sharedRef.on('value',snap=>{const raw=snap.val()||{},trips=Object.entries(raw).filter(([,t])=>t&&typeof t.title==='string'&&typeof t.start==='string'&&typeof t.end==='string').map(([id,t])=>normalizeTrip(t,id));knownRevisions.clear();trips.forEach(t=>knownRevisions.set(t.id,t.revision));if(trips.length){state.trips=trips;if(!trips.some(t=>t.id===state.active))state.active=trips[0].id;}else if(syncReady){state.trips=[newTrip()];state.active=state.trips[0].id;}syncReady=true;render();syncStatus();window.CoupleHome?.updateCharacter?.();},()=>{syncReady=false;syncStatus('Firebase 공유 권한을 확인해 주세요. 저장할 수 없어요.');});}catch{syncReady=false;syncStatus('Firebase 연결을 사용할 수 없어요.');}}
@@ -5668,7 +5674,7 @@ window.CoupleAuth=Object.freeze({
  $('tp-expense-add').addEventListener('click',()=>{const f=$('tp-expense-form');f.reset();f.elements.date.value=day;$('tp-expense-dialog').showModal();});
  $('tp-ratio').addEventListener('input',e=>{trip().ratio=Number(e.target.value);save();renderMoney();});
  $('tp-pack-form').addEventListener('submit',e=>{e.preventDefault();const f=e.target,t=trip();if(!f.elements.title.value.trim())return;t.packing=t.packing||[];t.packing.push({id:uid(),title:f.elements.title.value.trim(),owner:f.elements.owner.value,done:false});save();renderPacking();f.reset();});
- root.addEventListener('change',e=>{if(e.target.dataset.packCheck){const x=(trip().packing||[]).find(x=>x.id===e.target.dataset.packCheck);if(x){x.done=e.target.checked;save();renderPacking();}}const id=e.target.dataset.check;if(id){trip().stops.find(s=>s.id===id).done=e.target.checked;heartId=e.target.checked?id:null;save();render();}});
+ root.addEventListener('change',e=>{if(e.target.dataset.packCheck){const x=(trip().packing||[]).find(x=>x.id===e.target.dataset.packCheck);if(x){const items=trip().packing||[],wasComplete=items.length>0&&items.every(item=>item.done);x.done=e.target.checked;const completed=!wasComplete&&items.length>0&&items.every(item=>item.done);save(completed?()=>window.CoupleReaction?.show('packing'):undefined);renderPacking();}}const id=e.target.dataset.check;if(id){trip().stops.find(s=>s.id===id).done=e.target.checked;heartId=e.target.checked?id:null;save();render();}});
  root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset,t=trip();if(d.packDelete){trip().packing=(trip().packing||[]).filter(x=>x.id!==d.packDelete);save();renderPacking();}if(d.routeFocus)focusRoute(d.routeFocus);if(d.tpClose)$(d.tpClose).close();if(d.tpTab){tab=d.tpTab;$('tp-plan').hidden=tab!=='plan';$('tp-money').hidden=tab!=='money';root.querySelectorAll('[data-tp-tab]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.tpTab===tab)));}if(d.day){dayChanged=day!==d.day;day=d.day;picking=null;render();}if(d.edit)openStop(d.edit);if(d.pin)startPin(d.pin);if(d.delete){t.stops=t.stops.filter(s=>s.id!==d.delete);save();render();}if(d.expenseDelete){t.expenses=t.expenses.filter(x=>x.id!==d.expenseDelete);save();renderMoney();}if(d.up||d.down){const rows=t.stops.filter(s=>s.date===day),i=rows.findIndex(s=>s.id===(d.up||d.down)),j=i+(d.up?-1:1);if(j>=0&&j<rows.length){const a=t.stops.indexOf(rows[i]),b=t.stops.indexOf(rows[j]);[t.stops[a],t.stops[b]]=[t.stops[b],t.stops[a]];save();render();}}});
  window.addEventListener('site-mode-change',e=>{if(e.detail?.mode==='travel')renderMap();});
  window.CoupleTravel=Object.freeze({totals,timeline,safeLink,coordinates,amount,tripToday,currentSchedule});render();connectShared();setInterval(renderCurrent,60000);window.CoupleHome?.updateCharacter?.();
@@ -5779,5 +5785,16 @@ if(preview){try{wallet=JSON.parse(localStorage.getItem(key)||'{}');}catch{}}else
 
 </script>
 <!-- couple-calendar-reward-wallet-script:end -->
+<!-- couple-calendar-reaction-script:start -->
+<script>
+(function(){
+'use strict';let timer;const host=document.createElement('aside');host.className='couple-reaction';host.setAttribute('role','status');host.setAttribute('aria-live','polite');host.hidden=true;document.body.append(host);
+const art={rabbit:'assets/rabbit-game-character.webp',sweet:'assets/sweet-game-character.webp',travel:'assets/travel-header-mascot.webp'};
+function show(kind,owner){clearTimeout(timer);host.replaceChildren();host.dataset.kind=kind;const image=document.createElement('img');image.alt='';image.src=art[kind==='packing'?'travel':owner]||art.rabbit;const copy=document.createElement('div');const title=document.createElement('strong');title.textContent=kind==='packing'?'준비 끝! 우리 출발하자 ♥':owner==='rabbit'?'포상 연차 1일 완성!':'소원권 1장 완성!';const detail=document.createElement('small');detail.textContent=kind==='packing'?'토끼와 구마, 여행 준비 완료':owner==='rabbit'?'유흥연차에 1일이 지급됐어요':'흡연결재에서 사용할 수 있어요';copy.append(title,detail);const icon=document.createElement('span');icon.className='reaction-gift';icon.textContent=kind==='packing'?'🧳':'🎁';icon.setAttribute('aria-hidden','true');const close=document.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','축하 반응 닫기');close.onclick=()=>{host.hidden=true;clearTimeout(timer);};host.append(image,copy,icon,close);for(let i=0;i<7;i++){const piece=document.createElement('i');piece.style.setProperty('--i',i);piece.setAttribute('aria-hidden','true');host.append(piece);}host.hidden=false;host.style.animation='none';void host.offsetWidth;host.style.animation='';timer=setTimeout(()=>{host.hidden=true;},2600);}
+window.CoupleReaction={show};window.addEventListener('hashchange',()=>{host.hidden=true;clearTimeout(timer);});
+})();
+
+</script>
+<!-- couple-calendar-reaction-script:end -->
 </body>
 </html>
