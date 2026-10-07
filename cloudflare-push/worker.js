@@ -13,6 +13,7 @@ export function anniversaries(year) {
   for(let days=100;start+(days-1)*86400000<=Date.parse(year+'-12-31');days+=100){const date=new Date(start+(days-1)*86400000).toISOString().slice(0,10);if(date.startsWith(String(year)))events.push({id:'days-'+days,title:days+'일',date,owner:'together',kind:'anniversary'});}
   return events;
 }
+export function reminderRecipients(){ return [...PEOPLE]; }
 export function reminders(saved,today) {
   const tomorrow=new Date(Date.parse(today)+86400000).toISOString().slice(0,10),result=[];
   for(const [id,e] of Object.entries(saved||{})){
@@ -60,9 +61,9 @@ async function scan(env){
     if(['approved','rejected'].includes(r.status)&&Date.parse(r.decidedAt)>=started)await send(env,applicant,type+'-'+r.status+'-'+r.id+'-'+r.decidedAt,label+'가 '+(r.status==='approved'?'승인':'반려')+'됐어요.',type);
   }
   const now=new Date(),today=dateKey(now),hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Seoul',hour:'2-digit',hourCycle:'h23'}).format(now));
-  if(hour>=9&&hour<12)for(const e of reminders(calendar,today))for(const owner of PEOPLE)if((e.owner||'together')==='together'||e.owner===owner){
+  if(hour>=9&&hour<12)for(const e of reminders(calendar,today))for(const owner of reminderRecipients(e)){
     if(preferences?.[owner]?.[e.kind]===false)continue;
-    await send(env,owner,'reminder-'+e.id+'-'+e.date+'-'+today,(e.date===today?'오늘':'내일')+'의 '+(e.kind==='anniversary'?'기념일':'일정')+'\n'+e.title+(e.time?' · '+e.time:''),'calendar');
+    await send(env,owner,'reminder-'+e.id+'-'+e.date+'-'+today,(e.date===today?'오늘':'내일')+'의 '+(e.kind==='anniversary'?'기념일':'일정')+'\n'+(names[e.owner]?names[e.owner]+' · ':'함께 · ')+e.title+(e.time?' · '+e.time:''),'calendar');
   }
   await sql(env,'DELETE FROM pairing_attempts WHERE expires<?',Date.now()).run();
   await sql(env,'DELETE FROM deliveries WHERE sent_at<?',Date.now()-90*86400000).run();

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import fs from 'node:fs';
-import worker,{hash,reminders,anniversaries} from './worker.js';
+import worker,{hash,reminders,anniversaries,reminderRecipients} from './worker.js';
 
 function environment(){
   const db=new DatabaseSync(':memory:');db.exec(fs.readFileSync(new URL('./schema.sql',import.meta.url),'utf8'));
@@ -35,3 +35,5 @@ test('pairing is rate limited',async()=>{
   const env=environment();for(let n=0;n<10;n++)await worker.fetch(new Request('https://push.invalid/pair',{method:'POST',body:JSON.stringify({owner:'rabbit',code:'wrong'})}),env,{});
   assert.equal((await worker.fetch(new Request('https://push.invalid/pair',{method:'POST',body:'{}'}),env,{})).status,429);env.close();
 });
+
+test('both partners receive personal and shared reminders',()=>{for(const owner of ['rabbit','sweet','together'])assert.deepEqual(reminderRecipients({owner,kind:'daily'}),['rabbit','sweet']);});
