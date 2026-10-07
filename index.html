@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-game-harder-39">
+<meta name="app-version" content="20261007-reward-wallet-40">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -3452,11 +3452,11 @@ document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) setTime
 window.addEventListener('couple-auth-change',()=>{adminUnlocked=false;refreshCurrentView();});
 
 function gameRewardMonth(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date());}
-window.__leaveGameRewardStatus = function(){const rewards=state?.miniGameRewards;const used=rewards?.month===gameRewardMonth()?Object.keys(rewards.claims||{}).length:0;const totalAwards=Number.isInteger(state?.miniGameRewardTotal)?Math.max(0,state.miniGameRewardTotal):0;return {ready:!!state,used,remaining:Math.max(0,2-used),totalAwards,totalDays:totalAwards/10};};
+window.__leaveGameRewardStatus = function(){const rewards=state?.miniGameRewards;const used=rewards?.month===gameRewardMonth()?Object.keys(rewards.claims||{}).length:0;const totalAwards=Number.isInteger(state?.miniGameRewardTotal)?Math.max(0,state.miniGameRewardTotal):0;return {ready:!!state,used,remaining:Math.max(0,2-used),totalAwards,totalDays:totalAwards/10,bankDays:(state?.miniGameRewardBank||0)/10,issuedDays:state?.miniGameRewardIssued||0};};
 window.__leaveGameReward = async function(score,runId){
   if(!window.CoupleAuth?.isPerson('rabbit'))throw Error('토끼로 본인 인증한 뒤 보상을 받을 수 있어요.');
   if(!Number.isInteger(score)||score<=3000||typeof runId!=='string'||!/^[a-zA-Z0-9_-]{8,100}$/.test(runId)||!stateRef)throw Error('보상 조건을 확인해 주세요.');
-  const month=gameRewardMonth();let reason='이번 달 보상을 모두 받았어요.';
+  const month=gameRewardMonth();let issued=false;let reason='이번 달 보상을 모두 받았어요.';
   const result=await stateRef.transaction(current=>{
     if(!window.CoupleAuth?.isPerson('rabbit')){reason='토끼로 다시 인증해 주세요.';return;}
     if(!current||!Number.isFinite(current.balance)){reason='연차 정보를 불러오지 못했어요.';return;}
@@ -3465,13 +3465,15 @@ window.__leaveGameReward = async function(score,runId){
     if(rewards.claims[runId]){reason='이 기록의 보상은 이미 받았어요.';return;}
     if(Object.keys(rewards.claims).length>=2){reason='이번 달 보상을 모두 받았어요.';return;}
     const at=new Date().toISOString();rewards.claims[runId]={score,at};current.miniGameRewards=rewards;
-    current.balance=Math.round((current.balance+0.1)*10)/10;
+    const bank=(Number.isInteger(current.miniGameRewardBank)?Math.max(0,current.miniGameRewardBank):0)+1;
+    issued=bank>=10;current.miniGameRewardBank=bank%10;
+    if(issued){current.balance=Math.round((current.balance+1)*10)/10;current.miniGameRewardIssued=(current.miniGameRewardIssued||0)+1;}
     current.miniGameRewardTotal=(Number.isInteger(current.miniGameRewardTotal)?Math.max(0,current.miniGameRewardTotal):0)+1;
     current.history=Array.isArray(current.history)?current.history:[];
-    current.history.unshift({note:'미니게임 '+score+'점 달성 포상 유흥연차 +0.1일',at});
+    current.history.unshift({note:'미니게임 '+score+'점 · '+(issued?'포상 유흥연차 1일 지급':'포상 연차 0.1일 적립'),at});
     return current;
   },undefined,false);
-  return {awarded:result.committed,message:result.committed?'포상 유흥연차 0.1일을 받았어요!':reason};
+  return {awarded:result.committed,issued:result.committed&&issued,message:result.committed?(issued?'1일을 모아 포상 유흥연차 1일이 지급됐어요!':'포상 연차 0.1일을 적립했어요. 1일이 모이면 자동 지급돼요.'):reason};
 };
 
 window.__leavePendingItems = ()=> (state?.requests||[]).filter(r=>r.status==='pending').map(r=>({id:r.id,detail:fmtReq(r)+' · '+r.days+'일'}));
@@ -5373,7 +5375,7 @@ window.CoupleAuth=Object.freeze({
     const status=preview?{ready:true,remaining:Math.max(0,2-(rewards.month===month?Object.keys(rewards.claims||{}).length:0)),totalDays:(rewards.totalAwards||0)/10}:window.__leaveGameRewardStatus?.();
     const sweetLeft=sweetWallet.month===month?0:1;
     if($('game-reward-total'))$('game-reward-total').textContent=person==='rabbit'?(status?.ready?'연차 '+status.totalDays.toFixed(1)+'일':'확인 중'):(sweetRewardReady||preview?'소원권 '+(sweetWallet.halfTickets/2)+'장':'확인 중');
-    info.textContent=person==='rabbit'?'3,000점 초과 · 연차 +0.1일':'3,500점 달성 · 소원권 +0.5장';
+    info.textContent=person==='rabbit'?'3,000점 초과 · 연차 0.1일 적립':'3,500점 달성 · 소원권 +0.5장';
     if($('game-reward-month'))$('game-reward-month').textContent=person==='rabbit'?(status?.ready?'이번 달 '+status.remaining+'회 남음':'횟수 확인 중'):(sweetRewardReady||preview?'이번 달 '+sweetLeft+'회 남음':'횟수 확인 중');
   }
   async function claimSweetReward(record){
@@ -5381,7 +5383,7 @@ window.CoupleAuth=Object.freeze({
       const key='couple-game-sweet-rewards-preview-v1',month=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date());
       const current=JSON.parse(localStorage.getItem(key)||'{}');
       if(current.month===month)return {awarded:false,message:'이번 달 소원권은 이미 받았어요.'};
-      sweetWallet={halfTickets:(Number.isInteger(current.halfTickets)?current.halfTickets:0)+1,month,runId:record.runId};
+      sweetWallet={...current,halfTickets:(Number.isInteger(current.halfTickets)?current.halfTickets:0)+1,month,runId:record.runId};
       localStorage.setItem(key,JSON.stringify(sweetWallet));return {awarded:true,message:'미리보기 · 소원권 +0.5장 (실제 지급 안 됨)',prize:'소원권 +0.5장'};
     }
     if(!sweetRewardRef||!sweetRewardReady||!connected)throw Error('소원권 연결을 확인한 뒤 다시 저장해 주세요.');
@@ -5390,7 +5392,7 @@ window.CoupleAuth=Object.freeze({
     const result=await sweetRewardRef.transaction(current=>{
       if(!window.CoupleAuth?.isPerson('sweet')){message='구마로 다시 인증해 주세요.';return;}
       if(current?.month===month)return;
-      return {halfTickets:Math.max(0,Number.isInteger(current?.halfTickets)?current.halfTickets:0)+1,month,runId:record.runId,score:record.score,at:Date.now()};
+      return {...current,halfTickets:Math.max(0,Number.isInteger(current?.halfTickets)?current.halfTickets:0)+1,month,runId:record.runId,score:record.score,at:Date.now()};
     },undefined,false);
     if(result.committed)sweetWallet=result.snapshot.val();
     return {awarded:result.committed,message:result.committed?'소원권 0.5장을 받았어요!':message,prize:'소원권 +0.5장'};
@@ -5399,13 +5401,13 @@ window.CoupleAuth=Object.freeze({
     if(record.owner==='rabbit'?record.score<=3000:record.score<3500)return null;
     if(!preview&&!window.CoupleAuth?.isPerson(record.owner))return {awarded:false,message:names[record.owner]+'로 본인 인증해야 보상을 받을 수 있어요.'};
     if(record.owner==='sweet')return claimSweetReward(record);
-    if(!preview){if(!window.__leaveGameReward)throw Error('보상 연결을 확인한 뒤 다시 저장해 주세요.');const r=await window.__leaveGameReward(record.score,record.runId);return {...r,prize:'포상 연차 +0.1일'};}
+    if(!preview){if(!window.__leaveGameReward)throw Error('보상 연결을 확인한 뒤 다시 저장해 주세요.');const r=await window.__leaveGameReward(record.score,record.runId);return {...r,prize:r.issued?'포상 연차 +1일 지급':'포상 연차 0.1일 적립'};}
     const key='couple-game-rewards-preview-v1',month=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date());
     const raw=JSON.parse(localStorage.getItem(key)||'{}');previewRewards=raw.month===month?raw:{month,claims:{},totalAwards:raw.totalAwards||0};
     if(previewRewards.claims[record.runId])return {awarded:false,message:'이 기록의 보상은 이미 받았어요.'};
     if(Object.keys(previewRewards.claims).length>=2)return {awarded:false,message:'이번 달 보상을 모두 받았어요.'};
     previewRewards.claims[record.runId]={score:record.score};previewRewards.totalAwards=(previewRewards.totalAwards||0)+1;localStorage.setItem(key,JSON.stringify(previewRewards));
-    return {awarded:true,message:'미리보기 · 포상 연차 +0.1일 (실제 지급 안 됨)',prize:'포상 연차 +0.1일'};
+    return {awarded:true,message:'미리보기 · 포상 연차 0.1일 적립 (실제 지급 안 됨)',prize:'포상 연차 0.1일 적립'};
   }
   function drawSprite(owner,x,y,size){
     const img=sprites[owner];
@@ -5651,5 +5653,32 @@ window.CoupleAuth=Object.freeze({
 
 </script>
 <!-- couple-calendar-push-script:end -->
+<!-- couple-calendar-reward-wallet-script:start -->
+<script>
+(function(){
+'use strict';
+const preview=document.getElementById('app-calendar')?.dataset.preview==='true';
+const key='couple-game-sweet-rewards-preview-v1';let wallet={},ready=preview,ref=null,busy=false,pending=null;
+function wishStatus(raw){const halves=Math.max(0,Number.isInteger(raw?.halfTickets)?raw.halfTickets:0),used=Object.keys(raw?.uses||{}).length;return {available:Math.max(0,Math.floor(halves/2)-used),progress:halves%2/2,used};}
+function spend(raw,id,at){raw=raw||{};if(raw.uses?.[id])return; if(wishStatus(raw).available<1)return;return {...raw,uses:{...raw.uses,[id]:{at}}};}
+window.CoupleRewardWallet={wishStatus,spend};
+const style=document.createElement('style');style.textContent='.reward-wallet{margin:0 0 16px;padding:18px 20px;border:1px solid var(--hm-line,#eadfe4);border-radius:20px;background:var(--hm-paper,#fff);color:var(--hm-ink,#493940)}.reward-wallet-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.reward-wallet strong{font-size:17px}.reward-wallet small{display:block;opacity:.65;margin-top:6px;font-size:12px}.reward-wallet button{border:0;border-radius:12px;padding:10px 14px;background:#866581;color:white;font-weight:700;cursor:pointer}.reward-wallet button:disabled{opacity:.4;cursor:default}.reward-wallet progress{width:100%;height:5px;accent-color:#b788a0;margin-top:14px}.reward-wallet details{margin-top:12px;font-size:12px}.reward-wallet ul{padding-left:18px;line-height:1.8}';document.head.append(style);
+function card(app,id){const main=document.querySelector('#app-'+app+' main');if(!main)return null;const el=document.createElement('section');el.className='reward-wallet';el.id=id;main.prepend(el);return el;}
+const leave=card('leave','leave-reward-wallet'),sweet=card('smoke','sweet-reward-wallet');
+function render(){
+const rabbit=preview?JSON.parse(localStorage.getItem('couple-game-rewards-preview-v1')||'{}'):null;
+const status=preview?{ready:true,bankDays:((rabbit.totalAwards||0)%10)/10,issuedDays:Math.floor((rabbit.totalAwards||0)/10)}:window.__leaveGameRewardStatus?.();
+if(leave){leave.innerHTML='<div class="reward-wallet-top"><strong>🐰 포상 연차 적립</strong><strong>'+(status?.ready?(status.bankDays||0).toFixed(1)+' / 1일':'불러오는 중')+'</strong></div><progress max="1" value="'+(status?.bankDays||0)+'"></progress><small>1일을 모으면 유흥연차에 자동 지급 · 지금까지 '+(status?.issuedDays||0)+'일 지급</small>';}
+if(!sweet)return;const s=wishStatus(wallet);sweet.innerHTML='<div class="reward-wallet-top"><div><strong>🍠 소원권 '+(ready?s.available+'장':'확인 중')+'</strong><small>다음 소원권 '+s.progress+' / 1장 · 사용 '+s.used+'장</small></div><button type="button" id="wish-use" '+(!ready||busy||s.available<1||(!preview&&!window.CoupleAuth?.isPerson('sweet'))?'disabled':'')+'>1장 사용</button></div><progress max="1" value="'+s.progress+'"></progress><small>0.5장씩 모아 1장이 되면 사용할 수 있어요.</small>';
+if(s.used){const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='사용 내역';details.append(summary);const ul=document.createElement('ul');Object.values(wallet.uses||{}).sort((a,b)=>b.at-a.at).forEach(u=>{const li=document.createElement('li');li.textContent=new Date(u.at).toLocaleString('ko-KR')+' · 소원권 1장 사용';ul.append(li);});details.append(ul);sweet.append(details);}
+sweet.querySelector('button').onclick=use;
+}
+async function use(){if(busy)return;if(!preview&&!window.CoupleAuth?.isPerson('sweet'))return;busy=true;render();pending=pending||crypto.randomUUID();try{if(preview){const next=spend(JSON.parse(localStorage.getItem(key)||'{}'),pending,Date.now());if(!next)throw Error('사용할 소원권이 없어요.');wallet=next;localStorage.setItem(key,JSON.stringify(next));}else{if(!ref)throw Error('연결을 확인해 주세요.');const r=await ref.transaction(raw=>window.CoupleAuth?.isPerson('sweet')?spend(raw,pending,Date.now()):undefined,undefined,false);if(!r.committed&&!r.snapshot.val()?.uses?.[pending])throw Error('사용할 소원권이 없거나 본인 인증이 필요해요.');wallet=r.snapshot.val()||{};}pending=null;window.FX?.toast(preview?'미리보기 · 소원권 1장 사용':'소원권 1장을 사용했어요.');}catch(e){window.FX?.toast(e.message);}finally{busy=false;render();}}
+if(preview){try{wallet=JSON.parse(localStorage.getItem(key)||'{}');}catch{}}else{try{ref=window.firebase.app().database().ref('couple_home_v1/gameRewards/sweet');ref.on('value',snap=>{wallet=snap.val()||{};ready=true;render();},()=>{ready=false;render();});}catch{}}
+['couple-approval-change','couple-auth-change','hashchange','storage'].forEach(e=>window.addEventListener(e,()=>{if(preview)wallet=JSON.parse(localStorage.getItem(key)||'{}');render();}));render();
+})();
+
+</script>
+<!-- couple-calendar-reward-wallet-script:end -->
 </body>
 </html>
