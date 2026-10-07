@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-send-whoosh-61">
+<meta name="app-version" content="20261007-send-swoop-62">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -5956,15 +5956,17 @@ window.addEventListener('site-mode-change',entered);window.addEventListener('res
 <script>
 (function(){
 'use strict';
-let enabled=true,context=null,last=0,airBuffer=null;
+let enabled=true,context=null,last=0;
 try{enabled=localStorage.getItem('couple-effects-sound')!=='off'}catch{}
 const tones={sent:[[440,0,.13],[554,.06,.16]],approved:[[523,0,.1],[659,.07,.12],[784,.15,.16]],rejected:[[440,0,.12],[330,.13,.15]],heart:[[780,0,.08],[1046,.06,.12]],check:[[880,0,.075]],saved:[[660,0,.08],[880,.07,.12]],collision:[[180,0,.11],[120,.06,.13]],goal:[[523,0,.1],[659,.1,.1],[784,.2,.1],[1046,.3,.2]]};
 function unlock(){if(!enabled||document.hidden)return;try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;context??=new Audio();if(context.state==='suspended')void context.resume().catch(()=>{});}catch{}}
 function whoosh(){
- const duration=.20,start=context.currentTime;
- if(!airBuffer){airBuffer=context.createBuffer(1,Math.ceil(context.sampleRate*duration),context.sampleRate);const data=airBuffer.getChannelData(0);let smooth=0;for(let i=0;i<data.length;i++){smooth=.65*smooth+.35*(Math.random()*2-1);data[i]=smooth;}}
- const source=context.createBufferSource(),filter=context.createBiquadFilter(),gain=context.createGain();source.buffer=airBuffer;filter.type='bandpass';filter.Q.setValueAtTime(.65,start);filter.frequency.setValueAtTime(1900,start);filter.frequency.exponentialRampToValueAtTime(650,start+duration);
- gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(.15,start+.035);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);source.connect(filter);filter.connect(gain);gain.connect(context.destination);source.start(start);source.stop(start+duration+.01);source.onended=()=>{source.disconnect();filter.disconnect();gain.disconnect()};
+ const start=context.currentTime,duration=.18;
+ const oscillator=context.createOscillator(),filter=context.createBiquadFilter(),gain=context.createGain();
+ oscillator.type='triangle';oscillator.frequency.setValueAtTime(320,start);oscillator.frequency.exponentialRampToValueAtTime(1050,start+.12);oscillator.frequency.exponentialRampToValueAtTime(1250,start+duration);
+ filter.type='lowpass';filter.frequency.setValueAtTime(1200,start);filter.frequency.exponentialRampToValueAtTime(2400,start+duration);filter.Q.setValueAtTime(.5,start);
+ gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(.045,start+.018);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
+ oscillator.connect(filter);filter.connect(gain);gain.connect(context.destination);oscillator.start(start);oscillator.stop(start+duration+.01);oscillator.onended=()=>{oscillator.disconnect();filter.disconnect();gain.disconnect()};
 }
 function sound(kind){if(!enabled||document.hidden||!document.hasFocus()||!context||context.state!=='running')return;const notes=tones[kind];if(!notes||Date.now()-last<100)return;last=Date.now();try{if(kind==='sent'){whoosh();return;}const start=context.currentTime;for(const [freq,delay,length] of notes){const oscillator=context.createOscillator(),gain=context.createGain();oscillator.type='sine';oscillator.frequency.setValueAtTime(freq,start+delay);gain.gain.setValueAtTime(0,start+delay);gain.gain.linearRampToValueAtTime(kind==='sent'?.028:.055,start+delay+(kind==='sent'?.025:.008));gain.gain.exponentialRampToValueAtTime(.0001,start+delay+length);oscillator.connect(gain);gain.connect(context.destination);oscillator.start(start+delay);oscillator.stop(start+delay+length+.015);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect()};}}catch{}}
 for(const type of ['pointerdown','touchend','keydown'])document.addEventListener(type,unlock,{capture:true,passive:true});
