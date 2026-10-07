@@ -1,3 +1,4 @@
+import {authRoute,cleanAuth} from './auth.js';
 import webpush from 'web-push';
 import specialDays from './special-days.json' with {type:'json'};
 export const DELIVERY_RETENTION_MS = 7*86400000;
@@ -92,6 +93,7 @@ async function scan(env){
     if(preferences?.[owner]?.[e.kind]===false)continue;
     await send(env,owner,'hour-'+e.id+'-'+e.date+'-'+e.time,'1시간 뒤 일정이 있어요.\n'+(names[e.owner]?names[e.owner]+' · ':'함께 · ')+e.title+' · '+e.time,'calendar');
   }
+  await cleanAuth(env);
   await sql(env,'DELETE FROM pairing_attempts WHERE expires<?',Date.now()).run();
   await sql(env,'DELETE FROM deliveries WHERE sent_at<?',Date.now()-DELIVERY_RETENTION_MS).run();
 }
@@ -111,6 +113,7 @@ export default {
     try{
       const path=new URL(request.url).pathname;
       if(request.method==='OPTIONS')response=new Response(null,{status:204});
+      else if(path.startsWith('/auth/'))response=await authRoute(request,env);
       else if(path==='/health'&&request.method==='GET'){await sql(env,'SELECT 1').first();await read(DATABASES.calendar);response=json({ok:true,database:true});}
       else if(path==='/config'&&request.method==='GET')response=json({publicKey:env.VAPID_PUBLIC_KEY});
       else if(path==='/pair'&&request.method==='POST'){

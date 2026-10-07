@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-push-31">
+<meta name="app-version" content="20261007-passkey-33">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1385,6 +1385,8 @@ html[data-theme="dark"] .home-relationship{background:linear-gradient(110deg,#3d
 .home-footer{font-size:10px;opacity:.7}
 @media(max-width:440px){.home-wrap{padding:18px 16px 28px}.home-hero{padding:16px 0 12px;gap:12px}.home-hero-copy>p:not(.home-eyebrow){font-size:11px;line-height:1.6}.home-surface .home-dday{padding:14px 10px}.home-dday-label{font-size:10px}.home-dday small{font-size:10px}.home-relationship{padding:12px 15px}.home-section-heading h2{font-size:23px}.home-apps{margin-bottom:18px}}
 
+.home-pending[hidden]{display:none!important}.home-pending{display:grid;gap:8px;margin:0 0 20px}.home-pending-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 15px;background:var(--surface,#fff);color:inherit;border:1px solid #cfad793b;border-radius:16px;cursor:pointer;transition:transform .18s,box-shadow .18s}.home-pending-row:hover{transform:translateY(-2px);box-shadow:0 5px 18px #a17a3910}.home-pending-icon{font-size:25px}.home-pending-copy{flex:1;min-width:0}.home-pending-copy strong{display:block;font-size:13px}.home-pending-copy small{display:block;font-size:11px;opacity:.65;margin-top:4px}.home-pending-count{font-size:11px;font-weight:700;border-radius:20px;padding:6px 9px;background:#dba95718;color:#a3783e;white-space:nowrap}body[data-theme="dark"] .home-pending-row{background:#282522}@media(max-width:440px){.home-pending-row{gap:9px;padding:12px}.home-pending-copy small{font-size:10px}}
+
 </style>
 <!-- couple-calendar-home-styles:end -->
 <!-- couple-calendar-social-styles:start -->
@@ -1414,6 +1416,8 @@ html[data-theme="dark"] .home-relationship{background:linear-gradient(110deg,#3d
 
 /* Keep startup visible until the entrance portraits have finished loading. */
 .boot{animation:none}
+
+.couple-auth{width:min(360px,calc(100vw - 40px));box-sizing:border-box;border:1px solid #dac7b855;border-radius:26px;padding:30px 24px;background:var(--surface,#fffaf7);color:var(--ink,#48392f);box-shadow:0 25px 80px #30201033}.couple-auth::backdrop{background:#30251e66;backdrop-filter:blur(5px)}.couple-auth form{display:grid;gap:12px}.couple-auth h2{font-size:22px;margin:0;text-align:center}.couple-auth p{font-size:12px;line-height:1.7;margin:0;text-align:center;opacity:.75}.couple-auth button{width:100%;padding:13px 10px;border:0;border-radius:13px;font:inherit;font-size:13px;font-weight:650;cursor:pointer;background:#80604c;color:white}.couple-auth button:disabled{opacity:.5}.couple-auth .auth-secondary{background:transparent;color:inherit;font-size:12px}.couple-auth .auth-close{position:absolute;right:12px;top:9px;width:32px;background:transparent;color:inherit;font-size:22px;padding:4px}.auth-symbol{text-align:center;font-size:40px;color:#b78967}.couple-auth label{display:block;font-size:12px;margin:5px 0 8px}.couple-auth input{box-sizing:border-box;width:100%;min-width:0;border:1px solid #cdbbac;border-radius:12px;padding:13px;font-size:16px;margin-bottom:10px;background:transparent;color:inherit}.couple-auth [hidden]{display:none!important}.couple-auth #auth-status{min-height:20px}body[data-theme="dark"] .couple-auth{background:#282522;color:#eee2d9}
 
 </style>
 <!-- couple-calendar-social-styles:end -->
@@ -1635,6 +1639,7 @@ dialog.couple-install{box-sizing:border-box;width:440px;max-width:calc(100% - 28
       <div class="home-hero-copy"><h1>오늘도,<br><span>함께여서 좋아.</span></h1><div id="home-person-next" class="home-person-next" aria-label="토끼와 구마의 다가오는 일정"></div><p>토끼와 구마의 작은 일상.</p><button type="button" class="home-text-link" data-home-action="add">오늘의 약속 남기기 <span aria-hidden="true">↗</span></button></div>
       <button type="button" id="home-character" class="home-hero-art" aria-label="토끼에게 하트 보내기"><span class="home-orbit orbit-one" aria-hidden="true">♡</span><span class="home-orbit orbit-two" aria-hidden="true">✧</span><img decoding="async" loading="eager" fetchpriority="high" id="home-rabbit-art" src="assets/rabbit-sweetpotato.webp" alt=""><span class="home-character-hint">살짝 눌러봐요 ♡</span></button>
     </header>
+    <section id="home-pending" class="home-pending" aria-label="승인 대기 중인 신청" aria-live="polite" hidden></section>
     <section class="home-apps" aria-labelledby="home-apps-title">
       <div class="home-section-heading"><div><h2 id="home-apps-title">우리의 일상 서랍</h2></div><span class="home-small-note">필요할 때, 하나씩 꺼내요</span></div>
       <div class="home-app-grid">
@@ -2668,6 +2673,7 @@ if(stateRef){
       saveState();
     }
     refreshCurrentView();
+    window.dispatchEvent(new Event('couple-approval-change'));
   }, (err)=>{
     console.error(err);
     loadError = '데이터베이스 접근이 거부됐어요 (권한 오류). Firebase Realtime Database 규칙이 게시(Publish)되어 있는지 확인해주세요. 원본 오류: ' + (err.message || String(err));
@@ -3052,6 +3058,7 @@ function renderApplicant(){
 /* ---------------- 관리자 뷰 ---------------- */
 function renderAdmin(){
   const el = document.getElementById('L-view-admin');
+  if(window.CoupleAuth?.isAdmin('leave')) adminUnlocked=true;
   if(!state){
     el.innerHTML = loadError
       ? `<div class="empty">불러오기 실패 😢<br><span style="font-size:11px">${escapeHTML(loadError)}</span></div>`
@@ -3064,8 +3071,8 @@ function renderAdmin(){
       <div class="card">
         <h2>🔐 관리자 비밀번호 설정</h2>
         <p style="font-size:13px; color:var(--brown);">처음 사용이시네요! 결재함에 들어갈 비밀번호를 설정해주세요.</p>
-        <div class="field"><label>비밀번호</label><input type="password" id="L-pw1"></div>
-        <div class="field"><label>비밀번호 확인</label><input type="password" id="L-pw2"></div>
+        <div class="field"><label>비밀번호</label><input type="password" id="L-pw1" autocomplete="new-password"></div>
+        <div class="field"><label>비밀번호 확인</label><input type="password" id="L-pw2" autocomplete="new-password"></div>
         <button class="action btn-primary" id="L-setPwBtn">설정하기</button>
       </div>
     `;
@@ -3086,7 +3093,7 @@ function renderAdmin(){
     el.innerHTML = `
       <div class="card">
         <h2>🔐 관리자 로그인</h2>
-        <div class="field"><label>비밀번호</label><input type="password" id="L-pwInput"></div>
+        <div class="field"><label>비밀번호</label><input type="password" id="L-pwInput" name="L-admin-password" autocomplete="current-password"></div>
         <button class="action btn-primary" id="L-unlockBtn">잠금 해제</button>
         <div class="lock-msg">결재권자 구마구마님만 들어올 수 있어요.</div>
       </div>
@@ -3325,7 +3332,7 @@ function renderAdmin(){
     renderAdmin();
   });
 
-  document.getElementById('L-lockBtn').addEventListener('click', ()=>{
+  document.getElementById('L-lockBtn').addEventListener('click', ()=>{ window.CoupleAuth?.lock();
     adminUnlocked = false;
     renderAdmin();
   });
@@ -3390,6 +3397,8 @@ function celebrateUnseenLeave(){
 }
 window.__leaveShowResults = celebrateUnseenLeave;
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) setTimeout(celebrateUnseenLeave, 300); });
+
+window.addEventListener('couple-auth-change',()=>{adminUnlocked=false;refreshCurrentView();});
 
 window.__leavePending = function(){
   if(!state || !state.requests) return 0;
@@ -3570,6 +3579,7 @@ if(stateRef){
       saveState();
     }
     refreshCurrentView();
+    window.dispatchEvent(new Event('couple-approval-change'));
   }, (err)=>{
     console.error(err);
     loadError = '데이터베이스 접근이 거부됐어요 (권한 오류). Firebase Realtime Database 규칙이 게시(Publish)되어 있는지 확인해주세요. 원본 오류: ' + (err.message || String(err));
@@ -3903,6 +3913,7 @@ function startTimer(current){
 /* ---------------- 관리자 뷰 ---------------- */
 function renderAdmin(){
   const el = document.getElementById('S-view-admin');
+  if(window.CoupleAuth?.isAdmin('smoke')) adminUnlocked=true;
   if(!state){
     el.innerHTML = loadError
       ? `<div class="empty">불러오기 실패 😢<br><span style="font-size:11px">${escapeHTML(loadError)}</span></div>`
@@ -3915,8 +3926,8 @@ function renderAdmin(){
       <div class="card">
         <h2>🔐 관리자 비밀번호 설정</h2>
         <p style="font-size:13px; color:var(--slate);">처음 사용이시네요! 결재함에 들어갈 비밀번호를 설정해주세요.</p>
-        <div class="field"><label>비밀번호</label><input type="password" id="S-pw1"></div>
-        <div class="field"><label>비밀번호 확인</label><input type="password" id="S-pw2"></div>
+        <div class="field"><label>비밀번호</label><input type="password" id="S-pw1" autocomplete="new-password"></div>
+        <div class="field"><label>비밀번호 확인</label><input type="password" id="S-pw2" autocomplete="new-password"></div>
         <button class="action btn-primary" id="S-setPwBtn">설정하기</button>
       </div>
     `;
@@ -3937,7 +3948,7 @@ function renderAdmin(){
     el.innerHTML = `
       <div class="card">
         <h2>🔐 관리자 로그인</h2>
-        <div class="field"><label>비밀번호</label><input type="password" id="S-pwInput"></div>
+        <div class="field"><label>비밀번호</label><input type="password" id="S-pwInput" name="S-admin-password" autocomplete="current-password"></div>
         <button class="action btn-primary" id="S-unlockBtn">잠금 해제</button>
         <div class="lock-msg">결재권자 이토끼님만 들어올 수 있어요.</div>
       </div>
@@ -4063,7 +4074,7 @@ function renderAdmin(){
     });
   });
 
-  document.getElementById('S-lockBtn').addEventListener('click', ()=>{ adminUnlocked = false; renderAdmin(); });
+  document.getElementById('S-lockBtn').addEventListener('click', ()=>{ window.CoupleAuth?.lock(); adminUnlocked = false; renderAdmin(); });
   document.getElementById('S-changePwBtn').addEventListener('click', async ()=>{
     const cur = await FX.prompt('현재 비밀번호를 입력해주세요.', {title:'비밀번호 변경',label:'현재 비밀번호',type:'password',autocomplete:'current-password',required:true});
     if(cur === null) return;
@@ -4118,6 +4129,8 @@ function celebrateUnseenSmoke(){
 }
 window.__smokeShowResults = celebrateUnseenSmoke;
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) setTimeout(celebrateUnseenSmoke, 300); });
+
+window.addEventListener('couple-auth-change',()=>{adminUnlocked=false;refreshCurrentView();});
 
 window.__smokePending = function(){
   if(!state || !state.requests) return 0;
@@ -4860,7 +4873,16 @@ renderApplicant();
     $('home-together').innerHTML = `<span class="home-together-label">♥ 오늘 함께</span><div class="home-together-events">${together.length ? together.map(e => eventButton(e, true)).join('') : `<p class="home-day-empty">${loaded ? '함께할 시간이 생기면, 약속을 남겨요.' : '공유 일정을 불러오고 있어요.'}</p>`}</div><button type="button" class="home-text-link" data-home-action="add" aria-label="오늘 함께할 일정 추가">＋</button>`;
     $('home-calendar-status').textContent = loaded ? (state.todayEvents.length ? `오늘 ${state.todayEvents.length}개의 약속` : '오늘의 새로운 약속 남기기') : '일정과 기념일 모아보기';
   }
+  function renderPending() {
+    const panel=$('home-pending');if(!panel)return;
+    const person=window.CoupleHome?.getPerson?.();
+    const rows=[{app:'leave',title:'유흥연차',icon:'🐰',applicant:'rabbit',count:window.__leavePending?.()||0},{app:'smoke',title:'흡연 결재',icon:'🍠',applicant:'sweet',count:window.__smokePending?.()||0}].filter(x=>x.count>0);
+    panel.hidden=!person||!rows.length;
+    if(panel.hidden){panel.innerHTML='';return;}
+    panel.innerHTML=rows.map(x=>`<button type="button" class="home-pending-row" data-open-app="${x.app}" data-pending-role="${person===x.applicant?'Applicant':'Admin'}"><span class="home-pending-icon" aria-hidden="true">${x.icon}</span><span class="home-pending-copy"><strong>${x.title}</strong><small>${person===x.applicant?'승인 기다리는 중':'확인이 필요한 신청이 있어요'}</small></span><span class="home-pending-count">${person===x.applicant?'대기':'결재 필요'} ${x.count}건</span><span aria-hidden="true">↗</span></button>`).join('');
+  }
   function renderAppStatus() {
+    renderPending();
     const leave = window.__leaveSummary?.();
     const smoke = window.__smokeSummary?.();
     $('home-leave-status').textContent = leave || '연차와 신청 내역 확인';
@@ -4868,6 +4890,7 @@ renderApplicant();
   }
   document.addEventListener('click', event => {
     const button = event.target.closest('button'); if (!button) return;
+    if(button.dataset.pendingRole){const prefix=button.dataset.openApp==='leave'?'L':'S';document.getElementById(prefix+'-btn'+button.dataset.pendingRole)?.click();}
     if (button.dataset.homeNextPerson) {
       const owner = button.dataset.homeNextPerson, next = upcomingByPerson[owner];
       openCalendar(next ? { owner, date: next.date, eventId: next.event.id } : { owner });
@@ -4903,6 +4926,8 @@ renderApplicant();
   });
   document.querySelectorAll('[data-home-portrait]').forEach(img => { img.src = window.FX.ICONS[img.dataset.homePortrait]; });
   window.addEventListener('couple-calendar-change', render);
+  window.addEventListener('couple-approval-change', renderPending);
+  document.addEventListener('change',e=>{if(e.target.id==='social-person')queueMicrotask(renderPending);});
   window.addEventListener('site-mode-change', () => { if (document.body.dataset.siteMode === 'home') { render(); renderAppStatus(); } });
   setInterval(() => { if (!document.hidden && document.body.dataset.siteMode === 'home') renderAppStatus(); }, 4000);
   render(); renderAppStatus();
@@ -4912,6 +4937,40 @@ renderApplicant();
 <!-- couple-calendar-home-script:end -->
 <!-- couple-calendar-social-script:start -->
 <script id="couple-social-script">
+/* [@simplewebauthn/browser@14.0.0] */
+!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t((e="undefined"!=typeof globalThis?globalThis:e||self).SimpleWebAuthnBrowser={})}(this,(function(e){"use strict";function t(e){const t=new Uint8Array(e);let n="";for(const e of t)n+=String.fromCharCode(e);return btoa(n).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"")}function n(e){const t=e.replace(/-/g,"+").replace(/_/g,"/"),n=(4-t.length%4)%4,r=t.padEnd(t.length+n,"="),i=atob(r),o=new ArrayBuffer(i.length),a=new Uint8Array(o);for(let e=0;e<i.length;e++)a[e]=i.charCodeAt(e);return o}function r(){return i.stubThis(void 0!==globalThis?.PublicKeyCredential&&"function"==typeof globalThis.PublicKeyCredential)}const i={stubThis:e=>e};function o(e){const{id:t}=e;return{...e,id:n(t),transports:e.transports,type:e.type}}function a(e){return"localhost"===e||/^((xn--[a-z0-9-]+|[a-z0-9]+(-[a-z0-9]+)*)\.)+([a-z]{2,}|xn--[a-z0-9-]+)$/i.test(e)}class s extends Error{constructor({message:e,code:t,cause:n,name:r}){super(e,{cause:n}),Object.defineProperty(this,"code",{enumerable:!0,configurable:!0,writable:!0,value:void 0}),this.name=r??n.name,this.code=t}}const l=new class{constructor(){Object.defineProperty(this,"controller",{enumerable:!0,configurable:!0,writable:!0,value:void 0})}createNewAbortSignal(){if(this.controller){const e=new Error("Cancelling existing WebAuthn API call for new one");e.name="AbortError",this.controller.abort(e)}const e=new AbortController;return this.controller=e,e.signal}cancelCeremony(){if(this.controller){const e=new Error("Manually cancelling existing WebAuthn API call");e.name="AbortError",this.controller.abort(e),this.controller=void 0}}},c=["cross-platform","platform"];function u(e){if(e&&!(c.indexOf(e)<0))return e}function d(e,t){console.warn(`The browser extension that intercepted this WebAuthn API call incorrectly implemented ${e}. You should report this error to them.\n`,t)}function p(){if(!r())return h.stubThis(new Promise((e=>e(!1))));const e=globalThis.PublicKeyCredential;return void 0===e?.isConditionalMediationAvailable?h.stubThis(new Promise((e=>e(!1)))):h.stubThis(e.isConditionalMediationAvailable())}const h={stubThis:e=>e};function f({error:e,options:t}){if("SecurityError"===e.name){return a(globalThis.location.hostname)?new s({message:`The browser does not support Related Origins to enable signals for RP ID "${t.rpID}" on domain "${globalThis.location.hostname}"`,code:"ERROR_INVALID_RP_ID",cause:e}):new s({message:`"${globalThis.location.hostname}" is an invalid domain`,code:"ERROR_INVALID_DOMAIN",cause:e})}if("unknownCredential"===t.signalName){if("TypeError"===e.name)return new s({message:"credentialID is an invalid base64url string",code:"ERROR_SIGNAL_INVALID_ARGUMENT",cause:e})}else if("allAcceptedCredentials"===t.signalName){if("TypeError"===e.name)return new s({message:"userID, or an entry in allAcceptedCredentialIDs, is an invalid base64url string",code:"ERROR_SIGNAL_INVALID_ARGUMENT",cause:e})}else if("currentUserDetails"===t.signalName&&"TypeError"===e.name)return new s({message:"userID is an invalid base64url string",code:"ERROR_SIGNAL_INVALID_ARGUMENT",cause:e});return new s({message:e.message,code:"ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY",cause:e})}async function g(){if("function"==typeof PublicKeyCredential.getClientCapabilities){const e=await PublicKeyCredential.getClientCapabilities();let t=w(e.userVerifyingPlatformAuthenticator);if("unknown"===t&&"function"==typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable){t=await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()?"supported":"unsupported"}let n=w(e.conditionalGet);if("unknown"===n&&"function"==typeof PublicKeyCredential.isConditionalMediationAvailable){n=await PublicKeyCredential.isConditionalMediationAvailable()?"supported":"unsupported"}return b.stubThis({conditionalCreate:w(e.conditionalCreate),conditionalGet:n,hybridTransport:w(e.hybridTransport),passkeyPlatformAuthenticator:w(e.passkeyPlatformAuthenticator),userVerifyingPlatformAuthenticator:t,relatedOrigins:w(e.relatedOrigins),signalAllAcceptedCredentials:w(e.signalAllAcceptedCredentials),signalCurrentUserDetails:w(e.signalCurrentUserDetails),signalUnknownCredential:w(e.signalUnknownCredential)})}return b.stubThis({conditionalCreate:"unknown",conditionalGet:"unknown",hybridTransport:"unknown",passkeyPlatformAuthenticator:"unknown",userVerifyingPlatformAuthenticator:"unknown",relatedOrigins:"unknown",signalAllAcceptedCredentials:"unknown",signalCurrentUserDetails:"unknown",signalUnknownCredential:"unknown"})}function w(e){if(!0===e)return"supported";if(!1===e)return"unsupported";if(void 0===e)return"unknown";throw new Error("Unexpected capability value:",e)}const b={stubThis:e=>e};e.WebAuthnAbortService=l,e.WebAuthnError=s,e._browserSupportsWebAuthnAutofillInternals=h,e._browserSupportsWebAuthnInternals=i,e._getBrowserCapabilitiesInternals=b,e.base64URLStringToBuffer=n,e.browserSupportsPasskeys=async function(){if(!r())return new Promise((e=>e(!1)));const e=await g(),{passkeyPlatformAuthenticator:t,userVerifyingPlatformAuthenticator:n,hybridTransport:i}=e;return"supported"===t||"supported"===i||"supported"===n},e.browserSupportsWebAuthn=r,e.browserSupportsWebAuthnAutofill=p,e.bufferToBase64URLString=t,e.getBrowserCapabilities=g,e.platformAuthenticatorIsAvailable=function(){return r()?PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable():new Promise((e=>e(!1)))},e.sendSignal=async function(e){const{signalName:t}=e;if("unknownCredential"===t)return async function(e){const t=globalThis.PublicKeyCredential;if("function"!=typeof t.signalUnknownCredential)throw new Error("This browser does not support PublicKeyCredential.signalUnknownCredential()");try{await t.signalUnknownCredential({rpId:e.rpID,credentialId:e.credentialID})}catch(t){throw f({error:t,options:e})}return}(e);if("allAcceptedCredentials"===t)return async function(e){const t=globalThis.PublicKeyCredential;if("function"!=typeof t.signalAllAcceptedCredentials)throw new Error("This browser does not support PublicKeyCredential.signalAllAcceptedCredentials()");try{await t.signalAllAcceptedCredentials({rpId:e.rpID,userId:e.userID,allAcceptedCredentialIds:e.allAcceptedCredentialIDs})}catch(t){throw f({error:t,options:e})}return}(e);if("currentUserDetails"===t)return async function(e){const t=globalThis.PublicKeyCredential;if("function"!=typeof t.signalCurrentUserDetails)throw new Error("This browser does not support PublicKeyCredential.signalCurrentUserDetails()");try{await t.signalCurrentUserDetails({rpId:e.rpID,userId:e.userID,name:e.userName,displayName:e.userDisplayName??""})}catch(t){throw f({error:t,options:e})}return}(e);throw new Error(`Received unrecognized signalName "${e.signalName}"`)},e.startAuthentication=async function(e){!e.optionsJSON&&e.challenge&&(console.warn("startAuthentication() was not called correctly. It will try to continue with the provided options, but this call should be refactored to use the expected call structure instead. See https://simplewebauthn.dev/docs/packages/browser#typeerror-cannot-read-properties-of-undefined-reading-challenge for more information."),e={optionsJSON:e});const{optionsJSON:i,useBrowserAutofill:c=!1,verifyBrowserAutofillInput:d=!0}=e;if(!r())throw new Error("WebAuthn is not supported in this browser");let h;0!==i.allowCredentials?.length&&(h=i.allowCredentials?.map(o));const f={...i,challenge:n(i.challenge),allowCredentials:h},g={};if(c){if(!await p())throw Error("Browser does not support WebAuthn autofill");if(document.querySelectorAll("input[autocomplete$='webauthn']").length<1&&d)throw Error('No <input> with "webauthn" as the only or last value in its `autocomplete` attribute was detected');g.mediation="conditional",f.allowCredentials=[]}let w;g.publicKey=f,g.signal=l.createNewAbortSignal();try{w=await navigator.credentials.get(g)}catch(e){throw function({error:e,options:t}){const{publicKey:n}=t;if(!n)throw Error("options was missing required publicKey property");if("AbortError"===e.name){if(t.signal instanceof AbortSignal)return new s({message:"Authentication ceremony was sent an abort signal",code:"ERROR_CEREMONY_ABORTED",cause:e})}else{if("NotAllowedError"===e.name)return new s({message:e.message,code:"ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY",cause:e});if("SecurityError"===e.name){const t=globalThis.location.hostname;if(!a(t))return new s({message:`${globalThis.location.hostname} is an invalid domain`,code:"ERROR_INVALID_DOMAIN",cause:e});if(n.rpId!==t)return new s({message:`The RP ID "${n.rpId}" is invalid for this domain`,code:"ERROR_INVALID_RP_ID",cause:e})}else if("UnknownError"===e.name)return new s({message:"The authenticator was unable to process the specified options, or could not create a new assertion signature",code:"ERROR_AUTHENTICATOR_GENERAL_ERROR",cause:e})}return e}({error:e,options:g})}if(!w)throw new Error("Authentication was not completed");const{id:b,rawId:A,response:R,type:m}=w;let y;return R.userHandle&&(y=t(R.userHandle)),{id:b,rawId:t(A),response:{authenticatorData:t(R.authenticatorData),clientDataJSON:t(R.clientDataJSON),signature:t(R.signature),userHandle:y},type:m,clientExtensionResults:w.getClientExtensionResults(),authenticatorAttachment:u(w.authenticatorAttachment)}},e.startRegistration=async function(e){!e.optionsJSON&&e.challenge&&(console.warn("startRegistration() was not called correctly. It will try to continue with the provided options, but this call should be refactored to use the expected call structure instead. See https://simplewebauthn.dev/docs/packages/browser#typeerror-cannot-read-properties-of-undefined-reading-challenge for more information."),e={optionsJSON:e});const{optionsJSON:i,useAutoRegister:c=!1}=e;if(!r())throw new Error("WebAuthn is not supported in this browser");const p={...i,challenge:n(i.challenge),user:{...i.user,id:n(i.user.id)},excludeCredentials:i.excludeCredentials?.map(o)},h={};let f;c&&(h.mediation="conditional"),h.publicKey=p,h.signal=l.createNewAbortSignal();try{f=await navigator.credentials.create(h)}catch(e){throw function({error:e,options:t}){const{publicKey:n}=t;if(!n)throw Error("options was missing required publicKey property");if("AbortError"===e.name){if(t.signal instanceof AbortSignal)return new s({message:"Registration ceremony was sent an abort signal",code:"ERROR_CEREMONY_ABORTED",cause:e})}else if("ConstraintError"===e.name){if(!0===n.authenticatorSelection?.requireResidentKey)return new s({message:"Discoverable credentials were required but no available authenticator supported it",code:"ERROR_AUTHENTICATOR_MISSING_DISCOVERABLE_CREDENTIAL_SUPPORT",cause:e});if("conditional"===t.mediation&&"required"===n.authenticatorSelection?.userVerification)return new s({message:"User verification was required during automatic registration but it could not be performed",code:"ERROR_AUTO_REGISTER_USER_VERIFICATION_FAILURE",cause:e});if("required"===n.authenticatorSelection?.userVerification)return new s({message:"User verification was required but no available authenticator supported it",code:"ERROR_AUTHENTICATOR_MISSING_USER_VERIFICATION_SUPPORT",cause:e})}else{if("InvalidStateError"===e.name)return new s({message:"The authenticator was previously registered",code:"ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED",cause:e});if("NotAllowedError"===e.name)return new s({message:e.message,code:"ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY",cause:e});if("NotSupportedError"===e.name)return 0===n.pubKeyCredParams.filter((e=>"public-key"===e.type)).length?new s({message:'No entry in pubKeyCredParams was of type "public-key"',code:"ERROR_MALFORMED_PUBKEYCREDPARAMS",cause:e}):new s({message:"No available authenticator supported any of the specified pubKeyCredParams algorithms",code:"ERROR_AUTHENTICATOR_NO_SUPPORTED_PUBKEYCREDPARAMS_ALG",cause:e});if("SecurityError"===e.name){const t=globalThis.location.hostname;if(!a(t))return new s({message:`${globalThis.location.hostname} is an invalid domain`,code:"ERROR_INVALID_DOMAIN",cause:e});if(n.rp.id!==t)return new s({message:`The RP ID "${n.rp.id}" is invalid for this domain`,code:"ERROR_INVALID_RP_ID",cause:e})}else if("TypeError"===e.name){if(n.user.id.byteLength<1||n.user.id.byteLength>64)return new s({message:"User ID was not between 1 and 64 characters",code:"ERROR_INVALID_USER_ID_LENGTH",cause:e})}else if("UnknownError"===e.name)return new s({message:"The authenticator was unable to process the specified options, or could not create a new credential",code:"ERROR_AUTHENTICATOR_GENERAL_ERROR",cause:e})}return e}({error:e,options:h})}if(!f)throw new Error("Registration was not completed");const{id:g,rawId:w,response:b,type:A}=f;let R,m,y,E;if("function"==typeof b.getTransports&&(R=b.getTransports()),"function"==typeof b.getPublicKeyAlgorithm)try{m=b.getPublicKeyAlgorithm()}catch(e){d("getPublicKeyAlgorithm()",e)}if("function"==typeof b.getPublicKey)try{const e=b.getPublicKey();null!==e&&(y=t(e))}catch(e){d("getPublicKey()",e)}if("function"==typeof b.getAuthenticatorData)try{E=t(b.getAuthenticatorData())}catch(e){d("getAuthenticatorData()",e)}return{id:g,rawId:t(w),response:{attestationObject:t(b.attestationObject),clientDataJSON:t(b.clientDataJSON),transports:R,publicKeyAlgorithm:m,publicKey:y,authenticatorData:E},type:A,clientExtensionResults:f.getClientExtensionResults(),authenticatorAttachment:u(f.authenticatorAttachment)}}}));
+
+(function(){
+'use strict';
+const preview=document.getElementById('app-calendar')?.dataset.preview==='true';
+const server='https://rabbit-guma-push.couple-private-push.workers.dev',names={rabbit:'이토끼',sweet:'구마구마'};
+let verified=null,resolveEntry=null,owner=null,working=false;
+const dialog=document.createElement('dialog');dialog.className='couple-auth';
+dialog.innerHTML=`<form id="auth-form"><button type="button" id="auth-cancel" class="auth-close" aria-label="사용자 선택으로 돌아가기">×</button><span class="auth-symbol" aria-hidden="true">⌁</span><h2 id="auth-title">본인 확인</h2><p id="auth-description">인증하면 내 결재함도 함께 열려요.</p><button type="button" id="auth-passkey">Face ID · 기기 인증으로 입장</button><div id="auth-password-fields" hidden><label for="auth-password">내 결재함의 관리자 암호</label><input id="auth-password" type="password" autocomplete="current-password" maxlength="200"><button type="submit">암호로 인증하기</button></div><button type="button" id="auth-use-password" class="auth-secondary">처음 사용하거나 암호로 들어가기</button><div id="auth-enrollment" hidden><p>다음부터는 패스키로 편하게 들어올 수 있어요.</p><button type="button" id="auth-register">이 기기에 패스키 등록하기</button><button type="button" id="auth-enter" class="auth-secondary">지금 홈으로 들어가기</button></div><p id="auth-status" role="status"></p></form>`;
+document.body.appendChild(dialog);
+const $=id=>document.getElementById(id),status=s=>$('auth-status').textContent=s;
+function changed(){window.dispatchEvent(new Event('couple-auth-change'));}
+async function api(path,data){if(preview){if(path==='password')return {owner,expires:Date.now()+12*3600000};throw Error('실제 패스키 등록·인증은 공개 앱에서 진행해 주세요.');}const r=await fetch(server+'/auth/'+path,{method:'POST',headers:{'Content-Type':'application/json',...(verified?.token?{Authorization:'Bearer '+verified.token}:{})},body:JSON.stringify({owner,...data}),signal:AbortSignal.timeout(20000)});const result=await r.json();if(!r.ok)throw Error(result.error||'인증에 실패했어요.');return result;}
+async function action(fn){if(working)return;working=true;dialog.querySelectorAll('button').forEach(b=>b.disabled=true);status('');try{await fn();}catch(e){status(e.name==='NotAllowedError'?'인증을 취소했어요. 다시 시도하거나 암호로 들어갈 수 있어요.':e.message||'인증하지 못했어요.');}finally{working=false;dialog.querySelectorAll('button').forEach(b=>b.disabled=false);}}
+function finish(){const done=resolveEntry;resolveEntry=null;dialog.close();changed();done?.(true);}
+function cancel(){if(working)return;verified=null;const done=resolveEntry;resolveEntry=null;dialog.close();changed();done?.(false);}
+$('auth-cancel').onclick=cancel;dialog.addEventListener('cancel',e=>{e.preventDefault();cancel();});
+$('auth-use-password').onclick=()=>{$('auth-password-fields').hidden=false;$('auth-password').focus();};
+$('auth-form').onsubmit=e=>{e.preventDefault();void action(async()=>{verified=await api('password',{password:$('auth-password').value});$('auth-password').value='';$('auth-password-fields').hidden=true;$('auth-use-password').hidden=true;$('auth-passkey').hidden=true;$('auth-enrollment').hidden=false;status('인증됐어요. 패스키를 등록하거나 바로 입장해 주세요.');});};
+$('auth-passkey').onclick=()=>void action(async()=>{const r=await api('login/options',{});const response=await SimpleWebAuthnBrowser.startAuthentication({optionsJSON:r.options});verified=await api('login/verify',{response,challengeId:r.challengeId});finish();});
+$('auth-register').onclick=()=>void action(async()=>{const r=await api('register/options',{});const response=await SimpleWebAuthnBrowser.startRegistration({optionsJSON:r.options});await api('register/verify',{response,challengeId:r.challengeId});finish();});
+$('auth-enter').onclick=finish;
+setInterval(()=>{if(verified&&verified.expires<=Date.now())window.CoupleAuth.lock();},30000);
+window.CoupleAuth=Object.freeze({
+ enter(selected){if(!names[selected])return Promise.resolve(false);verified=null;changed();owner=selected;
+  $('auth-title').textContent=names[owner]+'로 들어가기';$('auth-description').textContent=(owner==='sweet'?'유흥연차':'흡연 결재')+' 관리자 암호로 최초 인증 후 패스키를 등록할 수 있어요.';
+  $('auth-password').value='';$('auth-password-fields').hidden=true;$('auth-enrollment').hidden=true;$('auth-passkey').hidden=!window.PublicKeyCredential;$('auth-use-password').hidden=false;status(preview?'미리보기예요. 암호로 인증하기를 누르면 입장 흐름을 볼 수 있어요.':'Face ID 대신 기기 암호나 다른 인증 수단이 표시될 수도 있어요.');dialog.showModal();return new Promise(resolve=>{resolveEntry=resolve;});
+ },
+ isAdmin(app){return !!verified&&verified.expires>Date.now()&&verified.owner===(app==='leave'?'sweet':'rabbit');},
+ lock(){const previous=verified;verified=null;changed();if(previous?.token)void fetch(server+'/auth/logout',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+previous.token},body:JSON.stringify({owner:previous.owner}),keepalive:true}).catch(()=>{});}
+});
+})();
+
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
@@ -4952,8 +5011,8 @@ renderApplicant();
   const entrance=$('home-entrance');
   if(entrance){
     entrance.addEventListener('cancel',e=>e.preventDefault());
-    entrance.addEventListener('click',e=>{const selected=e.target.closest('[data-enter-person]')?.dataset.enterPerson;if(!names[selected]||busy)return;$('social-person').value=selected;$('social-person').dispatchEvent(new Event('change',{bubbles:true}));entrance.close();window.SiteNav?.open('home');window.scrollTo({top:0,behavior:'instant'});const heading=$('app-home')?.querySelector('h1');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}});
-    $('home-change-person')?.addEventListener('click',()=>{window.MiniGame?.pause();entrance.showModal();});
+    entrance.addEventListener('click',async e=>{const selected=e.target.closest('[data-enter-person]')?.dataset.enterPerson;if(!names[selected]||busy||entrance.dataset.authBusy)return;entrance.dataset.authBusy='true';let allowed=false;try{allowed=await window.CoupleAuth?.enter(selected);}finally{delete entrance.dataset.authBusy;}if(!allowed)return;$('social-person').value=selected;$('social-person').dispatchEvent(new Event('change',{bubbles:true}));entrance.close();window.SiteNav?.open('home');window.scrollTo({top:0,behavior:'instant'});const heading=$('app-home')?.querySelector('h1');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}});
+    $('home-change-person')?.addEventListener('click',()=>{window.MiniGame?.pause();window.CoupleAuth?.lock();entrance.showModal();});
     const boot = $('bootSplash');
       if (preview && window.__coupleThemePreview) boot?.remove();
       else if (!boot) entrance.showModal?.();
