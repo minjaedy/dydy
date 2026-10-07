@@ -1,6 +1,7 @@
 /* Cache only the offline explanation. Shared data and API calls stay on the network. */
 const CACHE = 'couple-shell-v1';
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(['./offline.html','./assets/app-icon-192.png'])));
 });
 self.addEventListener('activate', event => {
@@ -19,7 +20,7 @@ self.addEventListener('push', event => {
   try { data = event.data?.json() || {}; } catch { /* Display a generic notification. */ }
   const allowed = new Set(['home', 'calendar', 'leave', 'smoke', 'travel']);
   const target = allowed.has(data.screen) ? data.screen : 'home';
-  event.waitUntil(self.registration.showNotification('구마를 안은 행복한 토끼', {
+  event.waitUntil(self.registration.showNotification(String(data.title || ({leave:'🐰 유흥연차 알림',smoke:'💨 흡연 결재 알림',calendar:'🗓 일정 알림',travel:'✈ 여행 알림'}[target]) || '🐰🍠 새 소식').slice(0, 60), {
     body: String(data.body || '우리의 새 소식이 도착했어요.').slice(0, 250),
     icon: './assets/app-icon-192.png',
     tag: String(data.tag || 'couple-update').slice(0, 120),

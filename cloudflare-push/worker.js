@@ -27,6 +27,14 @@ export function reminders(saved,today) {
 async function read(url){const r=await fetch(url,{signal:AbortSignal.timeout(10000)});if(!r.ok)throw Error('Database unavailable');return await r.json();}
 async function device(env,request){const token=request.headers.get('Authorization')?.replace(/^Bearer /,'')||'';if(token.length<32)return null;return sql(env,'SELECT id,owner FROM devices WHERE token_hash=?',await hash(token)).first();}
 function validSubscription(s){if(!s||typeof s.endpoint!=='string'||!s.keys)return false;try{const u=new URL(s.endpoint);return u.protocol==='https:'&&['web.push.apple.com','fcm.googleapis.com','updates.push.services.mozilla.com'].some(host=>u.hostname===host||u.hostname.endsWith('.'+host))&&typeof s.keys.p256dh==='string'&&typeof s.keys.auth==='string'&&s.keys.p256dh.length<200&&s.keys.auth.length<100;}catch{return false;}}
+export function notificationTitle(screen,key,body=''){
+  if(screen==='leave'||screen==='smoke'){
+    const label=screen==='leave'?'🐰 유흥연차':'💨 흡연 결재';
+    return label+' '+(key.includes('-approved-')?'승인':key.includes('-rejected-')?'반려':'신청');
+  }
+  if(screen==='calendar')return key.startsWith('new-')?'🗓 새 일정':body.split('\n')[0].includes('기념일')?'💝 기념일 알림':'🗓 오늘의 일정';
+  return '🐰🍠 앱 알림 연결';
+}
 async function send(env,owner,key,body,screen,deviceId=null){
   const devices=(await sql(env,'SELECT id,subscription FROM devices WHERE owner=? AND subscription IS NOT NULL',owner).all()).results;
   for(const d of devices){
@@ -36,7 +44,7 @@ async function send(env,owner,key,body,screen,deviceId=null){
     if(!claim.meta.changes)continue;
     let stage='prepare';
     try{
-      const req=webpush.generateRequestDetails(JSON.parse(d.subscription),JSON.stringify({body,screen,tag:key}),{TTL:86400,vapidDetails:{subject:env.APP_URL,publicKey:env.VAPID_PUBLIC_KEY,privateKey:env.VAPID_PRIVATE_KEY}});
+      const req=webpush.generateRequestDetails(JSON.parse(d.subscription),JSON.stringify({title:notificationTitle(screen,key,body),body,screen,tag:key}),{TTL:86400,vapidDetails:{subject:env.APP_URL,publicKey:env.VAPID_PUBLIC_KEY,privateKey:env.VAPID_PRIVATE_KEY}});
       stage='transport';
       const res=await fetch(req.endpoint,{method:'POST',headers:req.headers,body:req.body,redirect:'manual',signal:AbortSignal.timeout(15000)});
       if(res.status===404||res.status===410){await sql(env,'UPDATE devices SET subscription=NULL WHERE id=?',d.id).run();}
@@ -50,15 +58,15 @@ async function scan(env){
   const [calendar,leave,smoke,preferences]=await Promise.all([read(DATABASES.calendar),read(DATABASES.leave),read(DATABASES.smoke),read('https://dydy-96bb1-default-rtdb.firebaseio.com/couple_home_v1/preferences.json')]);
   const baseline=await sql(env,"SELECT value FROM meta WHERE id='startedAt'").first();
   if(!baseline){await sql(env,"INSERT OR IGNORE INTO meta(id,value) VALUES('startedAt',?)",String(Date.now())).run();return;}
-  const started=Number(baseline.value),names={rabbit:'이토끼',sweet:'구마구마'};
+  const started=Number(baseline.value),names={rabbit:'이토끼님',sweet:'구마구마님'};
   for(const [id,e] of Object.entries(calendar||{}))if(e&&e.createdAt>=started&&PEOPLE.includes(e.createdBy)){
     const owner=e.createdBy==='rabbit'?'sweet':'rabbit';
-    if(preferences?.[owner]?.newEvents!==false)await send(env,owner,'new-'+id,names[e.createdBy]+'가 새 일정을 남겼어요.\n'+String(e.title).slice(0,80),'calendar');
+    if(preferences?.[owner]?.newEvents!==false)await send(env,owner,'new-'+id,names[e.createdBy]+'이 새 일정을 남겼어요.\n'+String(e.title).slice(0,80),'calendar');
   }
   for(const [type,data,applicant,approver] of [['leave',leave,'rabbit','sweet'],['smoke',smoke,'sweet','rabbit']])for(const r of Object.values(data?.requests||{})){
     if(!r?.id)continue;const label=type==='leave'?'유흥연차':'흡연 결재';
-    if(Date.parse(r.submittedAt)>=started)await send(env,approver,type+'-request-'+r.id,names[applicant]+'가 '+label+'를 신청했어요.',type);
-    if(['approved','rejected'].includes(r.status)&&Date.parse(r.decidedAt)>=started)await send(env,applicant,type+'-'+r.status+'-'+r.id+'-'+r.decidedAt,label+'가 '+(r.status==='approved'?'승인':'반려')+'됐어요.',type);
+    if(Date.parse(r.submittedAt)>=started)await send(env,approver,type+'-request-'+r.id,names[applicant]+'이 '+label+'를 신청했어요.',type);
+    if(['approved','rejected'].includes(r.status)&&Date.parse(r.decidedAt)>=started)await send(env,applicant,type+'-'+r.status+'-'+r.id+'-'+r.decidedAt,names[approver]+'이 '+label+'를 '+(r.status==='approved'?'승인':'반려')+'했어요.',type);
   }
   const now=new Date(),today=dateKey(now),hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Seoul',hour:'2-digit',hourCycle:'h23'}).format(now));
   if(hour>=9&&hour<12)for(const e of reminders(calendar,today))for(const owner of reminderRecipients(e)){

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import fs from 'node:fs';
-import worker,{hash,reminders,anniversaries,reminderRecipients} from './worker.js';
+import worker,{hash,reminders,anniversaries,reminderRecipients,notificationTitle} from './worker.js';
 
 function environment(){
   const db=new DatabaseSync(':memory:');db.exec(fs.readFileSync(new URL('./schema.sql',import.meta.url),'utf8'));
@@ -37,3 +37,5 @@ test('pairing is rate limited',async()=>{
 });
 
 test('both partners receive personal and shared reminders',()=>{for(const owner of ['rabbit','sweet','together'])assert.deepEqual(reminderRecipients({owner,kind:'daily'}),['rabbit','sweet']);});
+
+test('notification titles identify requests, decisions and calendar reminders',()=>{assert.equal(notificationTitle('leave','leave-request-id'),'🐰 유흥연차 신청');assert.equal(notificationTitle('smoke','smoke-approved-id'),'💨 흡연 결재 승인');assert.equal(notificationTitle('calendar','reminder-id','내일의 기념일\n100일'),'💝 기념일 알림');assert.equal(notificationTitle('calendar','new-id'),'🗓 새 일정');});
