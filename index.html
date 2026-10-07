@@ -2,11 +2,12 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<script id="initial-app-theme">(function(){var mode;try{mode=localStorage.getItem('dydy_theme')}catch(e){}if(mode!=='dark'&&mode!=='light')mode=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',mode);document.documentElement.style.colorScheme=mode;})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-chat-fast-send-67">
+<meta name="app-version" content="20261007-entrance-theme-68">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1395,7 +1396,7 @@ html[data-theme=dark] .home-pending-group{background:var(--hm-paper,#2c2732);bor
 </style>
 <!-- couple-calendar-home-styles:end -->
 <!-- couple-calendar-social-styles:start -->
-<style id="couple-social-styles">
+<style>
 .home-moods{margin:0 0 30px}.social-person-picker{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--hm-muted)}.social-person-picker select,.social-mood-form select{border:1px solid var(--hm-line);background:var(--hm-paper);color:var(--hm-ink);border-radius:10px;padding:7px;font:inherit}.social-mood-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.social-mood-card{border:1px solid var(--hm-line);border-radius:20px;background:var(--hm-paper);padding:17px;min-width:0}.social-mood-card header{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--hm-muted)}.social-mood-card header img{width:28px;height:28px;border-radius:8px}.social-mood-card p{font-size:14px;line-height:1.6;overflow-wrap:anywhere;min-height:24px;margin:13px 0}.social-mood-card footer{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10px;color:var(--hm-muted)}.social-heart{border:1px solid var(--hm-line);border-radius:14px;padding:5px 10px;background:transparent;color:var(--hm-muted);font:inherit;min-height:30px}.social-heart[aria-pressed=true]{background:#f9e4ee;color:#b75d83}.social-heart:disabled{opacity:.6}.social-mood-form{display:flex;gap:8px;margin-top:12px;align-items:center}.social-mood-form .social-input{flex:1;min-width:0}.social-input input{width:100%;box-sizing:border-box;border:1px solid var(--hm-line);border-radius:13px;background:var(--hm-paper);color:var(--hm-ink);padding:12px;font:inherit;font-size:12px}.social-mood-form .home-primary{padding:10px 14px;white-space:nowrap;font-size:12px}.social-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.social-bell{flex-shrink:0;margin-left:auto;border:1px solid #eddde5;border-radius:18px;background:#fff8fb;color:#835d73;padding:8px 11px;font-size:12px;position:relative;cursor:pointer}.social-bell span{display:inline-flex;background:#b56887;color:white;border-radius:20px;padding:1px 5px;font-size:9px;margin-left:4px}.social-bell span:empty{display:none}.social-dialog{width:min(440px,calc(100vw - 48px));max-height:80vh;box-sizing:border-box;overflow:auto;padding:24px;border:1px solid #eddee5;border-radius:25px;background:#fffcf9;color:#654c59}.social-dialog::backdrop{background:#51384a66;backdrop-filter:blur(3px)}.social-dialog h2{font-size:25px}.social-dialog button{cursor:pointer;font:inherit}.social-dialog #social-close{border:0;background:none;font-size:25px}.social-dialog-note{font-size:11px;color:#927c86;line-height:1.7}.social-dialog details{border:1px solid #eddee5;border-radius:14px;padding:12px;font-size:12px}.social-dialog summary{cursor:pointer}.social-dialog fieldset{border:0;padding:10px 0 0;margin:0}.social-dialog legend{font-size:10px;color:#927c86;padding-top:10px}.social-dialog fieldset label{display:flex;align-items:center;gap:7px;margin:10px 0}.social-inbox-heading{display:flex;justify-content:space-between;align-items:center;margin:20px 0 10px;font-size:11px}.social-inbox-heading button{border:0;background:none;color:#9c6380}.social-notice{display:block;text-align:left;width:100%;border:1px solid #eddee5;border-radius:14px;padding:13px;background:white;color:#654c59;margin-bottom:9px}.social-notice strong,.social-notice small{display:block}.social-notice strong{font-size:13px;font-weight:500}.social-notice small{font-size:10px;margin-top:6px;color:#927c86}.social-notice[data-unread=true]{border-color:#d0a2b6;background:#fff1f6}.home-hero-art[data-scene=night]{animation-duration:7s}.home-hero-art[data-scene=trip] img{border-radius:35px;object-fit:contain;max-width:100%;height:auto}.home-character-hint{max-width:95%;text-align:center}
 @media(max-width:440px){.social-mood-grid{gap:10px}.social-mood-card{padding:13px;border-radius:17px}.social-mood-card p{font-size:12px}.social-person-picker{font-size:9px}.social-person-picker select{max-width:72px;padding:5px}.social-mood-form{gap:5px}.social-mood-form .home-primary{padding:10px;font-size:11px}.social-bell{padding:7px 8px;font-size:10px;margin-left:0}.social-dialog{padding:19px}}
 
@@ -1423,6 +1424,8 @@ html[data-theme=dark] .home-pending-group{background:var(--hm-paper,#2c2732);bor
 .boot{animation:none}
 
 .couple-auth{width:min(360px,calc(100vw - 40px));box-sizing:border-box;border:1px solid #dac7b855;border-radius:26px;padding:30px 24px;background:var(--surface,#fffaf7);color:var(--ink,#48392f);box-shadow:0 25px 80px #30201033}.couple-auth::backdrop{background:#30251e66;backdrop-filter:blur(5px)}.couple-auth form{display:grid;gap:12px}.couple-auth h2{font-size:22px;margin:0;text-align:center}.couple-auth p{font-size:12px;line-height:1.7;margin:0;text-align:center;opacity:.75}.couple-auth button{width:100%;padding:13px 10px;border:0;border-radius:13px;font:inherit;font-size:13px;font-weight:650;cursor:pointer;background:#80604c;color:white}.couple-auth button:disabled{opacity:.5}.couple-auth .auth-secondary{background:transparent;color:inherit;font-size:12px}.couple-auth .auth-close{position:absolute;right:12px;top:9px;width:32px;background:transparent;color:inherit;font-size:22px;padding:4px}.auth-symbol{text-align:center;font-size:40px;color:#b78967}.couple-auth label{display:block;font-size:12px;margin:5px 0 8px}.couple-auth input{box-sizing:border-box;width:100%;min-width:0;border:1px solid #cdbbac;border-radius:12px;padding:13px;font-size:16px;margin-bottom:10px;background:transparent;color:inherit}.couple-auth [hidden]{display:none!important}.couple-auth #auth-status{min-height:20px}body[data-theme="dark"] .couple-auth{background:#282522;color:#eee2d9}
+
+.home-entrance{--hm-bg:#fcf8f4;--hm-paper:#fffdfa;--hm-ink:#62484b;--hm-muted:#987e82;--hm-line:#eddfe1;color-scheme:light}.home-entrance::backdrop{background:var(--hm-bg)}html[data-theme=dark] .home-entrance{--hm-bg:#241e23;--hm-paper:#30272e;--hm-ink:#f0dce1;--hm-muted:#c2a9b0;--hm-line:#51404a;color-scheme:dark}html[data-theme=dark] .home-entrance::backdrop{background:#241e23}
 
 </style>
 <!-- couple-calendar-social-styles:end -->
@@ -4572,12 +4575,15 @@ renderApplicant();
     var KEY = 'dydy_theme';
     function apply(mode){
       document.documentElement.setAttribute('data-theme', mode);
+      document.documentElement.style.colorScheme=mode;
       var meta = document.querySelector('meta[name="theme-color"]');
       if(meta) meta.setAttribute('content', mode==='dark' ? '#1F1B21' : '#FFF6F8');
     }
     var saved = null;
     try{ saved = localStorage.getItem(KEY); }catch(e){}
-    apply(saved || 'light');
+    var system=window.matchMedia('(prefers-color-scheme: dark)');
+    apply(saved==='dark'||saved==='light'?saved:(system.matches?'dark':'light'));
+    system.addEventListener('change',function(event){var chosen=null;try{chosen=localStorage.getItem(KEY)}catch(e){}if(chosen!=='dark'&&chosen!=='light')apply(event.matches?'dark':'light');});
     btn.addEventListener('click', function(){
       var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       apply(next);
