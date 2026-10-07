@@ -10,7 +10,8 @@ async function passwordVersion(owner){
  const r=await fetch(url,{signal:AbortSignal.timeout(10000)});if(!r.ok)throw Error('인증 서버에 연결하지 못했어요.');return r.json();
 }
 async function rate(env,request){const key='auth-'+await digest(request.headers.get('CF-Connecting-IP')||'unknown')+'-'+Math.floor(Date.now()/600000);await query(env,'INSERT INTO pairing_attempts(id,count,expires) VALUES(?,1,?) ON CONFLICT(id) DO UPDATE SET count=count+1',key,Date.now()+600000).run();return (await query(env,'SELECT count FROM pairing_attempts WHERE id=?',key).first()).count<=30;}
-async function issue(env,owner,version){const token=crypto.randomUUID()+crypto.randomUUID(),expires=Date.now()+12*3600000;await query(env,'INSERT INTO auth_sessions(token_hash,owner,version,expires) VALUES(?,?,?,?)',await digest(token),owner,await digest(version),expires).run();return {token,owner,expires};}
+export const nextKoreanMidnight=(now=Date.now())=>Math.floor((now+9*3600000)/86400000)*86400000+86400000-9*3600000;
+async function issue(env,owner,version){const token=crypto.randomUUID()+crypto.randomUUID(),expires=nextKoreanMidnight();await query(env,'INSERT INTO auth_sessions(token_hash,owner,version,expires) VALUES(?,?,?,?)',await digest(token),owner,await digest(version),expires).run();return {token,owner,expires};}
 export async function session(env,request){const token=request.headers.get('Authorization')?.replace(/^Bearer /,'')||'';if(token.length<32)return null;const s=await query(env,'SELECT * FROM auth_sessions WHERE token_hash=? AND expires>?',await digest(token),Date.now()).first();if(!s)return null;const v=await passwordVersion(s.owner);return v&&await digest(v)===s.version?s:null;}
 async function challenge(env,owner,kind,value,version){const id=crypto.randomUUID();await query(env,'INSERT INTO auth_challenges(id,owner,kind,challenge,version,expires) VALUES(?,?,?,?,?,?)',id,owner,kind,value,version,Date.now()+300000).run();return id;}
 async function consume(env,id,owner,kind){return query(env,'DELETE FROM auth_challenges WHERE id=? AND owner=? AND kind=? AND expires>? RETURNING *',id,owner,kind,Date.now()).first();}
@@ -23,6 +24,7 @@ export async function authRoute(request,env){
  const b=await request.json(),owner=b.owner;
  if(!people.includes(owner))return json({error:'사용자를 선택해 주세요.'},400);
  const rpID=new URL(env.APP_ORIGIN).hostname;
+ if(path==='/auth/session'){const current=await session(env,request);if(!current||current.owner!==owner)return json({error:'다시 인증해 주세요.'},401);return json({owner:current.owner,expires:Math.min(current.expires,nextKoreanMidnight())});}
  if(path==='/auth/password'){
   if(typeof b.password!=='string'||b.password.length>200)return json({error:'암호를 확인해 주세요.'},400);
   const v=await passwordVersion(owner);

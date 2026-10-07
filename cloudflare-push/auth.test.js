@@ -4,7 +4,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import {createHash,generateKeyPairSync,sign} from 'node:crypto';
 import {encodeCBOR} from '@levischuck/tiny-cbor';
-import {authRoute,legacyHash} from './auth.js';
+import {authRoute,legacyHash,nextKoreanMidnight} from './auth.js';
 const b64=b=>Buffer.from(b).toString('base64url');
 function env(){const db=new DatabaseSync(':memory:');db.exec(readFileSync(new URL('./schema.sql',import.meta.url),'utf8'));return {APP_ORIGIN:'https://minjaedy.github.io',db,DB:{prepare(s){return {bind(...a){const q=db.prepare(s);return {first:async()=>q.get(...a)||null,all:async()=>({results:q.all(...a)}),run:async()=>({meta:q.run(...a)})};}}}}};}
 test('password bootstrap, verified passkey enrollment and login; owner binding, replay and password rotation',async()=>{
@@ -13,7 +13,7 @@ test('password bootstrap, verified passkey enrollment and login; owner binding, 
  try{
  assert.equal((await call('register/options')).status,401);
  assert.equal((await call('password',{password:'wrong'})).status,403);
- const session=(await call('password',{password})).body;assert(session.token);assert.equal(session.owner,'rabbit');
+ const session=(await call('password',{password})).body;assert(session.token);assert.equal(session.owner,'rabbit');assert.equal(session.expires,nextKoreanMidnight());assert.equal((await call('session',{},session.token)).status,200);assert.equal((await call('session',{owner:'sweet'},session.token)).status,401);
  assert.equal((await call('register/options',{owner:'sweet'},session.token)).status,401);
  const reg=(await call('register/options',{},session.token)).body;
  const {privateKey,publicKey}=generateKeyPairSync('ec',{namedCurve:'prime256v1'}),jwk=publicKey.export({format:'jwk'});
@@ -30,6 +30,8 @@ test('password bootstrap, verified passkey enrollment and login; owner binding, 
  const assertion={id:b64(id),rawId:b64(id),type:'public-key',clientExtensionResults:{},response:{clientDataJSON:b64(client2),authenticatorData:b64(data),signature:b64(signature)}};
  const verified=await call('login/verify',{response:assertion,challengeId:login.challengeId});assert.equal(verified.status,200);assert.equal(verified.body.owner,'rabbit');
  assert.equal((await call('login/verify',{response:assertion,challengeId:login.challengeId})).status,400);
- password='rotated-password';assert.equal((await call('register/options',{},session.token)).status,401);assert.equal((await call('login/options')).status,404);
+ e.db.prepare('UPDATE auth_sessions SET expires=? WHERE owner=?').run(Date.now()-1,'rabbit');assert.equal((await call('session',{},session.token)).status,401);password='rotated-password';assert.equal((await call('register/options',{},session.token)).status,401);assert.equal((await call('login/options')).status,404);
  }finally{globalThis.fetch=original;e.db.close();}
 });
+
+test('daily authentication expires at Korean midnight across UTC date boundaries',()=>{assert.equal(new Date(nextKoreanMidnight(Date.parse('2026-10-07T14:59:00Z'))).toISOString(),'2026-10-07T15:00:00.000Z');assert.equal(new Date(nextKoreanMidnight(Date.parse('2026-10-07T15:00:00Z'))).toISOString(),'2026-10-08T15:00:00.000Z')});
