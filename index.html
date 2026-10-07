@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-approval-ui-41">
+<meta name="app-version" content="20261007-lounge-ui-42">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1628,6 +1628,31 @@ html[data-theme=dark] #app-leave .balance-hero{background:linear-gradient(125deg
 /* Soft rose palette for rabbit leave. */
 #app-leave{--ap-bg:#fcf6f8;--ap-paper:#fffdfd;--ap-ink:#49373f;--ap-muted:#a08793;--ap-line:#f0e1e7;--ap-soft:#f9eaf0;--ap-accent:#b97794}
 html[data-theme=dark] #app-leave{--ap-bg:#261f26;--ap-paper:#30262e;--ap-ink:#f4e5ed;--ap-muted:#bba2b0;--ap-line:#483440;--ap-soft:#422e3b;--ap-accent:#d59ab7}
+/* Character lounge variants. */
+#app-leave{--ap-bg:#fff5f8;--ap-paper:#fffdfd;--ap-line:#f2dce5;--ap-soft:#f9e4ed;--ap-accent:#b95d88;background:radial-gradient(ellipse at 90% 0,#f4c6db66,transparent 38%),var(--ap-bg)!important}
+#app-leave>header{position:relative;padding-top:27px;padding-bottom:23px}#app-leave .approval-eyebrow{letter-spacing:.18em;font-size:9px}#app-leave h1{font-size:29px}#app-leave .approval-mascot{width:114px;height:126px;filter:drop-shadow(0 8px 12px #cc85a433)}
+#app-leave .balance-hero{background:radial-gradient(ellipse at 90% 0,#efb6d050,transparent 60%),linear-gradient(120deg,#fae8f0,#fffafb)!important;border-color:#efd0df!important;position:relative;overflow:hidden}
+#app-leave .balance-hero:after{content:'✧';position:absolute;right:27px;top:25px;font:400 65px Georgia,serif;color:#d6a0b6;opacity:.5;pointer-events:none}#app-leave .balance-num{color:#ab5c80}#app-leave .btn-primary{background:linear-gradient(110deg,#ad5980,#c67b9e)!important}#app-leave .approval-rules{background:#fff7fa}
+html[data-theme=dark] #app-smoke{--ap-bg:#15171b;--ap-paper:#202328;--ap-ink:#f3eee4;--ap-muted:#a9a49b;--ap-line:#36383b;--ap-soft:#2b2a26;--ap-accent:#c7aa77;--hm-paper:var(--ap-paper);--hm-ink:var(--ap-ink);--hm-line:var(--ap-line);background:radial-gradient(ellipse at 90% 0,#77634226,transparent 38%),var(--ap-bg)!important;color-scheme:dark}
+html[data-theme=dark] #app-smoke>header{padding-top:27px;padding-bottom:23px}html[data-theme=dark] #app-smoke .approval-eyebrow{font-size:9px;letter-spacing:.18em}html[data-theme=dark] #app-smoke h1{font-size:29px;color:#f1e8d8}html[data-theme=dark] #app-smoke .approval-mascot{width:114px;height:126px;filter:drop-shadow(0 8px 14px #0005);animation:approval-float 6s ease-in-out infinite}
+html[data-theme=dark] #app-smoke>.switch{background:#1b1d21;border-color:#383731}html[data-theme=dark] #app-smoke>.switch button.active{background:linear-gradient(110deg,#c7ab79,#ddc69d);color:#27231c;box-shadow:0 2px 8px #0003}
+html[data-theme=dark] #app-smoke .card,html[data-theme=dark] #app-smoke .card{background:linear-gradient(135deg,#23262b,#1e2025)!important;border-color:#37393d!important;box-shadow:0 8px 24px #00000012!important}
+html[data-theme=dark] #app-smoke .card h2{color:#f3eee4}html[data-theme=dark] #app-smoke .card h2:after{content:'';display:block;width:23px;height:2px;background:#b99b65;margin-top:9px;border-radius:3px}
+html[data-theme=dark] #app-smoke .field label{color:#bdb5a7}html[data-theme=dark] #app-smoke .field :is(input:not([type=checkbox]),select,textarea),html[data-theme=dark] #app-smoke .field :is(input:not([type=checkbox]),select,textarea){background:#191b1f!important;border-color:#3a3a37!important;color:#f3eee4!important}
+html[data-theme=dark] #app-smoke input::placeholder{color:#77766f}html[data-theme=dark] #app-smoke .btn-primary{background:linear-gradient(110deg,#b89a66,#dbc39b)!important;color:#27231c!important;border:1px solid #d6bb8b!important}
+html[data-theme=dark] #app-smoke button.action.btn-ghost{background:#2c2b27!important;color:#cdbb99!important;border:1px solid #454034!important}html[data-theme=dark] #app-smoke .btn-approve{background:#c7aa77!important;color:#211e18!important}html[data-theme=dark] #app-smoke .btn-reject{background:#353138!important;color:#d9bdcb!important}
+html[data-theme=dark] #app-smoke .reward-wallet{background:linear-gradient(115deg,#2d2b26,#232428);border-color:#484135}html[data-theme=dark] #app-smoke .reward-wallet strong{color:#ddc398}html[data-theme=dark] #app-smoke .reward-wallet button{background:#c7aa77;color:#211e18;border:1px solid #dec69d}
+html[data-theme=dark] #app-smoke .status.approved{background:#303c35;color:#bbd3b8}html[data-theme=dark] #app-smoke .status.pending{background:#453c29;color:#e6cb94}html[data-theme=dark] #app-smoke .status.rejected{background:#403039;color:#ddb8c9}html[data-theme=dark] #app-smoke .cal-day,html[data-theme=dark] #app-smoke .cal-head .mon{color:var(--ap-ink)}html[data-theme=dark] #app-smoke .history-item{border-color:#393a3b;color:#b9b2a6}html[data-theme=dark] #app-smoke .timer-num{color:#dec399}html[data-theme=dark] #app-smoke .watching{color:#c7aa77}
+html[data-theme=dark] body[data-site-mode=smoke] #topBanner,html[data-theme=dark] body[data-site-mode=smoke] #topBanner{background:#181a1e;border-color:#343437}html[data-theme=dark] body[data-site-mode=smoke] .home-brand{color:#f3eee4}html[data-theme=dark] body[data-site-mode=smoke] #topBanner .social-bell{background:#292925;border-color:#464035;color:#d7c49f}
+html[data-theme=dark] #app-leave .approval-rules{background:var(--ap-bg)}html[data-theme=dark] #app-leave .balance-hero{background:linear-gradient(120deg,#49303f,#30262e)!important;border-color:#5b3c4c!important}html[data-theme=dark] #app-leave .balance-num{color:#e1a0bf}
+@media(max-width:380px){:is(#app-leave,html[data-theme=dark] #app-smoke) .approval-mascot{width:94px;height:108px}:is(#app-leave,html[data-theme=dark] #app-smoke) h1{font-size:26px}:is(#app-leave,html[data-theme=dark] #app-smoke) .sub{font-size:10px}}
+@media(prefers-reduced-motion:reduce){html[data-theme=dark] #app-smoke .approval-mascot{animation:none}}
+
+#app-smoke{--ap-bg:#f8f6f1;--ap-paper:#fffefa;--ap-ink:#39352e;--ap-muted:#948977;--ap-line:#eae3d6;--ap-soft:#f2ebdd;--ap-accent:#a58a57;color-scheme:light}
+#app-smoke>header{padding-top:27px;padding-bottom:23px}#app-smoke .approval-eyebrow{font-size:9px;letter-spacing:.18em}#app-smoke h1{font-size:29px}#app-smoke .approval-mascot{width:114px;height:126px;filter:drop-shadow(0 8px 12px #765e3020)}
+html:not([data-theme=dark]) #app-smoke .btn-primary{background:linear-gradient(110deg,#a78b56,#bca26d)!important;color:#fff!important}
+html:not([data-theme=dark]) #app-smoke .reward-wallet button{background:#ad925d;color:#fff}
+@media(max-width:380px){#app-smoke .approval-mascot{width:94px;height:108px}#app-smoke h1{font-size:26px}}
 
 </style>
 <!-- couple-calendar-approval-styles:end -->
@@ -1676,7 +1701,7 @@ html[data-theme=dark] #app-leave{--ap-bg:#261f26;--ap-paper:#30262e;--ap-ink:#f4
 
 <div id="app-leave" role="tabpanel" aria-labelledby="siteTabLeave" class="app-panel" style="display:none">
 <header>
-  <div><span class="approval-eyebrow">RABBIT’S DAY OFF</span><h1>유흥연차</h1><div class="sub">이토끼의 유흥연차 신청 · 구마구마의 결재</div></div><img decoding="async" loading="lazy" class="approval-mascot" src="assets/rabbit-game-character.png" alt="귀여운 이토끼">
+  <div><span class="approval-eyebrow">RABBIT’S VIP NIGHT</span><h1>유흥연차</h1><div class="sub">이토끼의 유흥연차 신청 · 구마구마의 결재</div></div><img decoding="async" loading="lazy" class="approval-mascot" src="assets/rabbit-club-mascot.webp" alt="귀여운 이토끼">
 </header>
 
 <div class="switch">
@@ -1692,7 +1717,7 @@ html[data-theme=dark] #app-leave{--ap-bg:#261f26;--ap-paper:#30262e;--ap-ink:#f4
 
 <div id="app-smoke" role="tabpanel" aria-labelledby="siteTabSmoke" class="app-panel" style="display:none">
 <header>
-  <div><span class="approval-eyebrow">GUMA’S LITTLE BREAK</span><h1>흡연결재</h1><div class="sub">구마구마의 잠깐 쉼 · 이토끼의 결재</div></div><img decoding="async" loading="lazy" class="approval-mascot" src="assets/sweet-game-character.png" alt="귀여운 구마구마">
+  <div><span class="approval-eyebrow">GUMA’S PRIVATE LOUNGE</span><h1>흡연결재</h1><div class="sub">구마구마의 잠깐 쉼 · 이토끼의 결재</div></div><img decoding="async" loading="lazy" class="approval-mascot" src="assets/sweet-suit-mascot.webp" alt="귀여운 구마구마">
 </header>
 
 <div class="switch">

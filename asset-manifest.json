@@ -1,5 +1,5 @@
 {
-  "version": "20261007-approval-ui-41",
+  "version": "20261007-lounge-ui-42",
   "assets": [
     "art-1540299563a5f857.jpg",
     "art-2a109dc97c560303.webp",
@@ -44,6 +44,7 @@
     "duo-winter.webp",
     "duo-yearend.webp",
     "leave-icon-tweed.webp",
+    "rabbit-club-mascot.webp",
     "rabbit-daily-icon.webp",
     "rabbit-game-character.webp",
     "rabbit-night.webp",
@@ -51,6 +52,7 @@
     "smoke-icon-vape.webp",
     "sweet-daily-icon.webp",
     "sweet-game-character.webp",
+    "sweet-suit-mascot.webp",
     "travel-header-mascot.webp",
     "travel-icon.webp",
     "travel-rabbit-check.webp"
