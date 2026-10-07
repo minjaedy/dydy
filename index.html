@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-no-pull-refresh-54">
+<meta name="app-version" content="20261007-chat-reply-55">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1727,6 +1727,9 @@ body[data-site-mode=chat] .chat-bottom #chat-form{padding-bottom:8px}
 body[data-chat-keyboard=true][data-site-mode=chat] .chat-bottom #chat-form{padding-bottom:8px}
 
 body[data-site-mode=chat] #app-chat{min-height:0!important;max-height:var(--chat-screen-height,100dvh)!important}
+
+body[data-site-mode=chat] .chat-reply-bar{margin:8px 14px 0;padding:11px 12px;gap:10px;border:1px solid #dca3bb66;border-left:3px solid #cb83a2;border-radius:13px;background:color-mix(in srgb,var(--cp) 88%,#d98ca9 12%);color:var(--ci);font-size:12px;box-sizing:border-box}
+.chat-reply-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}.chat-reply-copy strong{font-size:12px;color:#b76c8d}.chat-reply-copy span{display:block;font-size:13px;line-height:1.4;color:var(--ci)}.chat-reply-symbol{font-size:23px;color:#c782a0}.chat-reply-bar button{flex:0 0 30px;width:30px;height:30px;padding:0;border-radius:50%;color:var(--cm);background:var(--cb);border:0}.chat-reply-bar.reply-enter{animation:chat-reply-enter .22s ease-out}@keyframes chat-reply-enter{from{opacity:.3;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}@media(prefers-reduced-motion:reduce){.chat-reply-bar.reply-enter{animation:none}}
 
 </style>
 <!-- couple-calendar-chat-styles:end -->
@@ -5875,7 +5878,7 @@ const photoDialog=el('dialog','chat-photo-dialog'),closePhoto=el('button','','×
 async function loadPhoto(img,id){const session=epoch;try{const data=photoCache.get(id)||await api('photo/'+encodeURIComponent(id));if(session!==epoch)return;photoCache.set(id,data);img.src=data.data;img.onclick=()=>{largePhoto.src=data.data;photoDialog.showModal()}}catch{img.alt='사진을 불러오지 못했어요'}}
 const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){observer.unobserve(e.target);void loadPhoto(e.target,e.target.dataset.id)}}),{root:feed,rootMargin:'150px'});
 function openCard(m){const p=m.payload;window.SiteNav.open(m.kind==='mood'?'home':m.kind);if(m.kind==='calendar')window.CoupleCalendar?.open({date:p.date,eventId:p.ref});if(m.kind==='travel')window.CoupleTravel?.openTrip?.(p.ref)}
-const replyBar=el('div','chat-reply-bar');replyBar.hidden=true;$('chat-form').before(replyBar);const quoteText=m=>m.kind==='text'?m.payload.text:m.kind==='photo'?'사진':m.kind==='sticker'?'이모티콘':m.payload.title;function setReply(m){replying=m;replyBar.replaceChildren();replyBar.hidden=!m;if(m){const cancel=el('button','','×');cancel.type='button';cancel.setAttribute('aria-label','답장 취소');cancel.onclick=()=>setReply(null);replyBar.append(el('span','',names[m.owner]+'에게 답장 · '+quoteText(m).slice(0,70)),cancel);$('chat-input').focus()}}
+const replyBar=el('div','chat-reply-bar');replyBar.hidden=true;$('chat-form').before(replyBar);const quoteText=m=>m.kind==='text'?m.payload.text:m.kind==='photo'?'사진':m.kind==='sticker'?'이모티콘':m.payload.title;function setReply(m){replying=m;replyBar.replaceChildren();replyBar.hidden=!m;if(m){const cancel=el('button','','×');cancel.type='button';cancel.setAttribute('aria-label','답장 취소');cancel.onclick=()=>setReply(null);const copy=el('div','chat-reply-copy');copy.append(el('strong','',names[m.owner]+'님의 메시지에 답장 중'),el('span','',quoteText(m).slice(0,100)));replyBar.append(el('span','chat-reply-symbol','↩'),copy,cancel);replyBar.setAttribute('role','status');replyBar.setAttribute('aria-live','polite');replyBar.classList.remove('reply-enter');void replyBar.offsetWidth;replyBar.classList.add('reply-enter');window.FX?.haptic?.(18);$('chat-input').focus({preventScroll:true})}}
 function render(forceBottom=false){
  const nearBottom=feed.scrollHeight-feed.scrollTop-feed.clientHeight<65,oldTop=feed.scrollTop;observer.disconnect();feed.replaceChildren();let day='';
  messages.forEach(m=>{if(saved&&!m.pinned)return;const d=new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',month:'long',day:'numeric',weekday:'long'}).format(m.created_at);if(d!==day){feed.append(el('div','chat-date',d));day=d}const mine=m.owner===owner(),row=el('article','chat-row'+(mine?' mine':'')),content=el('div','chat-content');row.append(image(art[m.owner],'chat-avatar',names[m.owner]));content.append(el('div','chat-name',names[m.owner]));const p=m.payload;
