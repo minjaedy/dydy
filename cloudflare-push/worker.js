@@ -33,13 +33,15 @@ async function send(env,owner,key,body,screen,deviceId=null){
     const id=await hash(d.id+'|'+key),now=Date.now();
     const claim=await sql(env,"INSERT INTO deliveries(id,state,lease_until) VALUES(?,'sending',?) ON CONFLICT(id) DO UPDATE SET state='sending',lease_until=excluded.lease_until WHERE deliveries.state!='sent' AND deliveries.lease_until<?",id,now+120000,now).run();
     if(!claim.meta.changes)continue;
+    let stage='prepare';
     try{
       const req=webpush.generateRequestDetails(JSON.parse(d.subscription),JSON.stringify({body,screen,tag:key}),{TTL:86400,vapidDetails:{subject:env.APP_URL,publicKey:env.VAPID_PUBLIC_KEY,privateKey:env.VAPID_PRIVATE_KEY}});
-      const res=await fetch(req.endpoint,{method:'POST',headers:req.headers,body:req.body,redirect:'error',signal:AbortSignal.timeout(15000)});
+      stage='transport';
+      const res=await fetch(req.endpoint,{method:'POST',headers:req.headers,body:req.body,redirect:'manual',signal:AbortSignal.timeout(15000)});
       if(res.status===404||res.status===410){await sql(env,'UPDATE devices SET subscription=NULL WHERE id=?',d.id).run();}
-      else if(!res.ok)throw Error('Push provider rejected request');
+      else if(!res.ok){const detail=await res.text();let reason='';try{reason=JSON.parse(detail).reason||'';}catch{}stage='provider-'+res.status+'-'+(/^[A-Za-z_]{1,60}$/.test(reason)?reason:'rejected');throw Error('Push provider rejected request');}
       await sql(env,"UPDATE deliveries SET state='sent',lease_until=0,sent_at=? WHERE id=?",now,id).run();
-    }catch{await sql(env,"UPDATE deliveries SET state='failed',lease_until=0 WHERE id=?",id).run();throw Error('Push delivery failed');}
+    }catch(error){const detail=String(error?.message||'').replace(/https?:\/\/\S+/g,'[URL]').replace(/[A-Za-z0-9_-]{32,}/g,'[REDACTED]').slice(0,160);const kind=stage+'-'+(error?.name||'Error')+': '+detail;await sql(env,"UPDATE deliveries SET state='failed',lease_until=0,last_error=? WHERE id=?",kind,id).run();console.error('Push failed:',kind);throw Error('Push delivery failed');}
   }
 }
 async function scan(env){
