@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-action-feedback-57">
+<meta name="app-version" content="20261007-app-sounds-58">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -5918,7 +5918,7 @@ function bindMessageGestures(content,row,m,heart){
 async function pinMessage(m){try{await api('pin',{id:m.id,pinned:!m.pinned});if(saved)messages=[];await poll(true)}catch(e){status(e.message)}}
 async function markRead(){if(preview||!owner()||!active()||!inChat()||saved||!messages.length)return;const seq=messages.at(-1).seq;if(seq<=reading)return;try{await api('read',{seq});reading=seq;dock.querySelector('b').hidden=true}catch{/* Retry next refresh. */}}
 async function poll(force=false,before=0){if(preview||polling||!owner()||!active()&&!force)return;polling=true;const session=epoch;try{const r=await api('messages?'+(saved?'saved=1&':'')+(before?'before='+before:''));if(session!==epoch)return;readSeq=r.readSeq;hearts=r.hearts||[];const peer=$('chat-peer');if(peer){peer.replaceChildren(image(art[owner()==='rabbit'?'sweet':'rabbit'],'chat-peer-avatar'),el('span','',(names[owner()==='rabbit'?'sweet':'rabbit'])+(r.typing?' · 입력 중…':r.peerOnline?' · 접속 중':'')));peer.classList.toggle('online',!!r.peerOnline)}hasMore=r.hasMore;const merged=before?[...r.messages,...messages]:[...messages.filter(m=>m.seq<(r.messages[0]?.seq||Infinity)&&(!saved||m.pinned)&&(m.pinned||m.created_at>Date.now()-30*86400000)),...r.messages];const unique=new Map(merged.map(m=>[m.id,m]));messages=[...unique.values()].sort((a,b)=>a.seq-b.seq);const signature=JSON.stringify([messages,readSeq,hearts]);if(force||signature!==lastSignature){lastSignature=signature;render(force&&!before)}const b=dock.querySelector('b');b.textContent=r.unread>99?'99+':String(r.unread);b.hidden=!r.unread;dock.setAttribute('aria-label','우리의 대화 열기'+(r.unread?' · 새 메시지 '+r.unread+'개':''));status('연결됨');void markRead()}catch(e){if(session===epoch)status(e.message+' · 다시 연결할게요.')}finally{polling=false}}
-async function send(kind,payload,id=crypto.randomUUID()){if(busy)return false;if(!owner()){status('사용자 인증 후 대화할 수 있어요.');return false}busy=true;$('chat-form').querySelectorAll('button').forEach(b=>b.disabled=true);try{await api('messages',{id,kind,payload});saved=false;tray.hidden=true;await poll(true);return true}catch(e){status(e.message+' 입력 내용은 그대로 남겨뒀어요.');return false}finally{busy=false;$('chat-form').querySelectorAll('button').forEach(b=>b.disabled=false)}}
+async function send(kind,payload,id=crypto.randomUUID()){if(busy)return false;if(!owner()){status('사용자 인증 후 대화할 수 있어요.');return false}busy=true;$('chat-form').querySelectorAll('button').forEach(b=>b.disabled=true);try{await api('messages',{id,kind,payload});window.CoupleSound?.play('sent');saved=false;tray.hidden=true;await poll(true);return true}catch(e){status(e.message+' 입력 내용은 그대로 남겨뒀어요.');return false}finally{busy=false;$('chat-form').querySelectorAll('button').forEach(b=>b.disabled=false)}}
 let draftId=null;$('chat-form').onsubmit=async e=>{e.preventDefault();const text=$('chat-input').value.trim();if(!text)return;draftId??=crypto.randomUUID();if(await send('text',{text,...(replying?{replyTo:replying.id}:{})},draftId)){if($('chat-input').value.trim()===text)$('chat-input').value='';draftId=null;setReply(null);void api('typing',{typing:false}).catch(()=>{})}};$('chat-input').addEventListener('input',()=>{draftId=null;if(owner()&&Date.now()-lastTyping>1500){lastTyping=Date.now();void api('typing',{typing:!!$('chat-input').value}).catch(()=>{})}});
 $('chat-saved').onclick=()=>{saved=!saved;messages=[];lastSignature='';void poll(true)};$('chat-older').onclick=()=>void poll(false,messages[0]?.seq||0);
 $('chat-theme').onclick=()=>$('themeBtn')?.click();
@@ -5949,5 +5949,24 @@ window.addEventListener('site-mode-change',entered);window.addEventListener('res
 
 </script>
 <!-- couple-calendar-chat-script:end -->
+<!-- couple-calendar-sound-script:start -->
+<script>
+(function(){
+'use strict';
+let enabled=true,context=null,last=0;
+try{enabled=localStorage.getItem('couple-effects-sound')!=='off'}catch{}
+const tones={sent:[[620,0,.065],[900,.045,.09]],approved:[[523,0,.1],[659,.07,.12],[784,.15,.16]],rejected:[[440,0,.12],[330,.13,.15]],heart:[[780,0,.08],[1046,.06,.12]],check:[[880,0,.075]],saved:[[660,0,.08],[880,.07,.12]],collision:[[180,0,.11],[120,.06,.13]],goal:[[523,0,.1],[659,.1,.1],[784,.2,.1],[1046,.3,.2]]};
+function unlock(){if(!enabled||document.hidden)return;try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;context??=new Audio();if(context.state==='suspended')void context.resume().catch(()=>{});}catch{}}
+function sound(kind){if(!enabled||document.hidden||!document.hasFocus()||!context||context.state!=='running')return;const notes=tones[kind];if(!notes||Date.now()-last<100)return;last=Date.now();try{const start=context.currentTime;for(const [freq,delay,length] of notes){const oscillator=context.createOscillator(),gain=context.createGain();oscillator.type='sine';oscillator.frequency.setValueAtTime(freq,start+delay);gain.gain.setValueAtTime(0,start+delay);gain.gain.linearRampToValueAtTime(.055,start+delay+.008);gain.gain.exponentialRampToValueAtTime(.0001,start+delay+length);oscillator.connect(gain);gain.connect(context.destination);oscillator.start(start+delay);oscillator.stop(start+delay+length+.015);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect()};}}catch{}}
+for(const type of ['pointerdown','touchend','keydown'])document.addEventListener(type,unlock,{capture:true,passive:true});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&context?.state==='running')void context.suspend().catch(()=>{});});
+const original=window.FX?.feedback;if(original)window.FX.feedback=function(kind,target){original(kind,target);sound(kind)};
+window.CoupleSound=Object.freeze({play:sound});
+const host=document.getElementById('home-device-settings');if(host){const label=document.createElement('label');label.className='couple-sound-setting';const input=document.createElement('input');input.type='checkbox';input.setAttribute('switch','');input.checked=enabled;input.setAttribute('aria-label','효과음');const text=document.createElement('span');text.textContent='효과음';label.append(text,input);host.append(label);input.addEventListener('change',()=>{enabled=input.checked;try{localStorage.setItem('couple-effects-sound',enabled?'on':'off')}catch{}if(enabled){unlock();if(context?.state==='running')sound('check');else context?.resume().then(()=>sound('check')).catch(()=>{});}});}
+const style=document.createElement('style');style.textContent='.couple-sound-setting{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:inherit;cursor:pointer;padding:5px 8px;border:1px solid var(--hm-line,#e8dce2);border-radius:12px}.couple-sound-setting input{width:30px;height:18px;margin:0;accent-color:#c58ba2}';document.head.append(style);
+})();
+
+</script>
+<!-- couple-calendar-sound-script:end -->
 </body>
 </html>
