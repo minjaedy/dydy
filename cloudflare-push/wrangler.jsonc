@@ -1,0 +1,10 @@
+{
+  "name": "rabbit-guma-push",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-07",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "triggers": {"crons": ["* * * * *"]},
+  "d1_databases": [{"binding": "DB", "database_name": "rabbit-guma-push", "database_id": "a39ef988-ccca-43c2-806d-7406481eb378"}],
+  "vars": {"APP_ORIGIN": "https://minjaedy.github.io", "APP_URL": "https://minjaedy.github.io/dydy/"}
+}

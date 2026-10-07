@@ -1,0 +1,1 @@
+{"name":"couple-private-push","private":true,"type":"module","scripts":{"test":"node --test","build":"wrangler deploy --dry-run"},"dependencies":{"web-push":"^3.6.7"},"devDependencies":{"wrangler":"4.148.0"}}

@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-notify-27">
+<meta name="app-version" content="20261007-pwa-28">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1492,6 +1492,15 @@ body.dark .tp-stop{background:transparent}body.dark .tp-stop-now{background:#302
 @media(min-width:651px){.tp-stop .tp-cost{padding-right:42px}.tp-stop-name{padding-right:0}}
 </style>
 <!-- couple-calendar-travel-styles:end -->
+<!-- couple-calendar-install-styles:start -->
+<style>
+.couple-install{margin:22px 0;border:1px solid #e9e2ed;background:#ffffff9c;border-radius:18px;color:#786483}.couple-install summary{cursor:pointer;padding:17px 19px;font-size:13px;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:center}.couple-install summary::-webkit-details-marker{display:none}.couple-install summary span{font-size:10px;color:#a394ab}.couple-install>div{padding:0 20px 18px}.couple-install p,.couple-install li{font-size:12px;line-height:1.9;color:#95869e}.couple-install ol{padding-left:20px}.couple-install .install-note{font-size:11px;color:#a394ab}.couple-install button{background:#88759b;border:0;border-radius:12px;color:white;padding:12px 17px}.couple-install button[hidden]{display:none}body.dark .couple-install{background:#2b2733;border-color:#514659}
+
+.couple-push{border-top:1px solid #e9e2ed;margin-top:16px;padding-top:12px}.couple-push h3{font-size:14px}.couple-push form{display:grid;gap:12px}.couple-push label{display:grid;gap:6px;font-size:12px}.couple-push select,.couple-push input{min-width:0;width:100%;box-sizing:border-box;border:1px solid #e3dce9;background:#faf8fc;border-radius:10px;padding:12px;font:inherit}.push-controls{display:flex;gap:8px;flex-wrap:wrap}.couple-push [hidden]{display:none!important}.couple-push button:disabled{opacity:.5}
+
+</style>
+<!-- couple-calendar-install-styles:end -->
+<link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./assets/app-icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="토끼와 구마"><meta name="theme-color" content="#faf8f4">
 <link rel="preload" as="image" href="assets/rabbit-daily-icon.webp" fetchpriority="high">
 <link rel="preload" as="image" href="assets/sweet-daily-icon.webp" fetchpriority="high">
 </head>
@@ -4990,6 +4999,7 @@ renderApplicant();
     finally{telegramPending.delete(claimKey);}
   }
   async function notifyNewEvent(event,id) {
+    void window.CouplePush?.sync();
     if(preview||!db||!event.createdBy)return;
     const owner=event.createdBy==='rabbit'?'sweet':'rabbit';
     try {const snap=await db.ref('couple_home_v1/preferences/'+owner).once('value');const s=validSettings(snap.val());if(s.telegram&&s.newEvents)await sendTelegramOnce(owner,'new_'+id,`♡ our days\n${names[event.createdBy]}가 새 일정을 남겼어요.\n${event.title}\n${event.date}${event.time?' · '+event.time:''}`);}
@@ -5386,5 +5396,80 @@ renderApplicant();
 })();
 </script>
 <!-- couple-calendar-travel-script:end -->
+<!-- couple-calendar-install-script:start -->
+<script>
+(function () {
+  'use strict';
+  const preview = document.getElementById('app-calendar')?.dataset.preview === 'true';
+  const device = document.getElementById('home-device-settings');
+  if (!device) return;
+  const card = document.createElement('details');
+  card.className = 'couple-install';
+  card.innerHTML = '<summary>🐰 우리 앱 설치 <span>홈 화면에서 바로 만나기 ↗</span></summary><div><p id="couple-install-state"></p><ol><li>Safari에서 이 사이트를 열어요.</li><li>공유 버튼을 누르고 <b>홈 화면에 추가</b>를 선택해요.</li><li>홈 화면에 생긴 토끼·구마 아이콘으로 들어와요.</li></ol><p class="install-note">자체 푸시 알림은 서버 연결 준비 중이에요. 지금은 기존 텔레그램 알림을 사용해요.</p><button type="button" id="couple-install-button" hidden>앱 설치하기</button></div>';
+  device.before(card);
+  const installed = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  card.querySelector('#couple-install-state').textContent = installed ? '홈 화면 앱으로 실행 중이에요 ♥' : preview ? '미리보기예요. 실제 설치는 공개 사이트에서 할 수 있어요.' : '아이폰 홈 화면에 우리만의 앱을 추가해요.';
+  if (installed) card.querySelector('ol').hidden = true;
+  let prompt;
+  addEventListener('beforeinstallprompt', event => {
+    if (preview) return;
+    event.preventDefault(); prompt = event;
+    card.querySelector('#couple-install-button').hidden = false;
+  });
+  card.querySelector('#couple-install-button').addEventListener('click', async () => {
+    if (!prompt) return;
+    await prompt.prompt(); prompt = null;
+    card.querySelector('#couple-install-button').hidden = true;
+  });
+  if (!preview && 'serviceWorker' in navigator && isSecureContext) {
+    navigator.serviceWorker.register('./app-sw.js').catch(() => {
+      card.querySelector('#couple-install-state').textContent = '설치 기능을 준비하지 못했어요. 연결 후 다시 열어주세요.';
+    });
+  }
+})();
+
+</script>
+<!-- couple-calendar-install-script:end -->
+<!-- couple-calendar-push-script:start -->
+<script>
+(function () {
+  'use strict';
+  const preview=document.getElementById('app-calendar')?.dataset.preview==='true';
+  const container=document.querySelector('.couple-install>div');
+  if(!container)return;
+  const SERVER='https://rabbit-guma-push.couple-private-push.workers.dev';
+  const panel=document.createElement('div');panel.className='couple-push';
+  panel.innerHTML='<h3>우리 앱 알림</h3><p id="push-status" role="status">기기를 연결하면 우리 앱 이름으로 알림을 받아요.</p><form id="push-pair"><label>이 폰의 주인<select name="owner"><option value="rabbit">🐰 이토끼</option><option value="sweet">🍠 구마구마</option></select></label><label>개인 연결 코드<input name="code" type="password" required autocomplete="off" maxlength="100" placeholder="한 번만 입력해요"></label><button>이 기기 연결하기</button></form><div class="push-controls" hidden><button type="button" id="push-enable">앱 알림 켜기</button><button type="button" id="push-test" hidden>내 폰으로 테스트 알림</button><button type="button" id="push-disable">이 기기 알림 끄기</button></div>';
+  container.querySelector('.install-note')?.remove();container.append(panel);
+  const $=id=>document.getElementById(id),status=text=>$('push-status').textContent=text;
+  let identity;try{identity=JSON.parse(localStorage.getItem('couple-push-device')||'null');}catch{}
+  const installed=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const supported='serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+  let busy=false;
+  async function api(path,data,method='POST'){
+    if(preview||!SERVER.startsWith('https://'))throw Error('미리보기에서는 실제 알림을 연결하지 않아요.');
+    const r=await fetch(SERVER+path,{method,headers:{'Content-Type':'application/json',...(identity?.token?{Authorization:'Bearer '+identity.token}:{})},...(data?{body:JSON.stringify(data)}:{}),signal:AbortSignal.timeout(20000)});
+    const result=await r.json();if(!r.ok)throw Error(result.error||'연결하지 못했어요.');return result;
+  }
+  async function registration(){await navigator.serviceWorker.register('./app-sw.js');return navigator.serviceWorker.ready;}
+  async function render(){
+    $('push-pair').hidden=!!identity;$('push-pair').elements.owner.value=window.CoupleHome?.getPerson?.()||'rabbit';panel.querySelector('.push-controls').hidden=!identity;
+    if(preview){status('미리보기예요. 실제 설치와 알림 연결은 공개 사이트에서 해주세요.');$('push-pair').hidden=true;return;}
+    if(ios&&!installed){status('Safari에서 홈 화면에 추가한 뒤, 홈 화면의 앱을 열어 연결해 주세요.');$('push-pair').hidden=true;panel.querySelector('.push-controls').hidden=true;return;}
+    if(!supported){status('이 환경은 앱 푸시를 지원하지 않아요. 아이폰은 iOS 16.4 이상에서 홈 화면 앱으로 열어주세요.');$('push-pair').hidden=true;panel.querySelector('.push-controls').hidden=true;return;}
+    if(identity){const sub=await(await registration()).pushManager.getSubscription();status((identity.owner==='rabbit'?'🐰 이토끼':'🍠 구마구마')+'의 기기 · '+(sub&&Notification.permission==='granted'?'알림이 켜져 있어요 ♥':'알림 허용이 필요해요.'));$('push-test').hidden=!(sub&&Notification.permission==='granted');}
+  }
+  async function action(fn){if(busy)return;busy=true;panel.querySelectorAll('button').forEach(b=>b.disabled=true);try{await fn();}catch(e){status(e.message||'알림 연결을 확인해 주세요.');}finally{busy=false;panel.querySelectorAll('button').forEach(b=>b.disabled=false);}}
+  $('push-pair').addEventListener('submit',e=>{e.preventDefault();void action(async()=>{const f=e.target;identity=await api('/pair',{owner:f.elements.owner.value,code:f.elements.code.value.trim()});localStorage.setItem('couple-push-device',JSON.stringify(identity));f.reset();await render();});});
+  $('push-enable').addEventListener('click',()=>{if(preview)return;const permission=Notification.requestPermission();void action(async()=>{if(await permission!=='granted')throw Error('아이폰 설정에서 우리 앱의 알림을 허용해 주세요.');const reg=await registration(),config=await api('/config',null,'GET');const raw=atob(config.publicKey.replace(/-/g,'+').replace(/_/g,'/'));const key=Uint8Array.from(raw,c=>c.charCodeAt(0));const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});await api('/subscription',sub.toJSON());await render();});});
+  $('push-test').addEventListener('click',()=>void action(async()=>{await api('/test',{});status('테스트 알림을 보냈어요. 잠금화면이나 알림센터에서 확인해 주세요.');}));
+  $('push-disable').addEventListener('click',()=>void action(async()=>{await api('/subscription',null,'DELETE');const sub=await(await registration()).pushManager.getSubscription();await sub?.unsubscribe();await render();status('이 기기의 앱 알림을 껐어요.');}));
+  window.CouplePush=Object.freeze({sync:async()=>{if(preview||!identity)return;try{await api('/sync',{});}catch{/* The server's next scan retries. */}}});
+  void render();
+})();
+
+</script>
+<!-- couple-calendar-push-script:end -->
 </body>
 </html>
