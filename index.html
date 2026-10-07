@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-pending-dark-45">
+<meta name="app-version" content="20261007-touch-controls-46">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1486,6 +1486,11 @@ html[data-theme=dark] #topBanner{background:#29242f;border-color:#433a4b}html[da
 
 /* Fine-line navigation, readable labels, no heavy button surface. */
 .home-surface .home-section-heading .home-section-button{gap:6px;min-height:30px;padding:5px 0 5px 6px;color:var(--hm-ink);font:500 10px/1.5 'Noto Sans KR',sans-serif;letter-spacing:-.3px;opacity:.85}.home-surface .home-section-button>span{font:inherit;letter-spacing:inherit;color:inherit}.home-surface .home-section-button .home-nav-icon{width:17px;height:17px;stroke:var(--hm-pink);stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round;opacity:1}.home-surface .home-section-button>svg:last-child{width:9px;height:9px;color:var(--hm-muted);opacity:.55;margin-left:1px}.home-surface .home-section-heading .home-section-button:hover{opacity:1;color:var(--hm-pink)}@media(max-width:440px){.home-surface .home-section-heading .home-section-button{font-size:10px;gap:5px}.home-surface .home-section-button .home-nav-icon{width:16px;height:16px}}
+
+/* App-like touch behavior; editable text keeps native selection and paste. */
+body,body *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}body :is(input,textarea,[contenteditable]:not([contenteditable=false])),body [contenteditable]:not([contenteditable=false]) *{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}body img{-webkit-user-drag:none}.game-controls,.game-controls *,#game-canvas{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;touch-action:none}
+
+html,body{touch-action:pan-x pan-y}button,a,[role=button]{touch-action:manipulation}.game-controls,.game-controls *,#game-canvas{touch-action:none!important}@media(max-width:600px){body input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=hidden]),body textarea,body select{font-size:16px!important}}
 
 </style>
 <!-- couple-calendar-polish-styles:end -->
@@ -5562,8 +5567,9 @@ window.CoupleAuth=Object.freeze({
   document.addEventListener('keydown',e=>{if(document.body.dataset.siteMode!=='game'||e.target.matches('input,select,textarea'))return;const key=e.key.toLowerCase();if(['ArrowLeft','ArrowRight','a','d'].includes(e.key)||['a','d'].includes(key)){if(!running)return;e.preventDefault();keys.add(e.key.startsWith('Arrow')?e.key:key);}if(e.code==='Space'&&e.target===canvas){e.preventDefault();paused?start():pause();}});
   document.addEventListener('keyup',e=>{keys.delete(e.key);keys.delete(e.key.toLowerCase());});window.addEventListener('blur',pause);
   function position(e){const box=canvas.getBoundingClientRect();target=Math.max(23,Math.min(rules.W-23,(e.clientX-box.left)/box.width*rules.W));}
+  for(const el of [canvas,$('game-left'),$('game-right')]){el.addEventListener('contextmenu',e=>e.preventDefault());el.addEventListener('selectstart',e=>e.preventDefault());}
   canvas.addEventListener('pointerdown',e=>{if(!running||e.button!==0)return;e.preventDefault();pointer=e.pointerId;canvas.setPointerCapture(pointer);position(e);});canvas.addEventListener('pointermove',e=>{if(running&&pointer===e.pointerId)position(e);});for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,()=>{pointer=null;target=null;});
-  for(const [id,direction] of [['game-left',-1],['game-right',1]]){const b=$(id);b.addEventListener('pointerdown',e=>{if(!running)return;e.preventDefault();held=direction;b.setPointerCapture(e.pointerId);});for(const type of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(type,()=>{held=0;});b.addEventListener('keydown',e=>{if(running&&[' ','Enter'].includes(e.key)){e.preventDefault();held=direction;}});b.addEventListener('keyup',()=>{held=0;});b.addEventListener('blur',()=>{held=0;});}
+  for(const [id,direction] of [['game-left',-1],['game-right',1]]){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();if(!running)return;held=direction;b.setPointerCapture(e.pointerId);});for(const type of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(type,()=>{held=0;});b.addEventListener('keydown',e=>{if(running&&[' ','Enter'].includes(e.key)){e.preventDefault();held=direction;}});b.addEventListener('keyup',()=>{held=0;});b.addEventListener('blur',()=>{held=0;});}
   document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});window.addEventListener('site-mode-change',()=>{if(document.body.dataset.siteMode!=='game')pause();else if(!running&&!paused)choose(window.CoupleHome?.getPerson()||person);});
   $('home-game-scores').addEventListener('click',e=>{const owner=e.target.closest('[data-play-person]')?.dataset.playPerson;if(owner){window.SiteNav.open('game');choose(owner);}});
   window.MiniGame=Object.freeze({open(owner){window.SiteNav.open('game');choose(owner||window.CoupleHome?.getPerson()||'rabbit');},pause});
@@ -5807,5 +5813,18 @@ window.CoupleReaction={show};window.addEventListener('hashchange',()=>{host.hidd
 
 </script>
 <!-- couple-calendar-reaction-script:end -->
+<!-- couple-calendar-touch-script:start -->
+<script>
+(function(){
+'use strict';
+const editable=target=>target instanceof Element&&!!target.closest('input,textarea,select,[contenteditable]:not([contenteditable=false])');
+// Keep ordinary scrolling; suppress accidental page magnification on iOS.
+for(const type of ['gesturestart','gesturechange','gestureend'])document.addEventListener(type,e=>{if(e.cancelable)e.preventDefault();},{passive:false});
+document.addEventListener('touchmove',e=>{if(e.touches.length>1&&e.cancelable)e.preventDefault();},{passive:false});
+document.addEventListener('dblclick',e=>{if(!editable(e.target)&&e.cancelable)e.preventDefault();});
+})();
+
+</script>
+<!-- couple-calendar-touch-script:end -->
 </body>
 </html>
