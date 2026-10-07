@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-game-clean-38">
+<meta name="app-version" content="20261007-game-harder-39">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -5334,8 +5334,8 @@ window.CoupleAuth=Object.freeze({
 <script id="couple-game-script">
 (function () {
   const W=360,H=480,PLAYER_Y=425;
-  function difficulty(score){const progress=Math.max(0,Math.min(1,(Number(score)||0)/3000));return {speed:100+150*progress,interval:0.9-0.58*progress};}
-  function create(){return {x:W/2,elapsed:0,spawnIn:0.7,enemies:[],avoided:0,score:0,over:false};}
+  function difficulty(score){const progress=Math.max(0,Math.min(1,(Number(score)||0)/3000));const pressure=Math.pow(progress,0.75);return {speed:150+230*pressure,interval:0.7-0.48*pressure};}
+  function create(){return {x:W/2,elapsed:0,spawnIn:0.5,enemies:[],avoided:0,score:0,over:false};}
   function step(s,seconds,input={},random=Math.random){
     if(s.over)return s;
     const dt=Math.max(0,Math.min(0.05,Number(seconds)||0));s.elapsed+=dt;
@@ -5343,7 +5343,7 @@ window.CoupleAuth=Object.freeze({
     if(Number.isFinite(input.target)){const distance=input.target-s.x;move=Math.sign(distance);s.x+=Math.sign(distance)*Math.min(Math.abs(distance),280*dt);}
     else s.x+=Math.max(-1,Math.min(1,move))*280*dt;
     s.x=Math.max(23,Math.min(W-23,s.x));s.spawnIn-=dt;
-    if(s.spawnIn<=0){const level=difficulty(Math.floor(s.elapsed*10)+s.avoided*5);const r=Math.max(0,Math.min(1,random()));s.enemies.push({x:24+r*(W-48),y:-25,speed:level.speed});s.spawnIn=level.interval;}
+    if(s.spawnIn<=0){const level=difficulty(Math.floor(s.elapsed*10)+s.avoided*5);const aimed=random()<0.28;const r=Math.max(0,Math.min(1,random()));const x=aimed?Math.max(24,Math.min(W-24,s.x+(r-0.5)*48)):24+r*(W-48);s.enemies.push({x,y:-25,speed:level.speed});s.spawnIn=level.interval;}
     const remaining=[];
     for(const enemy of s.enemies){enemy.y+=enemy.speed*dt;if(Math.hypot(enemy.x-s.x,enemy.y-PLAYER_Y)<32)s.over=true;if(enemy.y>H+25)s.avoided++;else remaining.push(enemy);}
     s.enemies=remaining;s.score=Math.floor(s.elapsed*10)+s.avoided*5;return s;
