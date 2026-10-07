@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-passkey-33">
+<meta name="app-version" content="20261007-passkey-auto-35">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1386,6 +1386,8 @@ html[data-theme="dark"] .home-relationship{background:linear-gradient(110deg,#3d
 @media(max-width:440px){.home-wrap{padding:18px 16px 28px}.home-hero{padding:16px 0 12px;gap:12px}.home-hero-copy>p:not(.home-eyebrow){font-size:11px;line-height:1.6}.home-surface .home-dday{padding:14px 10px}.home-dday-label{font-size:10px}.home-dday small{font-size:10px}.home-relationship{padding:12px 15px}.home-section-heading h2{font-size:23px}.home-apps{margin-bottom:18px}}
 
 .home-pending[hidden]{display:none!important}.home-pending{display:grid;gap:8px;margin:0 0 20px}.home-pending-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 15px;background:var(--surface,#fff);color:inherit;border:1px solid #cfad793b;border-radius:16px;cursor:pointer;transition:transform .18s,box-shadow .18s}.home-pending-row:hover{transform:translateY(-2px);box-shadow:0 5px 18px #a17a3910}.home-pending-icon{font-size:25px}.home-pending-copy{flex:1;min-width:0}.home-pending-copy strong{display:block;font-size:13px}.home-pending-copy small{display:block;font-size:11px;opacity:.65;margin-top:4px}.home-pending-count{font-size:11px;font-weight:700;border-radius:20px;padding:6px 9px;background:#dba95718;color:#a3783e;white-space:nowrap}body[data-theme="dark"] .home-pending-row{background:#282522}@media(max-width:440px){.home-pending-row{gap:9px;padding:12px}.home-pending-copy small{font-size:10px}}
+
+.home-pending-group{border:1px solid #cfad793b;border-radius:16px;overflow:hidden;background:var(--surface,#fff)}.home-pending-group .home-pending-row{border:0;border-radius:0;background:transparent}.home-quick-request{display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid #cfad791c;font-size:11px}.home-quick-request>span{flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.6}.home-quick-actions{display:flex;gap:5px;flex-shrink:0}.home-quick-actions button{border:0;border-radius:8px;padding:7px 10px;font:inherit;font-weight:650;cursor:pointer;background:#809a701c;color:#54734a;min-height:34px}.home-quick-actions button[data-home-decision="reject"]{background:#b7847c18;color:#aa6c63}.home-quick-actions button:disabled{opacity:.45;cursor:wait}body[data-theme="dark"] .home-pending-group{background:#282522}
 
 </style>
 <!-- couple-calendar-home-styles:end -->
@@ -3400,6 +3402,27 @@ document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) setTime
 
 window.addEventListener('couple-auth-change',()=>{adminUnlocked=false;refreshCurrentView();});
 
+window.__leavePendingItems = ()=> (state?.requests||[]).filter(r=>r.status==='pending').map(r=>({id:r.id,detail:fmtReq(r)+' · '+r.days+'일'}));
+window.__leaveHomeDecision = async function(id,action){
+  if(!window.CoupleAuth?.isAdmin('leave'))throw Error('본인 인증 후 결재할 수 있어요.');
+  if(!['approve','reject'].includes(action)||!stateRef)throw Error('처리할 수 없는 요청이에요.');
+  let reason='이미 처리된 신청이에요.';
+  const result=await stateRef.transaction(current=>{
+    if(!window.CoupleAuth?.isAdmin('leave')){reason='다시 본인 인증해 주세요.';return;}
+    if(!current||!Array.isArray(current.requests))return;
+    const item=current.requests.find(r=>r.id===id);if(!item||item.status!=='pending')return;
+    if(action==='approve'&&(!Number.isFinite(item.days)||!Number.isFinite(current.balance)||item.days>current.balance)){reason='보유 유흥연차가 부족해서 승인할 수 없어요.';return;}
+    item.status=action==='approve'?'approved':'rejected';item.decidedAt=new Date().toISOString();
+    if(action==='approve')current.balance=Math.round((current.balance-item.days)*10)/10;
+    item.comment='';current.history=Array.isArray(current.history)?current.history:[];current.history.unshift({note:'유흥연차 신청 '+(action==='approve'?'승인':'반려')+': '+fmtReq(item)+' ('+item.days+'일)',at:item.decidedAt});
+    return current;
+  },undefined,false);
+  if(!result.committed)throw Error(reason);
+  void window.CouplePush?.sync();
+  window.dispatchEvent(new Event('couple-approval-change'));
+  return true;
+};
+
 window.__leavePending = function(){
   if(!state || !state.requests) return 0;
   return state.requests.filter(r=>r.status==='pending').length;
@@ -4131,6 +4154,26 @@ window.__smokeShowResults = celebrateUnseenSmoke;
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) setTimeout(celebrateUnseenSmoke, 300); });
 
 window.addEventListener('couple-auth-change',()=>{adminUnlocked=false;refreshCurrentView();});
+
+window.__smokePendingItems = ()=> (state?.requests||[]).filter(r=>r.status==='pending').map(r=>({id:r.id,detail:r.minutes+'분'+(r.memo?' · '+r.memo:'')}));
+window.__smokeHomeDecision = async function(id,action){
+  if(!window.CoupleAuth?.isAdmin('smoke'))throw Error('본인 인증 후 결재할 수 있어요.');
+  if(!['approve','reject'].includes(action)||!stateRef)throw Error('처리할 수 없는 요청이에요.');
+  let reason='이미 처리된 신청이에요.';
+  const result=await stateRef.transaction(current=>{
+    if(!window.CoupleAuth?.isAdmin('smoke')){reason='다시 본인 인증해 주세요.';return;}
+    if(!current||!Array.isArray(current.requests))return;
+    const item=current.requests.find(r=>r.id===id);if(!item||item.status!=='pending')return;
+    
+    item.status=action==='approve'?'approved':'rejected';item.decidedAt=new Date().toISOString();
+    if(action==='approve')item.approvedAt=item.decidedAt;
+    return current;
+  },undefined,false);
+  if(!result.committed)throw Error(reason);
+  void window.CouplePush?.sync();
+  window.dispatchEvent(new Event('couple-approval-change'));
+  return true;
+};
 
 window.__smokePending = function(){
   if(!state || !state.requests) return 0;
@@ -4873,13 +4916,19 @@ renderApplicant();
     $('home-together').innerHTML = `<span class="home-together-label">♥ 오늘 함께</span><div class="home-together-events">${together.length ? together.map(e => eventButton(e, true)).join('') : `<p class="home-day-empty">${loaded ? '함께할 시간이 생기면, 약속을 남겨요.' : '공유 일정을 불러오고 있어요.'}</p>`}</div><button type="button" class="home-text-link" data-home-action="add" aria-label="오늘 함께할 일정 추가">＋</button>`;
     $('home-calendar-status').textContent = loaded ? (state.todayEvents.length ? `오늘 ${state.todayEvents.length}개의 약속` : '오늘의 새로운 약속 남기기') : '일정과 기념일 모아보기';
   }
+  let deciding=false;
   function renderPending() {
+    if(deciding)return;
     const panel=$('home-pending');if(!panel)return;
     const person=window.CoupleHome?.getPerson?.();
     const rows=[{app:'leave',title:'유흥연차',icon:'🐰',applicant:'rabbit',count:window.__leavePending?.()||0},{app:'smoke',title:'흡연 결재',icon:'🍠',applicant:'sweet',count:window.__smokePending?.()||0}].filter(x=>x.count>0);
     panel.hidden=!person||!rows.length;
     if(panel.hidden){panel.innerHTML='';return;}
-    panel.innerHTML=rows.map(x=>`<button type="button" class="home-pending-row" data-open-app="${x.app}" data-pending-role="${person===x.applicant?'Applicant':'Admin'}"><span class="home-pending-icon" aria-hidden="true">${x.icon}</span><span class="home-pending-copy"><strong>${x.title}</strong><small>${person===x.applicant?'승인 기다리는 중':'확인이 필요한 신청이 있어요'}</small></span><span class="home-pending-count">${person===x.applicant?'대기':'결재 필요'} ${x.count}건</span><span aria-hidden="true">↗</span></button>`).join('');
+    panel.innerHTML=rows.map(x=>{
+      const canDecide=person!==x.applicant&&window.CoupleAuth?.isAdmin(x.app);
+      const items=(x.app==='leave'?window.__leavePendingItems?.():window.__smokePendingItems?.())||[];
+      return `<article class="home-pending-group"><button type="button" class="home-pending-row" data-open-app="${x.app}" data-pending-role="${person===x.applicant?'Applicant':'Admin'}"><span class="home-pending-icon" aria-hidden="true">${x.icon}</span><span class="home-pending-copy"><strong>${x.title}</strong><small>${person===x.applicant?'승인 기다리는 중':'확인이 필요한 신청이 있어요'}</small></span><span class="home-pending-count">${person===x.applicant?'대기':'결재 필요'} ${x.count}건</span><span aria-hidden="true">↗</span></button>${canDecide?items.map(r=>`<div class="home-quick-request"><span>${esc(r.detail)}</span><div class="home-quick-actions"><button type="button" data-home-decision="approve" data-decision-app="${x.app}" data-request-id="${esc(r.id)}" aria-label="${esc(r.detail)} 승인">승인</button><button type="button" data-home-decision="reject" data-decision-app="${x.app}" data-request-id="${esc(r.id)}" aria-label="${esc(r.detail)} 반려">반려</button></div></div>`).join(''):''}</article>`;
+    }).join('');
   }
   function renderAppStatus() {
     renderPending();
@@ -4890,6 +4939,12 @@ renderApplicant();
   }
   document.addEventListener('click', event => {
     const button = event.target.closest('button'); if (!button) return;
+    if(button.dataset.homeDecision){
+      if(deciding)return;
+      deciding=true;$('home-pending').querySelectorAll('button').forEach(b=>b.disabled=true);
+      const decide=button.dataset.decisionApp==='leave'?window.__leaveHomeDecision:window.__smokeHomeDecision;
+      Promise.resolve().then(()=>{if(!decide)throw Error('다시 연결한 후 시도해 주세요.');return decide(button.dataset.requestId,button.dataset.homeDecision);}).then(()=>window.FX?.toast(button.dataset.homeDecision==='approve'?'승인했어요':'반려했어요')).catch(e=>window.FX?.alert(e.message||'저장하지 못했어요. 다시 시도해 주세요.')).finally(()=>{deciding=false;renderPending();});return;
+    }
     if(button.dataset.pendingRole){const prefix=button.dataset.openApp==='leave'?'L':'S';document.getElementById(prefix+'-btn'+button.dataset.pendingRole)?.click();}
     if (button.dataset.homeNextPerson) {
       const owner = button.dataset.homeNextPerson, next = upcomingByPerson[owner];
@@ -4927,6 +4982,7 @@ renderApplicant();
   document.querySelectorAll('[data-home-portrait]').forEach(img => { img.src = window.FX.ICONS[img.dataset.homePortrait]; });
   window.addEventListener('couple-calendar-change', render);
   window.addEventListener('couple-approval-change', renderPending);
+  window.addEventListener('couple-auth-change', renderPending);
   document.addEventListener('change',e=>{if(e.target.id==='social-person')queueMicrotask(renderPending);});
   window.addEventListener('site-mode-change', () => { if (document.body.dataset.siteMode === 'home') { render(); renderAppStatus(); } });
   setInterval(() => { if (!document.hidden && document.body.dataset.siteMode === 'home') renderAppStatus(); }, 4000);
@@ -4957,14 +5013,19 @@ function cancel(){if(working)return;verified=null;const done=resolveEntry;resolv
 $('auth-cancel').onclick=cancel;dialog.addEventListener('cancel',e=>{e.preventDefault();cancel();});
 $('auth-use-password').onclick=()=>{$('auth-password-fields').hidden=false;$('auth-password').focus();};
 $('auth-form').onsubmit=e=>{e.preventDefault();void action(async()=>{verified=await api('password',{password:$('auth-password').value});$('auth-password').value='';$('auth-password-fields').hidden=true;$('auth-use-password').hidden=true;$('auth-passkey').hidden=true;$('auth-enrollment').hidden=false;status('인증됐어요. 패스키를 등록하거나 바로 입장해 주세요.');});};
-$('auth-passkey').onclick=()=>void action(async()=>{const r=await api('login/options',{});const response=await SimpleWebAuthnBrowser.startAuthentication({optionsJSON:r.options});verified=await api('login/verify',{response,challengeId:r.challengeId});finish();});
+async function authenticate(){const r=await api('login/options',{});const response=await SimpleWebAuthnBrowser.startAuthentication({optionsJSON:r.options});verified=await api('login/verify',{response,challengeId:r.challengeId});finish();}
+$('auth-passkey').onclick=()=>void action(authenticate);
 $('auth-register').onclick=()=>void action(async()=>{const r=await api('register/options',{});const response=await SimpleWebAuthnBrowser.startRegistration({optionsJSON:r.options});await api('register/verify',{response,challengeId:r.challengeId});finish();});
 $('auth-enter').onclick=finish;
 setInterval(()=>{if(verified&&verified.expires<=Date.now())window.CoupleAuth.lock();},30000);
 window.CoupleAuth=Object.freeze({
  enter(selected){if(!names[selected])return Promise.resolve(false);verified=null;changed();owner=selected;
   $('auth-title').textContent=names[owner]+'로 들어가기';$('auth-description').textContent=(owner==='sweet'?'유흥연차':'흡연 결재')+' 관리자 암호로 최초 인증 후 패스키를 등록할 수 있어요.';
-  $('auth-password').value='';$('auth-password-fields').hidden=true;$('auth-enrollment').hidden=true;$('auth-passkey').hidden=!window.PublicKeyCredential;$('auth-use-password').hidden=false;status(preview?'미리보기예요. 암호로 인증하기를 누르면 입장 흐름을 볼 수 있어요.':'Face ID 대신 기기 암호나 다른 인증 수단이 표시될 수도 있어요.');dialog.showModal();return new Promise(resolve=>{resolveEntry=resolve;});
+  $('auth-password').value='';$('auth-password-fields').hidden=true;$('auth-enrollment').hidden=true;$('auth-passkey').hidden=!window.PublicKeyCredential;$('auth-use-password').hidden=false;status(preview?'미리보기예요. 암호로 인증하기를 누르면 입장 흐름을 볼 수 있어요.':'Face ID 대신 기기 암호나 다른 인증 수단이 표시될 수도 있어요.');dialog.showModal();const entry=new Promise(resolve=>{resolveEntry=resolve;});
+  // Start from the user's avatar click; the server decides whether a passkey exists.
+  if(!preview&&window.PublicKeyCredential)void action(authenticate);
+  else if(!preview)$('auth-password-fields').hidden=false;
+  return entry;
  },
  isAdmin(app){return !!verified&&verified.expires>Date.now()&&verified.owner===(app==='leave'?'sweet':'rabbit');},
  lock(){const previous=verified;verified=null;changed();if(previous?.token)void fetch(server+'/auth/logout',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+previous.token},body:JSON.stringify({owner:previous.owner}),keepalive:true}).catch(()=>{});}
