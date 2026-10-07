@@ -1,4 +1,5 @@
-import {authRoute,cleanAuth} from './auth.js';
+import {chatRoute,cleanChat,deliverChat,recordAppCards} from './chat.js';
+import {authRoute,cleanAuth,session} from './auth.js';
 import webpush from 'web-push';
 import specialDays from './special-days.json' with {type:'json'};
 export const DELIVERY_RETENTION_MS = 7*86400000;
@@ -48,6 +49,7 @@ export function notificationTitle(screen,key,body=''){
     const label=screen==='leave'?'🐰 유흥연차':'💨 흡연 결재';
     return label+' '+(key.includes('-approved-')?'승인':key.includes('-rejected-')?'반려':'신청');
   }
+  if(screen==='chat')return '💌 우리의 대화';
   if(screen==='calendar')return key.startsWith('hour-')?'⏰ 1시간 전 알림':key.startsWith('new-')?'🗓 새 일정':body.split('\n')[0].includes('기념일')?'💝 기념일 알림':'🗓 오늘의 일정';
   return '🐰🍠 앱 알림 연결';
 }
@@ -93,6 +95,7 @@ async function scan(env){
     if(preferences?.[owner]?.[e.kind]===false)continue;
     await send(env,owner,'hour-'+e.id+'-'+e.date+'-'+e.time,'1시간 뒤 일정이 있어요.\n'+(names[e.owner]?names[e.owner]+' · ':'함께 · ')+e.title+' · '+e.time,'calendar');
   }
+  await recordAppCards(env,calendar,leave,smoke);
   await cleanAuth(env);
   await sql(env,'DELETE FROM pairing_attempts WHERE expires<?',Date.now()).run();
   await sql(env,'DELETE FROM deliveries WHERE sent_at<?',Date.now()-DELIVERY_RETENTION_MS).run();
@@ -113,6 +116,7 @@ export default {
     try{
       const path=new URL(request.url).pathname;
       if(request.method==='OPTIONS')response=new Response(null,{status:204});
+      else if(path.startsWith('/chat/')){const current=await session(env,request);response=current?await chatRoute(request,env,current,ctx,send):json({error:'사용자 인증 후 대화할 수 있어요.'},401);}
       else if(path.startsWith('/auth/'))response=await authRoute(request,env);
       else if(path==='/health'&&request.method==='GET'){await sql(env,'SELECT 1').first();await read(DATABASES.calendar);response=json({ok:true,database:true});}
       else if(path==='/config'&&request.method==='GET')response=json({publicKey:env.VAPID_PUBLIC_KEY});
@@ -138,5 +142,5 @@ export default {
     }catch{response=json({error:'연결하지 못했어요. 잠시 후 다시 시도해 주세요.'},500);}
     return new Response(response.body,{status:response.status,headers:{...Object.fromEntries(response.headers),...headers}});
   },
-  async scheduled(event,env,ctx){ctx.waitUntil(sync(env));}
+  async scheduled(event,env,ctx){ctx.waitUntil(Promise.allSettled([sync(env),cleanChat(env),deliverChat(env,send)]));}
 };

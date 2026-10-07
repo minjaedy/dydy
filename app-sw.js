@@ -18,7 +18,7 @@ self.addEventListener('fetch', event => {
 self.addEventListener('push', event => {
   let data = {};
   try { data = event.data?.json() || {}; } catch { /* Display a generic notification. */ }
-  const allowed = new Set(['home', 'calendar', 'leave', 'smoke', 'travel']);
+  const allowed = new Set(['home', 'calendar', 'leave', 'smoke', 'travel', 'chat']);
   const target = allowed.has(data.screen) ? data.screen : 'home';
   event.waitUntil(self.registration.showNotification(String(data.title || ({leave:'🐰 유흥연차 알림',smoke:'💨 흡연 결재 알림',calendar:'🗓 일정 알림',travel:'✈ 여행 알림'}[target]) || '🐰🍠 새 소식').slice(0, 60), {
     body: String(data.body || '우리의 새 소식이 도착했어요.').slice(0, 250),
