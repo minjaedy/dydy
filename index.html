@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-app-sounds-58">
+<meta name="app-version" content="20261007-soft-send-59">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -5955,9 +5955,9 @@ window.addEventListener('site-mode-change',entered);window.addEventListener('res
 'use strict';
 let enabled=true,context=null,last=0;
 try{enabled=localStorage.getItem('couple-effects-sound')!=='off'}catch{}
-const tones={sent:[[620,0,.065],[900,.045,.09]],approved:[[523,0,.1],[659,.07,.12],[784,.15,.16]],rejected:[[440,0,.12],[330,.13,.15]],heart:[[780,0,.08],[1046,.06,.12]],check:[[880,0,.075]],saved:[[660,0,.08],[880,.07,.12]],collision:[[180,0,.11],[120,.06,.13]],goal:[[523,0,.1],[659,.1,.1],[784,.2,.1],[1046,.3,.2]]};
+const tones={sent:[[440,0,.13],[554,.06,.16]],approved:[[523,0,.1],[659,.07,.12],[784,.15,.16]],rejected:[[440,0,.12],[330,.13,.15]],heart:[[780,0,.08],[1046,.06,.12]],check:[[880,0,.075]],saved:[[660,0,.08],[880,.07,.12]],collision:[[180,0,.11],[120,.06,.13]],goal:[[523,0,.1],[659,.1,.1],[784,.2,.1],[1046,.3,.2]]};
 function unlock(){if(!enabled||document.hidden)return;try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;context??=new Audio();if(context.state==='suspended')void context.resume().catch(()=>{});}catch{}}
-function sound(kind){if(!enabled||document.hidden||!document.hasFocus()||!context||context.state!=='running')return;const notes=tones[kind];if(!notes||Date.now()-last<100)return;last=Date.now();try{const start=context.currentTime;for(const [freq,delay,length] of notes){const oscillator=context.createOscillator(),gain=context.createGain();oscillator.type='sine';oscillator.frequency.setValueAtTime(freq,start+delay);gain.gain.setValueAtTime(0,start+delay);gain.gain.linearRampToValueAtTime(.055,start+delay+.008);gain.gain.exponentialRampToValueAtTime(.0001,start+delay+length);oscillator.connect(gain);gain.connect(context.destination);oscillator.start(start+delay);oscillator.stop(start+delay+length+.015);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect()};}}catch{}}
+function sound(kind){if(!enabled||document.hidden||!document.hasFocus()||!context||context.state!=='running')return;const notes=tones[kind];if(!notes||Date.now()-last<100)return;last=Date.now();try{const start=context.currentTime;for(const [freq,delay,length] of notes){const oscillator=context.createOscillator(),gain=context.createGain();oscillator.type='sine';oscillator.frequency.setValueAtTime(freq,start+delay);gain.gain.setValueAtTime(0,start+delay);gain.gain.linearRampToValueAtTime(kind==='sent'?.028:.055,start+delay+(kind==='sent'?.025:.008));gain.gain.exponentialRampToValueAtTime(.0001,start+delay+length);oscillator.connect(gain);gain.connect(context.destination);oscillator.start(start+delay);oscillator.stop(start+delay+length+.015);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect()};}}catch{}}
 for(const type of ['pointerdown','touchend','keydown'])document.addEventListener(type,unlock,{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&context?.state==='running')void context.suspend().catch(()=>{});});
 const original=window.FX?.feedback;if(original)window.FX.feedback=function(kind,target){original(kind,target);sound(kind)};
