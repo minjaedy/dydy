@@ -1,5 +1,5 @@
 {
-  "version": "20261006-home-25",
+  "version": "20261007-travel-26",
   "assets": [
     "art-1540299563a5f857.jpg",
     "art-2a109dc97c560303.webp",
@@ -51,6 +51,8 @@
     "smoke-icon-vape.webp",
     "sweet-daily-icon.webp",
     "sweet-game-character.webp",
-    "travel-icon.webp"
+    "travel-header-mascot.webp",
+    "travel-icon.webp",
+    "travel-rabbit-check.webp"
   ]
 }
