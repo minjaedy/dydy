@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-chat-button-56">
+<meta name="app-version" content="20261007-action-feedback-57">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -2053,6 +2053,12 @@ window.FX = (function(){
     try{ if(navigator.vibrate) navigator.vibrate(pattern || 12); }catch(e){}
   }
 
+  function feedback(kind,target){
+    const patterns={approved:18,rejected:[12,65,12],heart:8,check:10,collision:[24,35,16],goal:[12,45,20],saved:12};
+    haptic(patterns[kind]||12);
+    if(target?.animate&&!reduce)target.animate([{transform:'scale(1)',opacity:1},{transform:'scale(.97)',opacity:.75},{transform:'scale(1)',opacity:1}],{duration:240,easing:'ease-out'});
+  }
+
   /* 고구마가 한 모금 뻐끔 */
   function puff(iconSrc){
     if(reduce) return;
@@ -2217,7 +2223,7 @@ window.FX = (function(){
   }
 
   return { toast:toast, confetti:confetti, smoke:smoke, rollNumber:rollNumber,
-           inkSpread:inkSpread, pop:pop, haptic:haptic, puff:puff,
+           inkSpread:inkSpread, pop:pop, haptic:haptic, feedback:feedback, puff:puff,
            skeleton:skeleton, flashStatus:flashStatus, happy:happy, greeting:greeting,
            gift:gift, edgeFlash:edgeFlash, flipCard:flipCard, attachRipple:attachRipple,
            pickUnseen:pickUnseen, sad:sad,
@@ -2565,6 +2571,7 @@ html[data-theme="dark"] #character-animation .ct-speech { color:#f5b3c9;text-sha
     root.setAttribute('aria-live','polite');
     root.setAttribute('aria-label',global.CharacterTheater.scenes[scene].label);
     document.body.appendChild(root);
+    if(/-(approve|reject)$/.test(scene))global.FX.feedback(scene.endsWith('approve')?'approved':'rejected');
     const player=global.CharacterTheater.mount(root,{
       scene,autoplay:true,fadeRoot:true,caption:options.caption,onComplete(){
         if(job){const seen=readSeen(job.key);seen[job.entry.id]=signature(job.entry);writeSeen(job.key,seen);}
@@ -3444,7 +3451,7 @@ function renderAdmin(){
         stamp.textContent = action==='approve' ? '승인' : '반려';
         stampSpan.appendChild(stamp);
         FX.inkSpread(stamp);
-        FX.haptic(action==='approve' ? [14, 40, 20] : 26);
+        FX.feedback(action==='approve'?'approved':'rejected',document.querySelector('#app-'+document.body.dataset.siteMode+' .card'));
         FX.edgeFlash(action==='approve' ? 'rgba(130,200,150,.75)' : 'rgba(190,170,160,.7)');
         setTimeout(function(){ FX.flipCard(card); }, 620);
       }
@@ -3670,6 +3677,7 @@ window.__leaveHomeDecision = async function(id,action){
     return current;
   },undefined,false);
   if(!result.committed)throw Error(reason);
+  window.FX?.feedback(action==='approve'?'approved':'rejected',document.getElementById('home-pending'));
   void window.CouplePush?.sync();
   window.dispatchEvent(new Event('couple-approval-change'));
   return true;
@@ -4315,7 +4323,7 @@ function renderAdmin(){
         stamp.textContent = action==='approve' ? '승인' : '반려';
         stampSpan.appendChild(stamp);
         FX.inkSpread(stamp);
-        FX.haptic(action==='approve' ? [14, 40, 20] : 26);
+        FX.feedback(action==='approve'?'approved':'rejected',document.querySelector('#app-'+document.body.dataset.siteMode+' .card'));
         FX.edgeFlash(action==='approve' ? 'rgba(130,200,150,.75)' : 'rgba(190,170,160,.7)');
         setTimeout(function(){ FX.flipCard(card); }, 620);
       }
@@ -4422,6 +4430,7 @@ window.__smokeHomeDecision = async function(id,action){
     return current;
   },undefined,false);
   if(!result.committed)throw Error(reason);
+  window.FX?.feedback(action==='approve'?'approved':'rejected',document.getElementById('home-pending'));
   void window.CouplePush?.sync();
   window.dispatchEvent(new Event('couple-approval-change'));
   return true;
@@ -4970,6 +4979,7 @@ renderApplicant();
       if (!editingId) void window.CoupleHome?.notifyNewEvent(data, id);
       filter = 'all'; chooseDate(data.yearly ? occurrence(data, Number(selected.slice(0, 4))) || data.date : data.date);
       setSaving(false); closeEditor();
+      window.FX?.feedback('saved',document.getElementById('cc-add'));
       window.FX?.toast(preview ? '미리보기에 일정을 저장했어요' : '우리의 일정을 함께 저장했어요');
     } catch (e) { setSaving(false); error(e.code === 'PERMISSION_DENIED' || /permission_denied/i.test(e.message) ? '일정을 저장할 권한이 없어요. 공유 캘린더 연결을 확인해 주세요.' : e.message || '저장하지 못했어요. 다시 시도해 주세요.'); }
   });
@@ -5254,8 +5264,6 @@ window.CoupleAuth=Object.freeze({
  lock(forgetSession=false){const previous=verified;verified=null;changed();if(previous&&(forgetSession||previous.expires<=Date.now()))forget(previous.owner);if(previous?.token)void fetch(server+'/chat/presence',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+previous.token},body:JSON.stringify({active:false}),keepalive:true}).catch(()=>{}).finally(()=>forgetSession?fetch(server+'/auth/logout',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+previous.token},body:JSON.stringify({owner:previous.owner}),keepalive:true}).catch(()=>{}):undefined);}
 });
 })();
-
-
 
 (function () {
   'use strict';
@@ -5588,8 +5596,8 @@ window.CoupleAuth=Object.freeze({
     }catch(e){$('game-save-status').textContent=e.message||'점수를 저장하지 못했어요. 다시 저장해 주세요.';$('game-retry').hidden=false;}
     finally{saving=false;}
   }
-  function finish(){running=false;paused=false;clearInput();controls();const best=ready?scores[person].best:0;overlay(state.score>best?'새로운 최고 기록!':'앗, 만났네!',`${state.score}점 · ${state.elapsed.toFixed(1)}초 동안 버텼어요.`,'다시 도전',state.score>best?'🏆':'♥');void saveScore({owner:person,score:state.score,at:Date.now(),runId});}
-  function loop(time){if(!running)return;if(document.hidden||document.body.dataset.siteMode!=='game'){pause();return;}const seconds=lastTime?(time-lastTime)/1000:0;lastTime=time;const direction=held||(Number(keys.has('ArrowRight')||keys.has('d'))-Number(keys.has('ArrowLeft')||keys.has('a')));rules.step(state,seconds,{direction,target:direction?null:target});draw();if(state.over)finish();else frame=requestAnimationFrame(loop);}
+  function finish(){window.FX?.feedback('collision',canvas);running=false;paused=false;clearInput();controls();const best=ready?scores[person].best:0;overlay(state.score>best?'새로운 최고 기록!':'앗, 만났네!',`${state.score}점 · ${state.elapsed.toFixed(1)}초 동안 버텼어요.`,'다시 도전',state.score>best?'🏆':'♥');void saveScore({owner:person,score:state.score,at:Date.now(),runId});}
+  function loop(time){if(!running)return;if(document.hidden||document.body.dataset.siteMode!=='game'){pause();return;}const seconds=lastTime?(time-lastTime)/1000:0;lastTime=time;const direction=held||(Number(keys.has('ArrowRight')||keys.has('d'))-Number(keys.has('ArrowLeft')||keys.has('a')));const previousScore=state.score;rules.step(state,seconds,{direction,target:direction?null:target});const goal=person==='rabbit'?3000:3500;if(previousScore<=goal&&state.score>goal)window.FX?.feedback('goal',canvas);draw();if(state.over)finish();else frame=requestAnimationFrame(loop);}
   function start(){if(saving){$('game-save-status').textContent='점수 저장이 끝나면 다시 시작할 수 있어요.';return;}if(pending){$('game-save-status').textContent='아직 저장하지 못한 점수가 있어요. 다시 저장을 눌러 주세요.';return;}if(!paused){state=rules.create();runId=crypto.randomUUID();}running=true;paused=false;lastTime=0;clearInput();$('game-overlay').hidden=true;$('game-save-status').textContent=preview?'미리보기 플레이 · 실제 공유 점수에는 반영하지 않아요.':'';controls();canvas.focus({preventScroll:true});frame=requestAnimationFrame(loop);}
   $('game-start').addEventListener('click',start);$('game-pause').addEventListener('click',()=>paused?start():pause());$('game-retry').addEventListener('click',()=>{if(pending)void saveScore(pending);});
   document.querySelector('.game-person-toggle').addEventListener('click',e=>{const owner=e.target.closest('[data-game-person]')?.dataset.gamePerson;if(owner)choose(owner);});
@@ -5720,7 +5728,7 @@ window.CoupleAuth=Object.freeze({
  $('tp-expense-add').addEventListener('click',()=>{const f=$('tp-expense-form');f.reset();f.elements.date.value=day;$('tp-expense-dialog').showModal();});
  $('tp-ratio').addEventListener('input',e=>{trip().ratio=Number(e.target.value);save();renderMoney();});
  $('tp-pack-form').addEventListener('submit',e=>{e.preventDefault();const f=e.target,t=trip();if(!f.elements.title.value.trim())return;t.packing=t.packing||[];t.packing.push({id:uid(),title:f.elements.title.value.trim(),owner:f.elements.owner.value,done:false});save();renderPacking();f.reset();});
- root.addEventListener('change',e=>{if(e.target.dataset.packCheck){const x=(trip().packing||[]).find(x=>x.id===e.target.dataset.packCheck);if(x){const items=trip().packing||[],wasComplete=items.length>0&&items.every(item=>item.done);x.done=e.target.checked;const completed=!wasComplete&&items.length>0&&items.every(item=>item.done);save(completed?()=>window.CoupleReaction?.show('packing'):undefined);renderPacking();}}const id=e.target.dataset.check;if(id){trip().stops.find(s=>s.id===id).done=e.target.checked;heartId=e.target.checked?id:null;save();render();}});
+ root.addEventListener('change',e=>{if(e.target.dataset.packCheck){const x=(trip().packing||[]).find(x=>x.id===e.target.dataset.packCheck);if(x){const items=trip().packing||[],wasComplete=items.length>0&&items.every(item=>item.done);x.done=e.target.checked;const completed=!wasComplete&&items.length>0&&items.every(item=>item.done);save(()=>{if(x.done)window.FX?.feedback('check',document.getElementById('tp-save'));if(completed)window.CoupleReaction?.show('packing');});renderPacking();}}const id=e.target.dataset.check;if(id){trip().stops.find(s=>s.id===id).done=e.target.checked;heartId=e.target.checked?id:null;const checked=e.target.checked;save(()=>{if(checked)window.FX?.feedback('check',document.getElementById('tp-save'));});render();}});
  root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset,t=trip();if(d.packDelete){trip().packing=(trip().packing||[]).filter(x=>x.id!==d.packDelete);save();renderPacking();}if(d.routeFocus)focusRoute(d.routeFocus);if(d.tpClose)$(d.tpClose).close();if(d.tpTab){tab=d.tpTab;$('tp-plan').hidden=tab!=='plan';$('tp-money').hidden=tab!=='money';root.querySelectorAll('[data-tp-tab]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.tpTab===tab)));}if(d.day){dayChanged=day!==d.day;day=d.day;picking=null;render();}if(d.edit)openStop(d.edit);if(d.pin)startPin(d.pin);if(d.delete){t.stops=t.stops.filter(s=>s.id!==d.delete);save();render();}if(d.expenseDelete){t.expenses=t.expenses.filter(x=>x.id!==d.expenseDelete);save();renderMoney();}if(d.up||d.down){const rows=t.stops.filter(s=>s.date===day),i=rows.findIndex(s=>s.id===(d.up||d.down)),j=i+(d.up?-1:1);if(j>=0&&j<rows.length){const a=t.stops.indexOf(rows[i]),b=t.stops.indexOf(rows[j]);[t.stops[a],t.stops[b]]=[t.stops[b],t.stops[a]];save();render();}}});
  window.addEventListener('site-mode-change',e=>{if(e.detail?.mode==='travel')renderMap();});
  window.CoupleTravel=Object.freeze({getTrips:()=>state.trips.map(t=>({...t})),openTrip(id){if(state.trips.some(t=>t.id===id)){state.active=id;day='';render();}},totals,timeline,safeLink,coordinates,amount,tripToday,currentSchedule});render();connectShared();setInterval(renderCurrent,60000);window.CoupleHome?.updateCharacter?.();
@@ -5894,7 +5902,7 @@ function bindMessageGestures(content,row,m,heart){
  let start=null,drag=false,dx=0,armed=false,lastTap=0,lastHeart=0,lastDrag=0;const direction=m.owner===owner()?-1:1;
  const hint=el('span','chat-swipe-hint','↩');hint.setAttribute('aria-hidden','true');row.append(hint);
  function reset(){content.style.transition='transform 220ms cubic-bezier(.2,.8,.2,1)';content.style.transform='';hint.style.opacity='0';hint.style.transform='scale(.65)';start=null;drag=false;armed=false;dx=0}
- function react(){const adding=!hearts.some(h=>h.message_id===m.id&&h.owner===owner());lastHeart=Date.now();heart.click();if(!adding)return;const pop=el('span','chat-heart-pop','♥');pop.setAttribute('aria-hidden','true');row.append(pop);setTimeout(()=>pop.remove(),650);window.FX?.haptic?.(8)}
+ function react(){const adding=!hearts.some(h=>h.message_id===m.id&&h.owner===owner());lastHeart=Date.now();heart.click();if(!adding)return;const pop=el('span','chat-heart-pop','♥');pop.setAttribute('aria-hidden','true');row.append(pop);setTimeout(()=>pop.remove(),650);window.FX?.feedback?.('heart')}
  content.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'||e.isPrimary===false||e.button!==0||e.target.closest('button,input,a'))return;start={x:e.clientX,y:e.clientY,id:e.pointerId,type:e.pointerType};dx=0;drag=false;armed=false;content.style.transition='none'});
  content.addEventListener('pointermove',e=>{if(!start||e.pointerId!==start.id)return;dx=direction*Math.max(0,direction*(e.clientX-start.x));const dy=e.clientY-start.y;if(!drag&&Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){reset();return}if(!drag&&Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)*1.3){drag=true;content.setPointerCapture?.(e.pointerId)}if(!drag)return;const shift=Math.sign(dx)*Math.min(76,Math.abs(dx)*.78);content.style.transform='translateX('+shift+'px)';hint.style.left=dx>0?'36px':'auto';hint.style.right=dx<0?'36px':'auto';hint.style.opacity=String(Math.min(1,Math.abs(dx)/60));hint.style.transform='scale('+(.65+Math.min(.35,Math.abs(dx)/180))+')';if(Math.abs(dx)>=58&&!armed){armed=true;window.FX?.haptic?.(6)}if(Math.abs(dx)<45)armed=false});
  content.addEventListener('pointerup',e=>{if(!start||e.pointerId!==start.id)return;const type=start.type,wasDrag=drag,reply=drag&&Math.abs(dx)>=58,travel=Math.hypot(e.clientX-start.x,e.clientY-start.y);reset();if(wasDrag)lastDrag=Date.now();if(reply){setReply(m);lastTap=0;return}if(!wasDrag&&travel<8&&(type==='touch'||type==='pen')){const now=Date.now();if(now-lastTap<320){react();lastTap=0}else lastTap=now}});
