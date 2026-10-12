@@ -61,7 +61,7 @@ async function send(env,owner,key,body,screen,deviceId=null){
   for(const d of devices){
     if(deviceId&&d.id!==deviceId)continue;
     const id=await hash(d.id+'|'+key),now=Date.now();
-    const claim=await sql(env,"INSERT INTO deliveries(id,state,lease_until) VALUES(?,'sending',?) ON CONFLICT(id) DO UPDATE SET state='sending',lease_until=excluded.lease_until WHERE deliveries.state!='sent' AND deliveries.lease_until<?",id,now+120000,now).run();
+    const claim=await sql(env,"INSERT INTO deliveries(id,state,lease_until,created_at) VALUES(?,'sending',?,?) ON CONFLICT(id) DO UPDATE SET state='sending',lease_until=excluded.lease_until WHERE deliveries.state!='sent' AND deliveries.lease_until<?",id,now+120000,now,now).run();
     if(!claim.meta.changes)continue;
     let stage='prepare';
     try{
@@ -103,6 +103,7 @@ async function scan(env){
   await sql(env,'DELETE FROM pairing_attempts WHERE expires<?',Date.now()).run();
   await sql(env,'DELETE FROM deliveries WHERE sent_at<?',Date.now()-DELIVERY_RETENTION_MS).run();
 }
+export async function cleanMaintenance(env){await cleanAuth(env);await sql(env,'DELETE FROM pairing_attempts WHERE expires<?',Date.now()).run();await sql(env,'DELETE FROM deliveries WHERE sent_at<? OR (sent_at IS NULL AND created_at<?)',Date.now()-DELIVERY_RETENTION_MS,Date.now()-DELIVERY_RETENTION_MS).run();}
 export async function sync(env,immediate=false){
   // Delivery claims prevent duplicates even when an immediate scan overlaps cron.
   if(immediate){await scan(env);return;}
@@ -145,5 +146,5 @@ export default {
     }catch{response=json({error:'연결하지 못했어요. 잠시 후 다시 시도해 주세요.'},500);}
     return new Response(response.body,{status:response.status,headers:{...Object.fromEntries(response.headers),...headers}});
   },
-  async scheduled(event,env,ctx){ctx.waitUntil(Promise.allSettled([sync(env),scheduledChatCleanup(env),deliverChat(env,send),cleanCalendarYear(env),cleanAppRetention(env)]));}
+  async scheduled(event,env,ctx){ctx.waitUntil(Promise.allSettled([sync(env),scheduledChatCleanup(env),deliverChat(env,send),cleanCalendarYear(env),cleanAppRetention(env),cleanMaintenance(env)]));}
 };

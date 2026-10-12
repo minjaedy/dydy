@@ -17,6 +17,16 @@ export async function cleanChat(env){const cutoff=Date.now()-CHAT_RETENTION_MS;a
 export async function deliverChat(env,send){const rows=(await sql(env,'SELECT id,owner,kind,payload FROM chat_messages m WHERE notified=0 AND created_at>? AND NOT EXISTS (SELECT 1 FROM chat_presence p WHERE p.owner!=m.owner AND p.active_until>?) ORDER BY seq LIMIT 20',Date.now()-86400000,Date.now()).all()).results;for(const m of rows){const p=JSON.parse(m.payload);try{const active=await sql(env,'SELECT id FROM chat_presence WHERE owner=? AND active_until>? LIMIT 1',other(m.owner),Date.now()).first();if(active)continue;await send(env,other(m.owner),'chat-'+m.id,m.kind==='text'?p.text.slice(0,180):m.kind==='photo'?'사진을 보냈어요.':m.kind==='sticker'?'이모티콘을 보냈어요.':p.title,'chat');await sql(env,'UPDATE chat_messages SET notified=1 WHERE id=?',m.id).run()}catch{/* Retry from cron; do not fail a saved message. */}}}
 export async function chatRoute(request,env,current,ctx,send){
  const url=new URL(request.url),path=url.pathname,owner=current.owner,cutoff=Date.now()-CHAT_RETENTION_MS;
+ if(path==='/chat/delete-saved'&&request.method==='POST'){
+ const b=await request.json();if(b.confirm!==true)return json({error:'보관함 전체 삭제를 확인해 주세요.'},400);
+ const result=await env.DB.batch([
+ sql(env,"UPDATE chat_messages SET payload=json_set(payload,'$.reply.text','삭제된 메시지') WHERE json_extract(payload,'$.reply.id') IN (SELECT id FROM chat_messages WHERE pinned=1)"),
+ sql(env,'DELETE FROM chat_photos WHERE message_id IN (SELECT id FROM chat_messages WHERE pinned=1)'),
+ sql(env,'DELETE FROM chat_hearts WHERE message_id IN (SELECT id FROM chat_messages WHERE pinned=1)'),
+ sql(env,"UPDATE chat_messages SET kind='text',payload=?,pinned=0,notified=1 WHERE pinned=1",JSON.stringify({deleted:true})),
+ sql(env,"INSERT INTO meta(id,value) VALUES('savedChatRevision',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value",crypto.randomUUID())
+ ]);return json({ok:true,deletedCount:Number(result.at(-2)?.meta?.changes||0)});
+ }
  if(path==='/chat/delete'&&request.method==='POST'){
  const b=await request.json();if(typeof b.id!=='string')return json({error:'메시지를 확인해 주세요.'},400);
  const m=await sql(env,'SELECT owner FROM chat_messages WHERE id=?',b.id).first();if(!m)return json({error:'이미 정리된 대화예요.'},404);if(m.owner!==owner)return json({error:'내가 보낸 메시지만 삭제할 수 있어요.'},403);
@@ -34,9 +44,10 @@ export async function chatRoute(request,env,current,ctx,send){
  const rows=(await sql(env,`SELECT seq,id,owner,kind,payload,created_at,pinned FROM chat_messages WHERE ${live}${saved?' AND pinned=1':''}${before?' AND seq<?':''} ORDER BY seq DESC LIMIT 61`,cutoff,...(before?[before]:[])).all()).results;
  const hasMore=rows.length>60;if(hasMore)rows.pop();const unread=await sql(env,`SELECT COUNT(*) AS count FROM chat_messages WHERE owner!=? AND seq>COALESCE((SELECT seq FROM chat_reads WHERE owner=?),0) AND ${live}`,owner,owner,cutoff).first();const read=await sql(env,'SELECT seq FROM chat_reads WHERE owner=?',other(owner)).first();
  const peer=await sql(env,'SELECT MAX(active_until) AS active,MAX(typing_until) AS typing FROM chat_presence WHERE owner=?',other(owner)).first();const hearts=rows.length?(await sql(env,'SELECT message_id,owner FROM chat_hearts WHERE message_id IN ('+rows.map(()=>'?').join(',')+')',...rows.map(r=>r.id)).all()).results:[];
- return json({peerOnline:peer?.active>Date.now(),typing:peer?.typing>Date.now(),hearts,messages:rows.reverse().map(r=>({...r,payload:JSON.parse(r.payload)})),hasMore,unread:unread.count,readSeq:read?.seq||0})}
+ const savedRevision=(await sql(env,"SELECT value FROM meta WHERE id='savedChatRevision'").first())?.value||'';
+ return json({savedRevision,peerOnline:peer?.active>Date.now(),typing:peer?.typing>Date.now(),hearts,messages:rows.reverse().map(r=>({...r,payload:JSON.parse(r.payload)})),hasMore,unread:unread.count,readSeq:read?.seq||0})}
  if(path==='/chat/read'&&request.method==='POST'){const b=await request.json();const max=await sql(env,'SELECT MAX(seq) AS seq FROM chat_messages').first();const seq=Math.min(Math.max(0,Number(b.seq)||0),max?.seq||0);await sql(env,'INSERT INTO chat_reads(owner,seq) VALUES(?,?) ON CONFLICT(owner) DO UPDATE SET seq=MAX(seq,excluded.seq)',owner,seq).run();await sql(env,'UPDATE chat_messages SET notified=1 WHERE owner!=? AND seq<=? AND notified=0',owner,seq).run();return json({ok:true})}
- if(path==='/chat/pin'&&request.method==='POST'){const b=await request.json();if(typeof b.id!=='string'||typeof b.pinned!=='boolean')return json({error:'보관 내용을 확인해 주세요.'},400);const m=await sql(env,`SELECT id FROM chat_messages WHERE id=? AND ${live}`,b.id,cutoff).first();if(!m)return json({error:'이미 정리된 대화예요.'},404);await sql(env,'UPDATE chat_messages SET pinned=? WHERE id=?',b.pinned?1:0,b.id).run();return json({ok:true})}
+ if(path==='/chat/pin'&&request.method==='POST'){const b=await request.json();if(typeof b.id!=='string'||typeof b.pinned!=='boolean')return json({error:'보관 내용을 확인해 주세요.'},400);const m=await sql(env,`SELECT id FROM chat_messages WHERE id=? AND ${live}`,b.id,cutoff).first();if(!m)return json({error:'이미 정리된 대화예요.'},404);const result=await sql(env,'UPDATE chat_messages SET pinned=? WHERE id=? AND (?=0 OR pinned=1 OR (SELECT COUNT(*) FROM chat_messages WHERE pinned=1)<1000)',b.pinned?1:0,b.id,b.pinned?1:0).run();if(!result.meta.changes)return json({error:'보관함은 1,000개까지 저장할 수 있어요. 오래된 보관 대화를 정리해 주세요.'},409);return json({ok:true})}
  if(path.startsWith('/chat/photo/')&&request.method==='GET'){const id=decodeURIComponent(path.slice(12));const m=await sql(env,`SELECT p.data FROM chat_photos p JOIN chat_messages m ON m.id=p.message_id WHERE m.id=? AND (m.pinned=1 OR m.created_at>=?)`,id,cutoff).first();return m?json({data:m.data}):json({error:'사진이 정리됐어요.'},404)}
  if(path==='/chat/messages'&&request.method==='POST'){
  if(Number(request.headers.get('Content-Length'))>250000)return json({error:'사진 용량이 너무 커요.'},413);
