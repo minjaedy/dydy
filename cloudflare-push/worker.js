@@ -1,3 +1,4 @@
+import {cleanAppRetention} from './app-retention.js';
 import {cleanCalendarYear} from './calendar-cleanup.js';
 import {chatRoute,scheduledChatCleanup,deliverChat,recordAppCards} from './chat.js';
 import {authRoute,cleanAuth,session} from './auth.js';
@@ -143,5 +144,5 @@ export default {
     }catch{response=json({error:'연결하지 못했어요. 잠시 후 다시 시도해 주세요.'},500);}
     return new Response(response.body,{status:response.status,headers:{...Object.fromEntries(response.headers),...headers}});
   },
-  async scheduled(event,env,ctx){ctx.waitUntil(Promise.allSettled([sync(env),scheduledChatCleanup(env),deliverChat(env,send),cleanCalendarYear(env)]));}
+  async scheduled(event,env,ctx){ctx.waitUntil(Promise.allSettled([sync(env),scheduledChatCleanup(env),deliverChat(env,send),cleanCalendarYear(env),cleanAppRetention(env)]));}
 };

@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {pruneSmoke,pruneTrips} from './app-retention.js';
+const now=Date.parse('2026-10-12T00:00:00Z');
+test('smoke removes old request and embedded photo, keeps recent and history',()=>{const d=pruneSmoke({requests:[{submittedAt:'2026-10-01',photo:'old'},{submittedAt:'2026-10-11',photo:'new'}],history:['keep']},now);assert.equal(d.requests.length,1);assert.equal(d.requests[0].photo,'new');assert.deepEqual(d.history,['keep']);});
+test('travel removes complete expired trip including expenses; legacy starts retention now',()=>{const d=pruneTrips({old:{createdAt:'2026-09-01',expenses:[1]},recent:{createdAt:'2026-10-11'},legacy:{title:'keep'}},now);assert.equal(d.old,undefined);assert.ok(d.recent);assert.equal(d.legacy.retentionStartedAt,new Date(now).toISOString());assert.deepEqual(pruneTrips(d,now),d);});
