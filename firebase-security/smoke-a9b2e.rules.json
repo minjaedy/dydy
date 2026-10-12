@@ -1,0 +1,10 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "smoke_app_v1": {
+      ".read": "auth != null && (auth.uid === 'couple-rabbit' || auth.uid === 'couple-sweet') && auth.token.session_until > now",
+      ".write": "auth != null && (auth.uid === 'couple-rabbit' || auth.uid === 'couple-sweet') && auth.token.session_until > now"
+    }
+  }
+}

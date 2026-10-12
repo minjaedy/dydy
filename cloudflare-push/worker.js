@@ -1,3 +1,4 @@
+import {firebaseFetch} from './firebase-access.js';
 import {cleanAppRetention} from './app-retention.js';
 import {cleanCalendarYear} from './calendar-cleanup.js';
 import {chatRoute,scheduledChatCleanup,deliverChat,recordAppCards} from './chat.js';
@@ -43,7 +44,7 @@ export function hourlyReminders(saved,now=new Date()) {
   }
   return result;
 }
-async function read(url){const r=await fetch(url,{signal:AbortSignal.timeout(10000)});if(!r.ok)throw Error('Database unavailable');return await r.json();}
+async function read(url,env){const r=await firebaseFetch(env,url,{signal:AbortSignal.timeout(10000)});if(!r.ok)throw Error('Database unavailable');return await r.json();}
 async function device(env,request){const token=request.headers.get('Authorization')?.replace(/^Bearer /,'')||'';if(token.length<32)return null;return sql(env,'SELECT id,owner FROM devices WHERE token_hash=?',await hash(token)).first();}
 function validSubscription(s){if(!s||typeof s.endpoint!=='string'||!s.keys)return false;try{const u=new URL(s.endpoint);return u.protocol==='https:'&&['web.push.apple.com','fcm.googleapis.com','updates.push.services.mozilla.com'].some(host=>u.hostname===host||u.hostname.endsWith('.'+host))&&typeof s.keys.p256dh==='string'&&typeof s.keys.auth==='string'&&s.keys.p256dh.length<200&&s.keys.auth.length<100;}catch{return false;}}
 export function notificationTitle(screen,key,body=''){
@@ -75,7 +76,7 @@ async function send(env,owner,key,body,screen,deviceId=null){
 }
 async function scan(env){
   // No tokens or message bodies are logged.
-  const [calendar,leave,smoke,preferences]=await Promise.all([read(DATABASES.calendar),read(DATABASES.leave),read(DATABASES.smoke),read('https://dydy-96bb1-default-rtdb.firebaseio.com/couple_home_v1/preferences.json')]);
+  const [calendar,leave,smoke,preferences]=await Promise.all([read(DATABASES.calendar,env),read(DATABASES.leave,env),read(DATABASES.smoke,env),read('https://dydy-96bb1-default-rtdb.firebaseio.com/couple_home_v1/preferences.json',env)]);
   const baseline=await sql(env,"SELECT value FROM meta WHERE id='startedAt'").first();
   if(!baseline){await sql(env,"INSERT OR IGNORE INTO meta(id,value) VALUES('startedAt',?)",String(Date.now())).run();return;}
   const started=notificationCutoff(Number(baseline.value)),names={rabbit:'이토끼님',sweet:'구마구마님'};
@@ -120,7 +121,7 @@ export default {
       if(request.method==='OPTIONS')response=new Response(null,{status:204});
       else if(path.startsWith('/chat/')){const current=await session(env,request);response=current?await chatRoute(request,env,current,ctx,send):json({error:'사용자 인증 후 대화할 수 있어요.'},401);}
       else if(path.startsWith('/auth/'))response=await authRoute(request,env);
-      else if(path==='/health'&&request.method==='GET'){await sql(env,'SELECT 1').first();await read(DATABASES.calendar);response=json({ok:true,database:true});}
+      else if(path==='/health'&&request.method==='GET'){await sql(env,'SELECT 1').first();await read(DATABASES.calendar,env);response=json({ok:true,database:true});}
       else if(path==='/config'&&request.method==='GET')response=json({publicKey:env.VAPID_PUBLIC_KEY});
       else if(path==='/pair'&&request.method==='POST'){
         const ip=await hash(request.headers.get('CF-Connecting-IP')||'unknown'),bucket=ip+'-'+Math.floor(Date.now()/3600000);

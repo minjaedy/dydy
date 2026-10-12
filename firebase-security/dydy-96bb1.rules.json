@@ -1,0 +1,22 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "leave_app_v2": {
+      ".read": "auth != null && (auth.uid === 'couple-rabbit' || auth.uid === 'couple-sweet') && auth.token.session_until > now",
+      ".write": "auth != null && (auth.uid === 'couple-rabbit' || auth.uid === 'couple-sweet') && auth.token.session_until > now"
+    },
+    "couple_calendar_v1": {
+      ".read": "auth != null && (auth.uid === 'couple-rabbit' || auth.uid === 'couple-sweet') && auth.token.session_until > now",
+      ".write": "auth != null && (auth.uid === 'couple-rabbit' || auth.uid === 'couple-sweet') && auth.token.session_until > now"
+    },
+    "couple_home_v1": {
+      ".read": "auth != null && (auth.uid === 'couple-rabbit' || auth.uid === 'couple-sweet') && auth.token.session_until > now",
+      ".write": "auth != null && (auth.uid === 'couple-rabbit' || auth.uid === 'couple-sweet') && auth.token.session_until > now"
+    },
+    "couple_travel_v1": {
+      ".read": "auth != null && (auth.uid === 'couple-rabbit' || auth.uid === 'couple-sweet') && auth.token.session_until > now",
+      ".write": "auth != null && (auth.uid === 'couple-rabbit' || auth.uid === 'couple-sweet') && auth.token.session_until > now"
+    }
+  }
+}

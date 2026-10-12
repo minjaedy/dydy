@@ -7,13 +7,14 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261007-entrance-theme-68">
+<meta name="app-version" content="20261012-firebase-private-69">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
 <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   *{box-sizing:border-box;}
   body{ margin:0; font-family:'Noto Sans KR',sans-serif; min-height:100vh; }
@@ -2798,6 +2799,7 @@ try{
     throw new Error('Firebase SDK 스크립트를 불러오지 못했어요. 인터넷 연결이나 네트워크 차단(방화벽/광고차단기)을 확인해주세요.');
   }
   firebase.initializeApp(firebaseConfig);
+  firebase.app().database().goOffline();
   stateRef = firebase.database().ref('leave_app_v2');
 }catch(e){
   console.error(e);
@@ -3745,6 +3747,7 @@ try{
     throw new Error('Firebase SDK 스크립트를 불러오지 못했어요. 인터넷 연결이나 네트워크 차단(방화벽/광고차단기)을 확인해주세요.');
   }
   firebase.initializeApp(firebaseConfig, 'smokeApp');
+  firebase.app('smokeApp').database().goOffline();
   stateRef = firebase.app('smokeApp').database().ref('smoke_app_v1');
 }catch(e){
   console.error(e);
@@ -5251,19 +5254,21 @@ async function action(fn){if(working)return;working=true;dialog.querySelectorAll
 const sessionKey=selected=>'couple-auth-day:'+selected;
 function forget(selected){try{localStorage.removeItem(sessionKey(selected))}catch{}}
 function remember(){if(preview||!verified?.token)return;try{localStorage.setItem(sessionKey(verified.owner),JSON.stringify(verified))}catch{}}
-function finish(){remember();const done=resolveEntry;resolveEntry=null;dialog.close();changed();done?.(true);}
+async function connectFirebase(){if(preview)return;const result=await api('firebase',{});const apps=[firebase.app(),firebase.app('smokeApp')];try{await Promise.all(apps.map(async(app,i)=>{await app.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);await app.auth().signInWithCustomToken(result.tokens[i?'smoke':'dydy']);}));apps.forEach(app=>app.database().goOnline());}catch(error){apps.forEach(app=>app.database().goOffline());await Promise.allSettled(apps.map(app=>app.auth().signOut()));throw error;}}
+function disconnectFirebase(){if(preview||!window.firebase)return;for(const app of firebase.apps){app.database().goOffline();void app.auth().signOut().catch(()=>{});}}
+async function finish(){await connectFirebase();remember();const done=resolveEntry;resolveEntry=null;dialog.close();changed();done?.(true);}
 function cancel(){if(working)return;verified=null;const done=resolveEntry;resolveEntry=null;dialog.close();changed();done?.(false);}
 $('auth-cancel').onclick=cancel;dialog.addEventListener('cancel',e=>{e.preventDefault();cancel();});
 $('auth-use-password').onclick=()=>{$('auth-password-fields').hidden=false;$('auth-password').focus();};
 $('auth-form').onsubmit=e=>{e.preventDefault();void action(async()=>{verified=await api('password',{password:$('auth-password').value});$('auth-password').value='';$('auth-password-fields').hidden=true;$('auth-use-password').hidden=true;$('auth-passkey').hidden=true;$('auth-enrollment').hidden=false;status('인증됐어요. 패스키를 등록하거나 바로 입장해 주세요.');});};
-async function authenticate(){const r=await api('login/options',{});const response=await SimpleWebAuthnBrowser.startAuthentication({optionsJSON:r.options});verified=await api('login/verify',{response,challengeId:r.challengeId});finish();}
+async function authenticate(){const r=await api('login/options',{});const response=await SimpleWebAuthnBrowser.startAuthentication({optionsJSON:r.options});verified=await api('login/verify',{response,challengeId:r.challengeId});await finish();}
 $('auth-passkey').onclick=()=>void action(authenticate);
-$('auth-register').onclick=()=>void action(async()=>{const r=await api('register/options',{});const response=await SimpleWebAuthnBrowser.startRegistration({optionsJSON:r.options});await api('register/verify',{response,challengeId:r.challengeId});finish();});
-$('auth-enter').onclick=finish;
+$('auth-register').onclick=()=>void action(async()=>{const r=await api('register/options',{});const response=await SimpleWebAuthnBrowser.startRegistration({optionsJSON:r.options});await api('register/verify',{response,challengeId:r.challengeId});await finish();});
+$('auth-enter').onclick=()=>void action(finish);
 setInterval(()=>{if(verified&&verified.expires<=Date.now())window.CoupleAuth.lock();},30000);
 window.CoupleAuth=Object.freeze({
- async enter(selected){if(!names[selected])return Promise.resolve(false);verified=null;changed();owner=selected;
-  if(!preview){let cached;try{cached=JSON.parse(localStorage.getItem(sessionKey(selected))||'null')}catch{}if(cached?.owner===selected&&cached.expires>Date.now()&&typeof cached.token==='string'){verified=cached;try{const valid=await api('session',{});verified={...cached,...valid};remember();changed();return true}catch{verified=null;forget(selected)}}else forget(selected);}
+ async enter(selected){if(!names[selected])return Promise.resolve(false);disconnectFirebase();verified=null;changed();owner=selected;
+  if(!preview){let cached;try{cached=JSON.parse(localStorage.getItem(sessionKey(selected))||'null')}catch{}if(cached?.owner===selected&&cached.expires>Date.now()&&typeof cached.token==='string'){verified=cached;try{const valid=await api('session',{});verified={...cached,...valid};await connectFirebase();remember();changed();return true}catch{verified=null;forget(selected)}}else forget(selected);}
   $('auth-title').textContent=names[owner]+'로 들어가기';$('auth-description').textContent=(owner==='sweet'?'유흥연차':'흡연 결재')+' 관리자 암호로 최초 인증 후 패스키를 등록할 수 있어요.';
   $('auth-password').value='';$('auth-password-fields').hidden=true;$('auth-enrollment').hidden=true;$('auth-passkey').hidden=!window.PublicKeyCredential;$('auth-use-password').hidden=false;status(preview?'미리보기예요. 암호로 인증하기를 누르면 입장 흐름을 볼 수 있어요.':'Face ID 대신 기기 암호나 다른 인증 수단이 표시될 수도 있어요.');dialog.showModal();const entry=new Promise(resolve=>{resolveEntry=resolve;});
   // Start from the user's avatar click; the server decides whether a passkey exists.
@@ -5275,7 +5280,7 @@ window.CoupleAuth=Object.freeze({
  async chatRequest(path,options={}){if(!verified?.token||verified.expires<=Date.now())throw Error('사용자를 다시 선택해 인증해 주세요.');const r=await fetch(server+'/chat/'+path,{...options,headers:{'Content-Type':'application/json',Authorization:'Bearer '+verified.token},signal:AbortSignal.timeout(20000)});const data=await r.json();if(!r.ok)throw Error(data.error||'대화를 연결하지 못했어요.');return data;},
  isPerson(selected){return !!verified&&verified.expires>Date.now()&&verified.owner===selected;},
  isAdmin(app){return !!verified&&verified.expires>Date.now()&&verified.owner===(app==='leave'?'sweet':'rabbit');},
- lock(forgetSession=false){const previous=verified;verified=null;changed();if(previous&&(forgetSession||previous.expires<=Date.now()))forget(previous.owner);if(previous?.token)void fetch(server+'/chat/presence',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+previous.token},body:JSON.stringify({active:false}),keepalive:true}).catch(()=>{}).finally(()=>forgetSession?fetch(server+'/auth/logout',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+previous.token},body:JSON.stringify({owner:previous.owner}),keepalive:true}).catch(()=>{}):undefined);}
+ lock(forgetSession=false){const previous=verified;disconnectFirebase();verified=null;changed();if(previous&&(forgetSession||previous.expires<=Date.now()))forget(previous.owner);if(previous?.token)void fetch(server+'/chat/presence',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+previous.token},body:JSON.stringify({active:false}),keepalive:true}).catch(()=>{}).finally(()=>forgetSession?fetch(server+'/auth/logout',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+previous.token},body:JSON.stringify({owner:previous.owner}),keepalive:true}).catch(()=>{}):undefined);}
 });
 })();
 
