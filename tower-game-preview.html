@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261013-tower-preview-73">
+<meta name="app-version" content="20261013-tower-wide-preview-74">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -3837,7 +3837,7 @@ window.CoupleGameRewards=Object.freeze({month,rabbitLeft,sweetLeft,sweetClaim});
 'use strict';
 const W=360,H=480;
 function create(){return {elapsed:0,score:0,blocks:[],active:null,x:180,direction:1,angle:0,omega:0,impact:0,over:false,settle:0,sinceHeavy:0,perfect:0,dust:[]};}
-function spawn(s,random=Math.random){const heavy=s.blocks.length>=3&&(s.sinceHeavy>=5||random()<0.22);s.sinceHeavy=heavy?0:s.sinceHeavy+1;s.active={kind:heavy?'sweet':'rabbit',mass:heavy?3.5:1,w:Math.max(28,(heavy?76:64)-s.blocks.length*1.05),x:40,y:44,vy:0,falling:false};s.direction=1;}
+function spawn(s,random=Math.random){const heavy=s.blocks.length>=3&&(s.sinceHeavy>=5||random()<0.22);s.sinceHeavy=heavy?0:s.sinceHeavy+1;s.active={kind:heavy?'sweet':'rabbit',mass:heavy?3.5:1,w:Math.max(30,(heavy?140:128)-s.blocks.length*1.35),x:80,y:44,vy:0,falling:false};s.direction=1;}
 function drop(s){if(!s.over&&s.active&&!s.active.falling&&s.settle<=0){s.active.falling=true;return true;}return false;}
 function load(s){let worst=0;for(let i=0;i<s.blocks.length;i++){const lower=i===0?{x:180,w:360}:s.blocks[i-1];let mass=0,sum=0;for(let j=i;j<s.blocks.length;j++){mass+=s.blocks[j].mass;sum+=s.blocks[j].mass*s.blocks[j].x;}const offset=(sum/mass-lower.x)/(lower.w/2);if(Math.abs(offset)>Math.abs(worst))worst=offset;}return worst;}
 function step(s,seconds,random=Math.random){if(s.over)return s;const dt=Math.max(0,Math.min(0.035,seconds||0));s.elapsed+=dt;s.settle=Math.max(0,s.settle-dt);s.impact=Math.max(0,s.impact-dt*2);
@@ -3845,10 +3845,10 @@ for(const block of s.blocks){block.x+=(block.vx||0)*dt;block.vx=(block.vx||0)*Ma
 if(Math.abs(load(s))>1.1){s.over=true;return s;}
 
 if(!s.active&&s.settle<=0)spawn(s,random);const a=s.active;if(!a)return s;
-if(!a.falling){const speed=100+Math.min(200,s.blocks.length*7);a.x+=s.direction*speed*dt;if(a.x>W-a.w/2-9){a.x=W-a.w/2-9;s.direction=-1;}if(a.x<a.w/2+9){a.x=a.w/2+9;s.direction=1;}return s;}
+if(!a.falling){const speed=80+Math.min(220,s.blocks.length*3);a.x+=s.direction*speed*dt;if(a.x>W-a.w/2-9){a.x=W-a.w/2-9;s.direction=-1;}if(a.x<a.w/2+9){a.x=a.w/2+9;s.direction=1;}return s;}
 a.vy+=(a.kind==='sweet'?1200:620)*dt;a.y+=a.vy*dt;const floor=392-Math.min(9,s.blocks.length)*32;
 if(a.y>=floor){const support=s.blocks.at(-1)||{x:180,w:360};const offset=a.x-support.x;const overlap=(a.w+support.w)/2-Math.abs(offset);if(overlap<Math.min(a.w,support.w)*0.28){s.over=true;s.impact=1;return s;}
-a.x+=Math.sin(s.angle)*18;a.y=floor;s.blocks.push({...a});s.x=a.x;s.score+=100+(a.kind==='sweet'?50:0)+(Math.abs(offset)<8?25:0);s.perfect=Math.abs(offset)<8?0.8:0;if(a.kind==='sweet'){const kick=Math.max(-24,Math.min(24,offset*0.5));s.blocks.forEach((block,i)=>{block.vx=(block.vx||0)+kick*(0.25+0.75*(i+1)/s.blocks.length);});s.dust=Array.from({length:14},(_,i)=>({x:a.x+(i-7)*5,y:floor+13+(s.blocks.length>9?32:0),vx:(i-6.5)*8,vy:-12-(i%4)*5,life:0.65+(i%3)*0.15}));}s.impact=a.kind==='sweet'?0.7:0.15;s.settle=a.kind==='sweet'?0.55:0.32;s.active=null;
+a.x+=Math.sin(s.angle)*18;a.y=floor;s.blocks.push({...a});s.x=a.x;s.score+=100+(a.kind==='sweet'?50:0)+(Math.abs(offset)<8?25:0);s.perfect=Math.abs(offset)<8?0.8:0;if(a.kind==='sweet'){const kick=Math.max(-20,Math.min(20,offset*0.4));s.blocks.forEach((block,i)=>{block.vx=(block.vx||0)+kick*(0.25+0.75*(i+1)/s.blocks.length);});s.dust=Array.from({length:14},(_,i)=>({x:a.x+(i-7)*5,y:floor+13+(s.blocks.length>9?32:0),vx:(i-6.5)*8,vy:-12-(i%4)*5,life:0.65+(i%3)*0.15}));}s.impact=a.kind==='sweet'?0.7:0.15;s.settle=a.kind==='sweet'?0.55:0.32;s.active=null;
 } s.perfect=Math.max(0,s.perfect-dt);return s;}
 window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step});
 })();
@@ -3894,12 +3894,12 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step});
     const status=preview?{ready:true,totalDays:(previewRewards.totalAwards||0)/10,remaining:rewardRules.rabbitLeft(previewRewards,mode,month)}:window.__leaveGameRewardStatus?.(mode);
     const sweetLeft=rewardRules.sweetLeft(sweetWallet,mode,month);
     $('game-reward-total').textContent=person==='rabbit'?(status?.ready?'연차 '+status.totalDays.toFixed(1)+'일':'확인 중'):(sweetRewardReady||preview?'소원권 '+(sweetWallet.halfTickets/2+Number(sweetWallet.archivedUses||0))+'장':'확인 중');
-    const goal=mode==='tower'?(person==='rabbit'?2500:2800):(person==='rabbit'?3001:3500);
+    const goal=mode==='tower'?(person==='rabbit'?4500:5000):(person==='rabbit'?3001:3500);
     info.textContent=goal.toLocaleString()+'점 달성 · '+(person==='rabbit'?'연차 0.1일':'소원권 0.25장');
     $('game-reward-month').textContent=(person==='rabbit'?status?.ready:sweetRewardReady||preview)?'이 게임 · 이번 달 '+(person==='rabbit'?status.remaining:sweetLeft)+'회 남음':'횟수 확인 중';
   }
   async function claimReward(record){
-    const goal=record.game==='tower'?(record.owner==='rabbit'?2500:2800):(record.owner==='rabbit'?3001:3500);
+    const goal=record.game==='tower'?(record.owner==='rabbit'?4500:5000):(record.owner==='rabbit'?3001:3500);
     if(record.score<goal)return null;
     if(!preview&&!window.CoupleAuth?.isPerson(record.owner))return {awarded:false,message:names[record.owner]+'로 본인 인증해야 보상을 받을 수 있어요.'};
     const month=rewardRules.month();
@@ -3921,7 +3921,7 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step});
   function switchMode(next){if(running||paused||saving||pending||!['dodge','tower'].includes(next))return;mode=next;rules=mode==='tower'?window.CoupleTowerRules:window.CoupleDodgeRules;root.querySelector('h1').textContent=mode==='tower'?'둘이 쌓는 탑':'토끼와 구마, 피해라!';$('game-third-label').textContent=mode==='tower'?'쌓은 높이':'버틴 시간';canvas.setAttribute('aria-label',mode==='tower'?'탭하거나 스페이스로 네모 블록을 쌓는 게임':'떨어지는 상대를 피해 좌우로 움직이는 게임');$('game-level').setAttribute('aria-label',mode==='tower'?'탑 쌓기 보상 목표까지 진행도':'3,000점까지 난이도 증가');const controlsEl=root.querySelector('.game-controls');controlsEl.classList.toggle('tower-controls',mode==='tower');$('game-left').textContent=mode==='tower'?'블록 떨어뜨리기 ↓':'←';$('game-left').setAttribute('aria-label',mode==='tower'?'블록 떨어뜨리기':'왼쪽으로 이동');root.querySelector('.game-instructions').textContent=mode==='tower'?'화면 탭 · 떨어뜨리기 버튼 · PC 스페이스 / 토끼는 가볍게, 구마는 묵직하게':'휴대폰: 좌우 드래그 / PC: ← → 또는 A / D';choose(person);}
   root.querySelector('.game-mode-tabs').addEventListener('click',e=>{const next=e.target.closest('[data-game-mode]')?.dataset.gameMode;if(next)switchMode(next);});
   function drawTower(){
-    const count=state.blocks.length,stage=count<7?0:count<15?1:count<25?2:3,dark=stage>=2,palettes=[['#e9f4eb','#fff3df'],['#8ccbed','#e2f3fc'],['#17213c','#4b3671'],['#17152f','#603b78']];
+    const count=state.blocks.length,stage=count<10?0:count<25?1:count<40?2:3,dark=stage>=2,palettes=[['#e9f4eb','#fff3df'],['#8ccbed','#e2f3fc'],['#17213c','#4b3671'],['#17152f','#603b78']];
     ctx.clearRect(0,0,360,480);const gradient=ctx.createLinearGradient(0,0,0,480);gradient.addColorStop(0,palettes[stage][0]);gradient.addColorStop(1,palettes[stage][1]);ctx.fillStyle=gradient;ctx.fillRect(0,0,360,480);
     if(stage<2){ctx.fillStyle='#ffffff88';for(let i=0;i<5;i++){ctx.beginPath();ctx.ellipse((i*91+state.elapsed*3)%410-25,90+i*48,38,11,0,0,Math.PI*2);ctx.fill();}}else{for(let i=0;i<75;i++){ctx.fillStyle='rgba(255,255,255,'+(0.3+0.6*(.5+.5*Math.sin(state.elapsed+i)))+')';ctx.fillRect((i*73+19)%360,(i*47+8)%440,i%6===0?2:1, i%6===0?2:1);}if(stage===3){ctx.save();ctx.translate(180,210);ctx.rotate(-.55);for(let i=0;i<8;i++){ctx.fillStyle='rgba(195,154,241,.045)';ctx.beginPath();ctx.ellipse(0,0,190-i*16,65-i*6,0,0,Math.PI*2);ctx.fill();}ctx.restore();}}
     ctx.fillStyle=dark?'#dfc8eb':'#708b86';ctx.font='12px sans-serif';ctx.textAlign='center';ctx.fillText(['초록 땅','구름 위 하늘','별빛 우주','은하 속으로'][stage]+' · '+count+'층',180,22);
@@ -3931,10 +3931,10 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step});
     ctx.restore();for(const p of state.dust||[]){ctx.fillStyle='rgba(203,183,166,'+Math.min(.5,p.life*.6)+')';ctx.beginPath();ctx.arc(p.x,p.y,5+(1-p.life)*7,0,Math.PI*2);ctx.fill();}if(state.active)paintBlock(state.active,state.active.x,state.active.y,false);
     if(state.perfect>0){ctx.fillStyle=dark?'#f9dba9':'#aa6981';ctx.font='bold 15px sans-serif';ctx.fillText('딱 맞았어! +25',180,65);}
     if(state.impact>.3){ctx.fillStyle=dark?'#e4c4f0':'#ae7488';ctx.font='12px sans-serif';ctx.fillText('쿵! 구마 조심!',180,460);}
-    $('game-score').textContent=String(state.score);$('game-time').textContent=count+'층';const goal=person==='rabbit'?2500:2800;$('game-level').max=goal;$('game-level').value=Math.min(goal,state.score);$('game-level-label').textContent='보상 '+Math.min(100,Math.floor(state.score/goal*100))+'%';
+    $('game-score').textContent=String(state.score);$('game-time').textContent=count+'층';const goal=person==='rabbit'?4500:5000;$('game-level').max=goal;$('game-level').value=Math.min(goal,state.score);$('game-level-label').textContent='보상 '+Math.min(100,Math.floor(state.score/goal*100))+'%';
   }
   function paintBlock(block,x,y){ctx.save();ctx.translate(x,y);if(block.kind==='rabbit'&&block.falling)ctx.rotate(Math.sin(state.elapsed*8)*.025);const height=30;ctx.shadowColor=block.kind==='sweet'?'#42273c55':'#7e668522';ctx.shadowBlur=block.kind==='sweet'?7:3;ctx.shadowOffsetY=block.kind==='sweet'?4:2;ctx.fillStyle=block.kind==='sweet'?'#b27696':'#fff5ed';ctx.strokeStyle=block.kind==='sweet'?'#835577':'#e3cbd9';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(-block.w/2,-height/2,block.w,height,7);ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.shadowOffsetY=0;drawSprite(block.kind,0,0,27);ctx.restore();}
-  if(preview){const demo=document.createElement('div');demo.className='tower-preview-tools';demo.innerHTML='<small>배경 미리보기 · 실제 점수·보상에 반영되지 않아요</small><div><button type="button" data-tower-scene="0">땅</button><button type="button" data-tower-scene="7">하늘</button><button type="button" data-tower-scene="15">별빛 우주</button><button type="button" data-tower-scene="25">은하 우주</button></div><button type="button" data-tower-demo-start>처음부터 플레이 ▶</button>';root.querySelector('.game-stage').after(demo);demo.addEventListener('click',e=>{if(running||paused||saving||pending)return;if(e.target.closest('[data-tower-demo-start]')){switchMode('tower');start();return;}const b=e.target.closest('[data-tower-scene]');if(!b)return;switchMode('tower');state=rules.create();const count=Number(b.dataset.towerScene);state.blocks=Array.from({length:count},(_,i)=>({kind:i%5===4?'sweet':'rabbit',mass:i%5===4?3.5:1,w:Math.max(28,(i%5===4?76:64)-i*1.05),x:180+Math.sin(i)*4}));rules.spawn(state,()=>1);state.score=0;draw();$('game-overlay').hidden=true;});}
+  if(preview){const demo=document.createElement('div');demo.className='tower-preview-tools';demo.innerHTML='<small>배경 미리보기 · 실제 점수·보상에 반영되지 않아요</small><div><button type="button" data-tower-scene="0">땅</button><button type="button" data-tower-scene="10">하늘</button><button type="button" data-tower-scene="25">별빛 우주</button><button type="button" data-tower-scene="40">은하 우주</button></div><button type="button" data-tower-demo-start>처음부터 플레이 ▶</button>';root.querySelector('.game-stage').after(demo);demo.addEventListener('click',e=>{if(running||paused||saving||pending)return;if(e.target.closest('[data-tower-demo-start]')){switchMode('tower');start();return;}const b=e.target.closest('[data-tower-scene]');if(!b)return;switchMode('tower');state=rules.create();const count=Number(b.dataset.towerScene);state.blocks=Array.from({length:count},(_,i)=>({kind:i%5===4?'sweet':'rabbit',mass:i%5===4?3.5:1,w:Math.max(30,(i%5===4?140:128)-i*1.35),x:180+Math.sin(i)*4}));rules.spawn(state,()=>1);state.score=0;draw();$('game-overlay').hidden=true;});}
   function drawSprite(owner,x,y,size){
     const img=sprites[owner];
     if(img.complete&&img.naturalWidth){const ratio=img.naturalWidth/img.naturalHeight,h=size,w=h*ratio;ctx.drawImage(img,x-w/2,y-h/2,w,h);}else{ctx.font='28px sans-serif';ctx.textAlign='center';ctx.fillText(owner==='rabbit'?'🐰':'🍠',x,y+9);}
@@ -3966,7 +3966,7 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step});
     finally{saving=false;controls();}
   }
   function finish(){window.FX?.feedback('collision',canvas);running=false;paused=false;clearInput();controls();const best=(mode==='tower'?towerScores:scores)[person]?.best||0;overlay(state.score>best?'새로운 최고 기록!':'앗, 만났네!',mode==='tower'?`${state.blocks.length}층 · ${state.score}점, 다시 더 높이 쌓아봐요!`:`${state.score}점 · ${state.elapsed.toFixed(1)}초 동안 버텼어요.`,'다시 도전',state.score>best?'🏆':'♥');void saveScore({owner:person,score:state.score,at:Date.now(),runId,game:mode});}
-  function loop(time){if(!running)return;if(document.hidden||document.body.dataset.siteMode!=='game'){pause();return;}const seconds=lastTime?(time-lastTime)/1000:0;lastTime=time;const direction=held||(Number(keys.has('ArrowRight')||keys.has('d'))-Number(keys.has('ArrowLeft')||keys.has('a')));const previousScore=state.score;if(mode==='tower')rules.step(state,seconds);else rules.step(state,seconds,{direction,target:direction?null:target});const goal=mode==='tower'?(person==='rabbit'?2500:2800):(person==='rabbit'?3000:3500);if(previousScore<=goal&&state.score>goal)window.FX?.feedback('goal',canvas);draw();if(state.over)finish();else frame=requestAnimationFrame(loop);}
+  function loop(time){if(!running)return;if(document.hidden||document.body.dataset.siteMode!=='game'){pause();return;}const seconds=lastTime?(time-lastTime)/1000:0;lastTime=time;const direction=held||(Number(keys.has('ArrowRight')||keys.has('d'))-Number(keys.has('ArrowLeft')||keys.has('a')));const previousScore=state.score;if(mode==='tower')rules.step(state,seconds);else rules.step(state,seconds,{direction,target:direction?null:target});const goal=mode==='tower'?(person==='rabbit'?4500:5000):(person==='rabbit'?3000:3500);if(previousScore<=goal&&state.score>goal)window.FX?.feedback('goal',canvas);draw();if(state.over)finish();else frame=requestAnimationFrame(loop);}
   function start(){if(saving){$('game-save-status').textContent='점수 저장이 끝나면 다시 시작할 수 있어요.';return;}if(pending){$('game-save-status').textContent='아직 저장하지 못한 점수가 있어요. 다시 저장을 눌러 주세요.';return;}if(!paused){state=rules.create();runId=crypto.randomUUID();}running=true;paused=false;lastTime=0;clearInput();$('game-overlay').hidden=true;$('game-save-status').textContent=preview?'미리보기 플레이 · 실제 공유 점수에는 반영하지 않아요.':'';controls();canvas.focus({preventScroll:true});frame=requestAnimationFrame(loop);}
   $('game-start').addEventListener('click',start);$('game-pause').addEventListener('click',()=>paused?start():pause());$('game-retry').addEventListener('click',()=>{if(pending)void saveScore(pending);});
   document.querySelector('.game-person-toggle').addEventListener('click',e=>{const owner=e.target.closest('[data-game-person]')?.dataset.gamePerson;if(owner)choose(owner);});
