@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261012-leave-gauge-71">
+<meta name="app-version" content="20261013-calendar-fold-72">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1250,6 +1250,12 @@ html[data-theme="dark"] #app-calendar{background:var(--cc-bg)}
 #app-calendar .cc-favorite-row button:last-child{flex:none;width:32px;height:32px;padding:0;border:0;background:transparent;color:var(--cc-muted)}
 .cc-favorite-save{width:100%;padding:12px;border-radius:12px;background:var(--cc-soft);color:var(--cc-accent);border:1px solid var(--cc-line)}
 
+
+.cc-favorites>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;list-style:none;user-select:none}
+.cc-favorites>summary::-webkit-details-marker{display:none}
+.cc-favorites-chevron{color:var(--cc-muted);font-size:19px;transition:transform .2s ease}
+.cc-favorites[open] .cc-favorites-chevron{transform:rotate(180deg)}
+.cc-favorites>summary:focus-visible{outline:2px solid var(--cc-accent);outline-offset:5px;border-radius:6px}
 </style>
 <!-- couple-calendar-styles:end -->
 <!-- couple-calendar-home-styles:start -->
@@ -1838,8 +1844,8 @@ body[data-site-mode=chat] #chat-feed{scroll-behavior:auto}.chat-action-dialog{an
         <p class="cc-calendar-note">이름을 누르면 각자의 일정만 모아볼 수 있어요.<br><span id="cc-holiday-status" role="status">기념일·생일·공휴일 자동 표시</span></p>
       </section>
       <aside class="cc-sidebar">
-        <section class="cc-paper cc-favorites" aria-labelledby="cc-favorites-title"><h2 id="cc-favorites-title">⭐ 자주 쓰는 일정</h2><p class="cc-calendar-note">골라 둔 날짜에 빠르게 추가해요.</p><div id="cc-favorites"></div><p id="cc-favorites-status" class="cc-calendar-note" role="status"></p></section>
         <section class="cc-paper cc-day-section" aria-labelledby="cc-day-title"><div class="cc-section-heading"><div><p class="cc-eyebrow" id="cc-day-weekday"></p><h2 id="cc-day-title"></h2></div><span class="cc-count" id="cc-day-count"></span></div><div id="cc-day-events"></div><button type="button" class="cc-primary cc-add" id="cc-add" disabled>＋ 일정 추가하기</button></section>
+        <details class="cc-paper cc-favorites" aria-labelledby="cc-favorites-title"><summary><h2 id="cc-favorites-title">⭐ 자주 쓰는 일정</h2><span class="cc-favorites-chevron" aria-hidden="true">⌄</span></summary><p class="cc-calendar-note">골라 둔 날짜에 빠르게 추가해요.</p><div id="cc-favorites"></div><p id="cc-favorites-status" class="cc-calendar-note" role="status"></p></details>
         <section class="cc-paper cc-upcoming" aria-labelledby="cc-upcoming-title"><p class="cc-eyebrow">LOOKING FORWARD TO</p><h2 id="cc-upcoming-title">곧 만날 좋은 날</h2><div id="cc-upcoming-events"></div></section>
       </aside>
     </div>
