@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261013-calendar-fold-72">
+<meta name="app-version" content="20261013-dual-game-heights-78">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -1250,12 +1250,12 @@ html[data-theme="dark"] #app-calendar{background:var(--cc-bg)}
 #app-calendar .cc-favorite-row button:last-child{flex:none;width:32px;height:32px;padding:0;border:0;background:transparent;color:var(--cc-muted)}
 .cc-favorite-save{width:100%;padding:12px;border-radius:12px;background:var(--cc-soft);color:var(--cc-accent);border:1px solid var(--cc-line)}
 
-
 .cc-favorites>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;list-style:none;user-select:none}
 .cc-favorites>summary::-webkit-details-marker{display:none}
 .cc-favorites-chevron{color:var(--cc-muted);font-size:19px;transition:transform .2s ease}
 .cc-favorites[open] .cc-favorites-chevron{transform:rotate(180deg)}
 .cc-favorites>summary:focus-visible{outline:2px solid var(--cc-accent);outline-offset:5px;border-radius:6px}
+
 </style>
 <!-- couple-calendar-styles:end -->
 <!-- couple-calendar-home-styles:start -->
@@ -1403,7 +1403,7 @@ html[data-theme=dark] .home-pending-group{background:var(--hm-paper,#2c2732);bor
 </style>
 <!-- couple-calendar-home-styles:end -->
 <!-- couple-calendar-social-styles:start -->
-<style>
+<style id="couple-social-styles">
 .home-moods{margin:0 0 30px}.social-person-picker{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--hm-muted)}.social-person-picker select,.social-mood-form select{border:1px solid var(--hm-line);background:var(--hm-paper);color:var(--hm-ink);border-radius:10px;padding:7px;font:inherit}.social-mood-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.social-mood-card{border:1px solid var(--hm-line);border-radius:20px;background:var(--hm-paper);padding:17px;min-width:0}.social-mood-card header{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--hm-muted)}.social-mood-card header img{width:28px;height:28px;border-radius:8px}.social-mood-card p{font-size:14px;line-height:1.6;overflow-wrap:anywhere;min-height:24px;margin:13px 0}.social-mood-card footer{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10px;color:var(--hm-muted)}.social-heart{border:1px solid var(--hm-line);border-radius:14px;padding:5px 10px;background:transparent;color:var(--hm-muted);font:inherit;min-height:30px}.social-heart[aria-pressed=true]{background:#f9e4ee;color:#b75d83}.social-heart:disabled{opacity:.6}.social-mood-form{display:flex;gap:8px;margin-top:12px;align-items:center}.social-mood-form .social-input{flex:1;min-width:0}.social-input input{width:100%;box-sizing:border-box;border:1px solid var(--hm-line);border-radius:13px;background:var(--hm-paper);color:var(--hm-ink);padding:12px;font:inherit;font-size:12px}.social-mood-form .home-primary{padding:10px 14px;white-space:nowrap;font-size:12px}.social-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.social-bell{flex-shrink:0;margin-left:auto;border:1px solid #eddde5;border-radius:18px;background:#fff8fb;color:#835d73;padding:8px 11px;font-size:12px;position:relative;cursor:pointer}.social-bell span{display:inline-flex;background:#b56887;color:white;border-radius:20px;padding:1px 5px;font-size:9px;margin-left:4px}.social-bell span:empty{display:none}.social-dialog{width:min(440px,calc(100vw - 48px));max-height:80vh;box-sizing:border-box;overflow:auto;padding:24px;border:1px solid #eddee5;border-radius:25px;background:#fffcf9;color:#654c59}.social-dialog::backdrop{background:#51384a66;backdrop-filter:blur(3px)}.social-dialog h2{font-size:25px}.social-dialog button{cursor:pointer;font:inherit}.social-dialog #social-close{border:0;background:none;font-size:25px}.social-dialog-note{font-size:11px;color:#927c86;line-height:1.7}.social-dialog details{border:1px solid #eddee5;border-radius:14px;padding:12px;font-size:12px}.social-dialog summary{cursor:pointer}.social-dialog fieldset{border:0;padding:10px 0 0;margin:0}.social-dialog legend{font-size:10px;color:#927c86;padding-top:10px}.social-dialog fieldset label{display:flex;align-items:center;gap:7px;margin:10px 0}.social-inbox-heading{display:flex;justify-content:space-between;align-items:center;margin:20px 0 10px;font-size:11px}.social-inbox-heading button{border:0;background:none;color:#9c6380}.social-notice{display:block;text-align:left;width:100%;border:1px solid #eddee5;border-radius:14px;padding:13px;background:white;color:#654c59;margin-bottom:9px}.social-notice strong,.social-notice small{display:block}.social-notice strong{font-size:13px;font-weight:500}.social-notice small{font-size:10px;margin-top:6px;color:#927c86}.social-notice[data-unread=true]{border-color:#d0a2b6;background:#fff1f6}.home-hero-art[data-scene=night]{animation-duration:7s}.home-hero-art[data-scene=trip] img{border-radius:35px;object-fit:contain;max-width:100%;height:auto}.home-character-hint{max-width:95%;text-align:center}
 @media(max-width:440px){.social-mood-grid{gap:10px}.social-mood-card{padding:13px;border-radius:17px}.social-mood-card p{font-size:12px}.social-person-picker{font-size:9px}.social-person-picker select{max-width:72px;padding:5px}.social-mood-form{gap:5px}.social-mood-form .home-primary{padding:10px;font-size:11px}.social-bell{padding:7px 8px;font-size:10px;margin-left:0}.social-dialog{padding:19px}}
 
@@ -1452,6 +1452,14 @@ body[data-site-mode=game] .daily-strip{display:none!important}.home-game-section
 .game-dashboard .game-stats{margin:0;gap:0;align-items:center;padding-bottom:12px}.game-dashboard .game-stats>div+div{border-left:1px solid var(--hm-line)}.game-dashboard .game-stats span{font-size:9px;margin-bottom:4px}.game-dashboard .game-stats strong{font:650 18px/1.4 'Noto Sans KR',sans-serif;letter-spacing:-.5px;font-variant-numeric:tabular-nums;color:var(--hm-ink)}.game-dashboard .game-stats>div:first-child strong{font-size:28px;color:var(--hm-pink)}
 .game-dashboard .game-goal{display:block;max-width:none;margin:0;border-top:1px solid var(--hm-line);padding-top:10px}.game-level-row{display:flex;align-items:center;gap:10px}.game-level-row>span{font-size:9px;white-space:nowrap;color:var(--hm-muted);min-width:60px}.game-level-row progress{height:4px;flex:1;min-width:0}.game-reward-row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-top:12px}.game-reward-caption{font-size:9px;color:var(--hm-muted);display:block;margin-bottom:4px}.game-dashboard .game-goal p{font-size:10px;line-height:1.5;text-align:left;color:var(--hm-ink);margin:0}.game-reward-earned{text-align:right;flex-shrink:0}.game-dashboard .game-goal .game-reward-total{padding:0;background:transparent;border-radius:0;font-size:13px;text-align:right;font-weight:650;color:var(--hm-pink)}.game-reward-month{display:inline-block;font-size:9px;margin-top:5px;color:var(--hm-muted)}
 @media(max-width:440px){.game-wrap{padding-top:18px}.game-heading h1{font-size:21px}.game-dashboard{padding:11px 12px;border-radius:17px}.game-heading{margin-bottom:12px}.game-reward-row{gap:7px}}
+
+.game-mode-tabs{display:flex;gap:6px;max-width:360px;margin:0 auto 12px;padding:4px;border:1px solid var(--hm-line);background:var(--hm-paper);border-radius:14px}.game-mode-tabs button{flex:1;border:0;background:transparent;color:var(--hm-muted);border-radius:10px;padding:10px;font-size:12px}.game-mode-tabs button[aria-pressed=true]{background:var(--hm-bg);color:var(--hm-ink);font-weight:700;box-shadow:0 2px 8px #60465309}.game-mode-tabs button:disabled{opacity:.65}.game-controls.tower-controls #game-left{font-size:13px;flex:2}.game-controls.tower-controls #game-right{display:none}.game-controls.tower-controls{max-width:300px}.game-stage{transition:box-shadow .2s}
+
+.tower-preview-tools{max-width:360px;margin:12px auto;text-align:center}.tower-preview-tools small{display:block;color:var(--hm-muted);font-size:10px;margin-bottom:8px}.tower-preview-tools>div{display:flex;gap:5px;justify-content:center}.tower-preview-tools button{border:1px solid var(--hm-line);background:var(--hm-paper);color:var(--hm-ink);padding:7px 10px;font-size:10px;border-radius:9px}.tower-preview-tools>button{margin-top:8px;color:var(--hm-pink)}
+
+.home-game-person{display:block;padding:12px;min-width:0}.home-game-card-head{display:flex;gap:8px;align-items:center;margin-bottom:8px}.home-game-card-head>span{font-size:11px;font-weight:650;color:var(--hm-ink)}.home-game-score-line{display:flex;width:100%;align-items:center;gap:5px;border:0;border-top:1px solid var(--hm-line);border-radius:0;background:transparent;color:var(--hm-ink);padding:10px 0;cursor:pointer}.home-game-score-line>span:first-child{font-size:10px;white-space:nowrap}.home-game-person .home-game-score-line>strong{font:650 14px/1.4 "Noto Sans KR",sans-serif;margin:0 0 0 auto;font-variant-numeric:tabular-nums;white-space:nowrap}.home-game-score-line>span:last-child{font-size:15px;opacity:.55}.home-game-score-line:focus-visible{outline:2px solid var(--hm-pink);outline-offset:2px;border-radius:4px}@media(max-width:380px){.home-game-person{padding:10px}.home-game-person .home-game-score-line>strong{font-size:12px}}
+
+.home-game-person[data-game-card-owner=rabbit]{background:var(--hm-rabbit)}.home-game-person[data-game-card-owner=sweet]{background:var(--hm-sweet)}
 
 </style>
 <!-- couple-calendar-game-styles:end -->
@@ -1905,7 +1913,7 @@ body[data-site-mode=chat] #chat-feed{scroll-behavior:auto}.chat-action-dialog{an
       <div id="home-together" class="home-together"></div>
     </section>
 
-<section class="home-game-section" aria-labelledby="home-game-title"><div class="home-section-heading"><div><h2 id="home-game-title">우리의 작은 놀이터</h2><p>떨어지는 상대를 피하고, 최고 점수에 도전해요.</p></div><button type="button" class="home-text-link home-section-button" data-open-app="game"><svg class="home-nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 7h8c3 0 4 3 4.6 7l.3 2c.3 2-1.8 3-3.1 1.5L16 15H8l-1.8 2.5C4.9 19 2.8 18 3.1 16l.3-2C4 10 5 7 8 7Z"/><path d="M8 10v4m-2-2h4m5-1h.01m2 2h.01"/></svg><span>미니게임</span><svg viewBox="0 0 16 16" width="13" height="13" fill="none" aria-hidden="true"><path d="m6 3 5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div id="home-game-scores" class="home-game-scores"></div><p id="home-game-status" class="home-sync" role="status"></p></section>
+<section class="home-game-section" aria-labelledby="home-game-title"><div class="home-section-heading"><div><h2 id="home-game-title">우리의 작은 놀이터</h2><p>피하기도 탑 쌓기도, 둘의 최고 기록.</p></div><button type="button" class="home-text-link home-section-button" data-open-app="game"><svg class="home-nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 7h8c3 0 4 3 4.6 7l.3 2c.3 2-1.8 3-3.1 1.5L16 15H8l-1.8 2.5C4.9 19 2.8 18 3.1 16l.3-2C4 10 5 7 8 7Z"/><path d="M8 10v4m-2-2h4m5-1h.01m2 2h.01"/></svg><span>미니게임</span><svg viewBox="0 0 16 16" width="13" height="13" fill="none" aria-hidden="true"><path d="m6 3 5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><div id="home-game-scores" class="home-game-scores"></div><p id="home-game-status" class="home-sync" role="status"></p></section>
 
     <div id="home-device-settings" class="home-device-settings"><span>⚙ 기기 설정</span><button type="button" id="home-change-person">사용자 다시 고르기</button><span class="device-theme-label">☀ / ☾ 화면 밝기</span></div>
     <footer class="home-footer"><span aria-hidden="true">♡</span> 오늘의 작은 약속이, 우리의 이야기가 돼요.</footer>
@@ -1955,14 +1963,15 @@ body[data-site-mode=chat] #chat-feed{scroll-behavior:auto}.chat-action-dialog{an
 <section id="app-game" class="app-panel home-surface" aria-label="토끼와 구마 미니게임" style="display:none">
   <main class="home-wrap game-wrap">
     <header class="game-heading"><div><p class="home-eyebrow">우리의 작은 놀이터</p><h1>토끼와 구마, 피해라!</h1><p id="game-description">떨어지는 구마를 피해 오래 버텨봐요.</p></div><button type="button" class="home-text-link" data-open-app="home">홈으로 ↗</button></header>
+    <div class="game-mode-tabs" role="group" aria-label="미니게임 선택"><button type="button" data-game-mode="dodge" aria-pressed="true">피하기</button><button type="button" data-game-mode="tower" aria-pressed="false">둘이 쌓는 탑</button></div>
     <div class="game-dashboard">
-    <div class="game-person-toggle" role="group" aria-label="게임 캐릭터 선택"><button type="button" data-game-person="rabbit" aria-pressed="true"><img decoding="async" loading="lazy" src="assets/rabbit-daily-icon.webp" alt="">이토끼</button><button type="button" data-game-person="sweet" aria-pressed="false"><img decoding="async" loading="lazy" src="assets/sweet-daily-icon.webp" alt="">구마구마</button></div>
-    <div class="game-stats"><div><span>지금 점수</span><strong id="game-score">0</strong></div><div><span>내 최고 점수</span><strong id="game-best">0</strong></div><div><span>버틴 시간</span><strong id="game-time">0.0초</strong></div></div>
+    <div class="game-person-toggle" role="group" aria-label="게임 캐릭터 선택"><button type="button" data-game-person="rabbit" aria-pressed="true"><img src="assets/rabbit-daily-icon.webp" alt="">이토끼</button><button type="button" data-game-person="sweet" aria-pressed="false"><img src="assets/sweet-daily-icon.webp" alt="">구마구마</button></div>
+    <div class="game-stats"><div><span id="game-current-label">지금 점수</span><strong id="game-score">0</strong></div><div><span id="game-best-label">내 최고 점수</span><strong id="game-best">0</strong></div><div><span id="game-third-label">버틴 시간</span><strong id="game-time">0.0초</strong></div></div>
     <div class="game-goal"><div class="game-level-row"><span id="game-level-label">난이도 0%</span><progress id="game-level" max="3000" value="0" aria-label="3,000점까지 난이도 증가"></progress></div><div class="game-reward-row"><div><span class="game-reward-caption">도전 보상</span><p id="game-reward-info">3,000점 초과 · 연차 +0.1일</p><span id="game-reward-month" class="game-reward-month">이번 달 2회 남음</span></div><div class="game-reward-earned"><span class="game-reward-caption">지금까지 모은 보상</span><p id="game-reward-total" class="game-reward-total">확인 중</p></div></div></div>
     </div>
     <div class="game-stage"><canvas id="game-canvas" width="360" height="480" tabindex="0" aria-label="떨어지는 상대를 피해 좌우로 움직이는 게임. 방향키 또는 A와 D로 이동"></canvas><div id="game-overlay" class="game-overlay"><span id="game-overlay-icon" aria-hidden="true">♡</span><h2 id="game-overlay-title">준비됐어?</h2><p id="game-overlay-detail">토끼는 구마를, 구마는 토끼를 피해요.<br>오래 버틸수록 점수가 올라가요.</p><button type="button" id="game-start" class="home-primary">게임 시작</button></div></div>
     <div class="game-controls"><button type="button" id="game-left" aria-label="왼쪽으로 이동">←</button><button type="button" id="game-pause">잠깐 쉬기</button><button type="button" id="game-right" aria-label="오른쪽으로 이동">→</button></div>
-    <p class="game-instructions">휴대폰: 화면을 좌우로 드래그하거나 화살표를 꾹 눌러요.<br>PC: ← → 또는 A / D · 스페이스로 일시정지</p><p id="game-save-status" class="home-sync" role="status"></p><button type="button" id="game-retry" class="home-text-link" hidden>점수 다시 저장하기</button>
+    <p class="game-instructions">휴대폰: 화면을 좌우로 드래그하거나 화살표를 꾹 눌러요.<br>PC: ← → 또는 A / D · 스페이스로 일시정지</p><p id="game-save-status" class="home-sync" role="status"></p><button type="button" id="game-retry" class="home-text-link" hidden>기록 다시 저장하기</button>
   </main>
 </section>
 
@@ -3658,10 +3667,10 @@ document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) setTime
 window.addEventListener('couple-auth-change',()=>{adminUnlocked=false;refreshCurrentView();});
 
 function gameRewardMonth(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date());}
-window.__leaveGameRewardStatus = function(){const rewards=state?.miniGameRewards;const used=rewards?.month===gameRewardMonth()?Object.keys(rewards.claims||{}).length:0;const totalAwards=Number.isInteger(state?.miniGameRewardTotal)?Math.max(0,state.miniGameRewardTotal):0;return {ready:!!state,used,remaining:Math.max(0,2-used),totalAwards,totalDays:totalAwards/10,bankDays:(state?.miniGameRewardBank||0)/10,issuedDays:state?.miniGameRewardIssued||0};};
-window.__leaveGameReward = async function(score,runId){
+window.__leaveGameRewardStatus = function(game="dodge"){const rewards=state?.miniGameRewards;const used=rewards?.month===gameRewardMonth()?Object.keys(rewards.claims||{}).length:0;const totalAwards=Number.isInteger(state?.miniGameRewardTotal)?Math.max(0,state.miniGameRewardTotal):0;return {ready:!!state,used,remaining:window.CoupleGameRewards?.rabbitLeft(rewards,game)??Math.max(0,2-used),totalAwards,totalDays:totalAwards/10,bankDays:(state?.miniGameRewardBank||0)/10,issuedDays:state?.miniGameRewardIssued||0};};
+window.__leaveGameReward = async function(score,runId,game="dodge"){
   if(!window.CoupleAuth?.isPerson('rabbit'))throw Error('토끼로 본인 인증한 뒤 보상을 받을 수 있어요.');
-  if(!Number.isInteger(score)||score<=3000||typeof runId!=='string'||!/^[a-zA-Z0-9_-]{8,100}$/.test(runId)||!stateRef)throw Error('보상 조건을 확인해 주세요.');
+  if(!Number.isInteger(score)||!["dodge","tower"].includes(game)||score<(game==="tower"?450:3001)||typeof runId!=='string'||!/^[a-zA-Z0-9_-]{8,100}$/.test(runId)||!stateRef)throw Error('보상 조건을 확인해 주세요.');
   const month=gameRewardMonth();let issued=false;let reason='이번 달 보상을 모두 받았어요.';
   const result=await stateRef.transaction(current=>{
     if(!window.CoupleAuth?.isPerson('rabbit')){reason='토끼로 다시 인증해 주세요.';return;}
@@ -3669,14 +3678,14 @@ window.__leaveGameReward = async function(score,runId){
     const rewards=current.miniGameRewards?.month===month?current.miniGameRewards:{month,claims:{}};
     rewards.claims=rewards.claims||{};
     if(rewards.claims[runId]){reason='이 기록의 보상은 이미 받았어요.';return;}
-    if(Object.keys(rewards.claims).length>=2){reason='이번 달 보상을 모두 받았어요.';return;}
-    const at=new Date().toISOString();rewards.claims[runId]={score,at};current.miniGameRewards=rewards;
+    if(!window.CoupleGameRewards?.rabbitLeft(rewards,game,month)){reason='이번 달 보상을 모두 받았어요.';return;}
+    const at=new Date().toISOString();rewards.claims[runId]={score,at,game};current.miniGameRewards=rewards;
     const bank=(Number.isInteger(current.miniGameRewardBank)?Math.max(0,current.miniGameRewardBank):0)+1;
     issued=bank>=10;current.miniGameRewardBank=bank%10;
     if(issued){current.balance=Math.round((current.balance+1)*10)/10;current.miniGameRewardIssued=(current.miniGameRewardIssued||0)+1;}
     current.miniGameRewardTotal=(Number.isInteger(current.miniGameRewardTotal)?Math.max(0,current.miniGameRewardTotal):0)+1;
     current.history=Array.isArray(current.history)?current.history:[];
-    current.history.unshift({note:'미니게임 '+score+'점 · '+(issued?'포상 유흥연차 1일 지급':'포상 연차 0.1일 적립'),at});
+    current.history.unshift({note:'미니게임 '+score+(game==='tower'?'m':'점')+' · '+(issued?'포상 유흥연차 1일 지급':'포상 연차 0.1일 적립'),at});
     return current;
   },undefined,false);
   return {awarded:result.committed,issued:result.committed&&issued,message:result.committed?(issued?'1일을 모아 포상 유흥연차 1일이 지급됐어요!':'포상 연차 0.1일을 적립했어요. 1일이 모이면 자동 지급돼요.'):reason};
@@ -5519,6 +5528,43 @@ window.CoupleAuth=Object.freeze({
 <!-- couple-calendar-social-script:end -->
 <!-- couple-calendar-game-script:start -->
 <script id="couple-game-script">
+(function(){
+'use strict';
+function month(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date());}
+function rabbitLeft(raw,game,m=month()){const claims=raw?.month===m?Object.values(raw.claims||{}):[];const legacy=claims.filter(c=>!c.game).length;return claims.length>=2||claims.some(c=>c.game===game)||(game==='dodge'&&legacy>0)?0:1;}
+function sweetLeft(raw,game,m=month()){if(raw?.month===m)return 0;return raw?.splitMonth===m&&raw?.gameClaims?.[game]?0:1;}
+function sweetClaim(raw,game,id,score,at,m=month()){raw=raw||{};if(!sweetLeft(raw,game,m))return;return {...raw,halfTickets:Math.max(0,Number(raw.halfTickets)||0)+0.5,splitMonth:m,gameClaims:{...(raw.splitMonth===m?raw.gameClaims:{}),[game]:{runId:id,score,at}}};}
+window.CoupleGameRewards=Object.freeze({month,rabbitLeft,sweetLeft,sweetClaim});
+})();
+
+(function(){
+'use strict';
+const W=360,H=480;
+function create(){return {elapsed:0,score:0,blocks:[],active:null,x:180,direction:1,angle:0,omega:0,impact:0,over:false,settle:0,sinceHeavy:0,perfect:0,dust:[]};}
+function spawn(s,random=Math.random){const heavy=s.blocks.length>=3&&(s.sinceHeavy>=4||random()<Math.min(0.4,0.22+s.blocks.length*0.006));s.sinceHeavy=heavy?0:s.sinceHeavy+1;s.active={kind:heavy?'sweet':'rabbit',mass:heavy?3.5:1,w:Math.max(30,(heavy?140:128)-Math.min(s.blocks.length,9)*0.9-Math.max(0,s.blocks.length-9)*2.3),x:80,y:44,vy:0,falling:false};s.direction=1;}
+function drop(s){if(!s.over&&s.active&&!s.active.falling&&s.settle<=0){s.active.falling=true;return true;}return false;}
+function load(s){let worst=0;for(let i=0;i<s.blocks.length;i++){const lower=i===0?{x:180,w:360}:s.blocks[i-1];let mass=0,sum=0;for(let j=i;j<s.blocks.length;j++){mass+=s.blocks[j].mass;sum+=s.blocks[j].mass*s.blocks[j].x;}const offset=(sum/mass-lower.x)/(lower.w/2);if(Math.abs(offset)>Math.abs(worst))worst=offset;}return worst;}
+function collapse(s,reduced=false){if(s.collapse)return s;const count=s.blocks.length,base=420+Math.max(0,count-9)*32,start=Math.max(0,count-10),direction=Math.sign(load(s))||Math.sign((s.active?.x||180)-(s.blocks.at(-1)?.x||180))||1;
+const bodies=s.blocks.slice(start).map((b,i)=>({...b,y:base-(start+i)*32-28,vx:direction*(24+i*9)+(b.vx||0),vy:b.kind==='sweet'?-15:-40,rotation:0,spin:direction*(0.7+i*0.12),delay:(count-start-i-1)*0.025,hit:false}));
+if(s.active)bodies.push({...s.active,vy:40,vx:direction*95,rotation:0,spin:direction*1.8,delay:0,hit:false});
+s.over=true;s.impact=1;s.perfect=0;s.collapse={elapsed:0,duration:reduced?0.35:1.3,bodies,done:false};return s;}
+function collapseStep(s,dt){const c=s.collapse;if(!c||c.done)return s;c.elapsed+=dt;s.impact=Math.max(0,s.impact-dt*1.3);
+for(const b of c.bodies){if(c.elapsed<b.delay)continue;b.vy+=(b.kind==='sweet'?1150:670)*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.rotation+=b.spin*dt;
+if(b.y>438&&!b.hit){b.y=438;b.vy=-Math.abs(b.vy)*(b.kind==='sweet'?0.14:0.28);b.vx*=0.6;b.hit=true;for(let i=0;i<5;i++)s.dust.push({x:b.x+(i-2)*8,y:450,vx:(i-2)*20,vy:-20-i*4,life:0.7});}}
+for(const p of s.dust){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;}s.dust=s.dust.filter(p=>p.life>0);c.done=c.elapsed>=c.duration;return s;}
+function step(s,seconds,random=Math.random){const dt=Math.max(0,Math.min(0.035,seconds||0));if(s.over)return collapseStep(s,dt);s.elapsed+=dt;s.settle=Math.max(0,s.settle-dt);s.impact=Math.max(0,s.impact-dt*2);
+for(const block of s.blocks){block.x+=(block.vx||0)*dt;block.vx=(block.vx||0)*Math.exp(-5*dt);}for(const particle of s.dust){particle.x+=particle.vx*dt;particle.y+=particle.vy*dt;particle.vy-=6*dt;particle.life-=dt;}s.dust=s.dust.filter(p=>p.life>0);
+if(Math.abs(load(s))>1){s.over=true;return s;}
+
+if(!s.active&&s.settle<=0)spawn(s,random);const a=s.active;if(!a)return s;
+if(!a.falling){const speed=90+Math.min(250,s.blocks.length*4+Math.max(0,s.blocks.length-9)*3);a.x+=s.direction*speed*dt;if(a.x>W-a.w/2-9){a.x=W-a.w/2-9;s.direction=-1;}if(a.x<a.w/2+9){a.x=a.w/2+9;s.direction=1;}return s;}
+a.vy+=(a.kind==='sweet'?1200:620)*dt;a.y+=a.vy*dt;const floor=392-Math.min(9,s.blocks.length)*32;
+if(a.y>=floor){const support=s.blocks.at(-1)||{x:180,w:360};const offset=a.x-support.x;const overlap=(a.w+support.w)/2-Math.abs(offset);if(overlap<Math.min(a.w,support.w)*0.28){s.over=true;s.impact=1;return s;}
+a.x+=Math.sin(s.angle)*18;a.y=floor;s.blocks.push({...a});s.x=a.x;s.score=s.blocks.length*10;s.perfect=Math.abs(offset)<8?0.8:0;if(a.kind==='sweet'){const kick=Math.max(-36,Math.min(36,offset*0.7*(128/a.w)));s.blocks.forEach((block,i)=>{block.vx=(block.vx||0)+kick*(0.25+0.75*(i+1)/s.blocks.length);});s.dust=Array.from({length:14},(_,i)=>({x:a.x+(i-7)*5,y:floor+13+(s.blocks.length>9?32:0),vx:(i-6.5)*8,vy:-12-(i%4)*5,life:0.65+(i%3)*0.15}));}s.impact=a.kind==='sweet'?0.7:0.15;s.settle=a.kind==='sweet'?0.55:0.32;s.active=null;
+} s.perfect=Math.max(0,s.perfect-dt);return s;}
+window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step,collapse});
+})();
+
 (function () {
   const W=360,H=480,PLAYER_Y=425;
   function difficulty(score){const progress=Math.max(0,Math.min(1,(Number(score)||0)/3000));const pressure=Math.pow(progress,0.75);return {speed:150+230*pressure,interval:0.7-0.48*pressure};}
@@ -5541,107 +5587,115 @@ window.CoupleAuth=Object.freeze({
 (function () {
   'use strict';
   const $=id=>document.getElementById(id),root=$('app-game');if(!root)return;
-  const rules=window.CoupleDodgeRules,canvas=$('game-canvas'),ctx=canvas.getContext('2d');if(!ctx)return;
+  let collapsePreview=false;let mode='dodge',rules=window.CoupleDodgeRules;const rewardRules=window.CoupleGameRewards;const canvas=$('game-canvas'),ctx=canvas.getContext('2d');if(!ctx)return;
   const names={rabbit:'이토끼',sweet:'구마구마'},sources={rabbit:'assets/rabbit-daily-icon.webp',sweet:'assets/sweet-daily-icon.webp'};
   const spriteSources={rabbit:'assets/rabbit-game-character.webp',sweet:'assets/sweet-game-character.webp'};
   const sprites={};for(const owner of Object.keys(names)){sprites[owner]=new Image();sprites[owner].src=spriteSources[owner];sprites[owner].onload=()=>{if(!running)draw();};}
   const preview=document.getElementById('app-calendar').dataset.preview==='true',storageKey='couple-game-preview-v1';
   let person=window.CoupleHome?.getPerson()||'rabbit',state=rules.create(),running=false,paused=false,frame=0,lastTime=0,keys=new Set(),held=0,target=null,pointer=null;
   let runId='',previewRewards={month:'',claims:{}},sweetWallet={halfTickets:0,month:'',runId:''},sweetRewardRef=null,sweetRewardReady=false;
-  let scores={},ready=false,connected=preview,ref=null,pending=null,saving=false;
+  let towerScores={},towerRef=null,towerReady=false;let scores={},ready=false,connected=preview,ref=null,pending=null,saving=false;
   function normalize(raw){const result={};for(const owner of Object.keys(names)){const s=raw?.[owner];result[owner]={best:Number.isFinite(s?.best)?Math.max(0,Math.floor(s.best)):0,last:Number.isFinite(s?.last)?Math.max(0,Math.floor(s.last)):0,updatedAt:Number(s?.updatedAt)||0};}return result;}
   function renderScores(){
-    $('home-game-scores').innerHTML=Object.keys(names).map(owner=>`<button type="button" class="home-game-person" data-play-person="${owner}" aria-label="${names[owner]}로 미니게임 시작"><img src="${sources[owner]}" alt=""><div><span>${names[owner]}의 최고 점수</span><strong>${ready?scores[owner].best+'점':'—'}</strong><small>${ready&&scores[owner].updatedAt?'최근 '+scores[owner].last+'점':'첫 기록을 남겨봐요'}</small></div><span class="game-play-arrow" aria-hidden="true">↗</span></button>`).join('');
-    $('game-best').textContent=ready?String(scores[person].best):'—';$('home-game-status').textContent=preview?'미리보기 · 점수는 이 브라우저에 저장돼요':ready&&connected?'둘의 최고 점수가 함께 공유돼요':ready?'연결 대기 중 · 마지막 점수를 보여줘요':'최고 점수를 불러오는 중…';
+    $('home-game-scores').innerHTML=Object.keys(names).map(owner=>`<section class="home-game-person" data-game-card-owner="${owner}"><div class="home-game-card-head"><img src="${sources[owner]}" alt=""><span>${names[owner]}</span></div><button type="button" class="home-game-score-line" data-play-person="${owner}" data-play-mode="dodge" aria-label="${names[owner]} 피하기 최고 점수 ${ready?scores[owner].best+'점':'불러오는 중'}, 게임 열기"><span>피하기</span><strong>${ready?scores[owner].best.toLocaleString()+'점':'—'}</strong><span aria-hidden="true">›</span></button><button type="button" class="home-game-score-line" data-play-person="${owner}" data-play-mode="tower" aria-label="${names[owner]} 탑 쌓기 최고 높이 ${towerReady?towerScores[owner].best+'m':'불러오는 중'}, 게임 열기"><span>탑 쌓기</span><strong>${towerReady?towerScores[owner].best.toLocaleString()+'m':'—'}</strong><span aria-hidden="true">›</span></button></section>`).join('');
+    $('game-best').textContent=(mode==='tower'?towerReady:ready)?String((mode==='tower'?towerScores:scores)[person]?.best||0)+(mode==='tower'?'m':''):'—';$('home-game-status').textContent=preview?'미리보기 · 점수는 이 브라우저에 저장돼요':ready&&towerReady&&connected?'두 게임의 최고 점수가 함께 공유돼요':ready||towerReady?'연결 대기 중 · 마지막 점수를 보여줘요':'최고 기록을 불러오는 중…';
   }
   function renderReward(){
     const info=$('game-reward-info');if(!info)return;
-    const rewards=preview?previewRewards:null,month=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date());
-    const status=preview?{ready:true,remaining:Math.max(0,2-(rewards.month===month?Object.keys(rewards.claims||{}).length:0)),totalDays:(rewards.totalAwards||0)/10}:window.__leaveGameRewardStatus?.();
-    const sweetLeft=sweetWallet.month===month?0:1;
-    if($('game-reward-total'))$('game-reward-total').textContent=person==='rabbit'?(status?.ready?'연차 '+status.totalDays.toFixed(1)+'일':'확인 중'):(sweetRewardReady||preview?'소원권 '+(sweetWallet.halfTickets/2+Number(sweetWallet.archivedUses||0))+'장':'확인 중');
-    info.textContent=person==='rabbit'?'3,000점 초과 · 연차 0.1일 적립':'3,500점 달성 · 소원권 +0.5장';
-    if($('game-reward-month'))$('game-reward-month').textContent=person==='rabbit'?(status?.ready?'이번 달 '+status.remaining+'회 남음':'횟수 확인 중'):(sweetRewardReady||preview?'이번 달 '+sweetLeft+'회 남음':'횟수 확인 중');
-  }
-  async function claimSweetReward(record){
-    if(preview){
-      const key='couple-game-sweet-rewards-preview-v1',month=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date());
-      const current=JSON.parse(localStorage.getItem(key)||'{}');
-      if(current.month===month)return {awarded:false,message:'이번 달 소원권은 이미 받았어요.'};
-      sweetWallet={...current,halfTickets:(Number.isInteger(current.halfTickets)?current.halfTickets:0)+1,month,runId:record.runId};
-      localStorage.setItem(key,JSON.stringify(sweetWallet));return {awarded:true,message:'미리보기 · 소원권 +0.5장 (실제 지급 안 됨)',issued:sweetWallet.halfTickets%2===0,prize:'소원권 +0.5장'};
-    }
-    if(!sweetRewardRef||!sweetRewardReady||!connected)throw Error('소원권 연결을 확인한 뒤 다시 저장해 주세요.');
-    const month=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date());
-    let message='이번 달 소원권은 이미 받았어요.';
-    const result=await sweetRewardRef.transaction(current=>{
-      if(!window.CoupleAuth?.isPerson('sweet')){message='구마로 다시 인증해 주세요.';return;}
-      if(current?.month===month)return;
-      return {...current,halfTickets:Math.max(0,Number.isInteger(current?.halfTickets)?current.halfTickets:0)+1,month,runId:record.runId,score:record.score,at:Date.now()};
-    },undefined,false);
-    if(result.committed)sweetWallet=result.snapshot.val();
-    return {awarded:result.committed,message:result.committed?'소원권 0.5장을 받았어요!':message,issued:sweetWallet.halfTickets%2===0,prize:'소원권 +0.5장'};
+    const month=rewardRules.month();
+    const status=preview?{ready:true,totalDays:(previewRewards.totalAwards||0)/10,remaining:rewardRules.rabbitLeft(previewRewards,mode,month)}:window.__leaveGameRewardStatus?.(mode);
+    const sweetLeft=rewardRules.sweetLeft(sweetWallet,mode,month);
+    $('game-reward-total').textContent=person==='rabbit'?(status?.ready?'연차 '+status.totalDays.toFixed(1)+'일':'확인 중'):(sweetRewardReady||preview?'소원권 '+(sweetWallet.halfTickets/2+Number(sweetWallet.archivedUses||0))+'장':'확인 중');
+    const goal=mode==='tower'?(person==='rabbit'?450:500):(person==='rabbit'?3001:3500);
+    info.textContent=goal.toLocaleString()+(mode==='tower'?'m':'점')+' 달성 · '+(person==='rabbit'?'연차 0.1일':'소원권 0.25장');
+    $('game-reward-month').textContent=(person==='rabbit'?status?.ready:sweetRewardReady||preview)?'이 게임 · 이번 달 '+(person==='rabbit'?status.remaining:sweetLeft)+'회 남음':'횟수 확인 중';
   }
   async function claimReward(record){
-    if(record.owner==='rabbit'?record.score<=3000:record.score<3500)return null;
+    const goal=record.game==='tower'?(record.owner==='rabbit'?450:500):(record.owner==='rabbit'?3001:3500);
+    if(record.score<goal)return null;
     if(!preview&&!window.CoupleAuth?.isPerson(record.owner))return {awarded:false,message:names[record.owner]+'로 본인 인증해야 보상을 받을 수 있어요.'};
-    if(record.owner==='sweet')return claimSweetReward(record);
-    if(!preview){if(!window.__leaveGameReward)throw Error('보상 연결을 확인한 뒤 다시 저장해 주세요.');const r=await window.__leaveGameReward(record.score,record.runId);return {...r,prize:r.issued?'포상 연차 +1일 지급':'포상 연차 0.1일 적립'};}
-    const key='couple-game-rewards-preview-v1',month=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date());
-    const raw=JSON.parse(localStorage.getItem(key)||'{}');previewRewards=raw.month===month?raw:{month,claims:{},totalAwards:raw.totalAwards||0};
-    if(previewRewards.claims[record.runId])return {awarded:false,message:'이 기록의 보상은 이미 받았어요.'};
-    if(Object.keys(previewRewards.claims).length>=2)return {awarded:false,message:'이번 달 보상을 모두 받았어요.'};
-    previewRewards.claims[record.runId]={score:record.score};previewRewards.totalAwards=(previewRewards.totalAwards||0)+1;localStorage.setItem(key,JSON.stringify(previewRewards));
+    const month=rewardRules.month();
+    if(record.owner==='sweet'){
+      const key='couple-game-sweet-rewards-preview-v1';let next;
+      if(preview){const raw=JSON.parse(localStorage.getItem(key)||'{}');next=rewardRules.sweetClaim(raw,record.game,record.runId,record.score,Date.now(),month);if(next)localStorage.setItem(key,JSON.stringify(next));}
+      else{if(!sweetRewardRef||!sweetRewardReady||!connected)throw Error('소원권 연결을 확인해 주세요.');const result=await sweetRewardRef.transaction(raw=>window.CoupleAuth?.isPerson('sweet')?rewardRules.sweetClaim(raw,record.game,record.runId,record.score,Date.now(),month):undefined,undefined,false);if(result.committed)next=result.snapshot.val();}
+      if(next)sweetWallet=next;
+      return {awarded:!!next,issued:!!next&&next.halfTickets%2===0,prize:'소원권 +0.25장',message:next?'소원권 0.25장을 적립했어요.':'이번 달 이 게임의 보상을 이미 받았어요.'};
+    }
+    if(!preview){if(!window.__leaveGameReward)throw Error('보상 연결을 확인해 주세요.');return {...await window.__leaveGameReward(record.score,record.runId,record.game),prize:'포상 연차 0.1일 적립'};}
+    const key='couple-game-rewards-preview-v1',raw=JSON.parse(localStorage.getItem(key)||'{}');previewRewards=raw.month===month?raw:{month,claims:{},totalAwards:raw.totalAwards||0};
+    if(!rewardRules.rabbitLeft(previewRewards,record.game,month))return {awarded:false,message:'이번 달 이 게임의 보상을 이미 받았어요.'};
+    previewRewards.claims={...previewRewards.claims,[record.runId]:{score:record.score,game:record.game}};previewRewards.totalAwards=(previewRewards.totalAwards||0)+1;localStorage.setItem(key,JSON.stringify(previewRewards));
+    window.dispatchEvent(new Event('couple-approval-change'));
     return {awarded:true,issued:previewRewards.totalAwards%10===0,message:'미리보기 · 포상 연차 0.1일 적립 (실제 지급 안 됨)',prize:'포상 연차 0.1일 적립'};
   }
+
+  function switchMode(next){if(running||paused||saving||pending||!['dodge','tower'].includes(next))return;mode=next;rules=mode==='tower'?window.CoupleTowerRules:window.CoupleDodgeRules;root.querySelector('h1').textContent=mode==='tower'?'둘이 쌓는 탑':'토끼와 구마, 피해라!';$('game-current-label').textContent=mode==='tower'?'지금 높이':'지금 점수';$('game-best-label').textContent=mode==='tower'?'내 최고 높이':'내 최고 점수';$('game-third-label').textContent=mode==='tower'?'쌓은 층수':'버틴 시간';canvas.setAttribute('aria-label',mode==='tower'?'탭하거나 스페이스로 네모 블록을 쌓는 게임':'떨어지는 상대를 피해 좌우로 움직이는 게임');$('game-level').setAttribute('aria-label',mode==='tower'?'탑 쌓기 보상 목표까지 진행도':'3,000점까지 난이도 증가');const controlsEl=root.querySelector('.game-controls');controlsEl.classList.toggle('tower-controls',mode==='tower');$('game-left').textContent=mode==='tower'?'블록 떨어뜨리기 ↓':'←';$('game-left').setAttribute('aria-label',mode==='tower'?'블록 떨어뜨리기':'왼쪽으로 이동');root.querySelector('.game-instructions').textContent=mode==='tower'?'화면 탭 · 떨어뜨리기 버튼 · PC 스페이스 / 토끼는 가볍게, 구마는 묵직하게':'휴대폰: 좌우 드래그 / PC: ← → 또는 A / D';choose(person);}
+  root.querySelector('.game-mode-tabs').addEventListener('click',e=>{const next=e.target.closest('[data-game-mode]')?.dataset.gameMode;if(next)switchMode(next);});
+  function drawTower(){
+    const count=state.blocks.length,stage=count<10?0:count<25?1:count<40?2:3,dark=stage>=2,palettes=[['#e9f4eb','#fff3df'],['#8ccbed','#e2f3fc'],['#17213c','#4b3671'],['#17152f','#603b78']];
+    ctx.clearRect(0,0,360,480);const gradient=ctx.createLinearGradient(0,0,0,480);gradient.addColorStop(0,palettes[stage][0]);gradient.addColorStop(1,palettes[stage][1]);ctx.fillStyle=gradient;ctx.fillRect(0,0,360,480);
+    if(stage<2){ctx.fillStyle='#ffffff88';for(let i=0;i<5;i++){ctx.beginPath();ctx.ellipse((i*91+state.elapsed*3)%410-25,90+i*48,38,11,0,0,Math.PI*2);ctx.fill();}}else{for(let i=0;i<75;i++){ctx.fillStyle='rgba(255,255,255,'+(0.3+0.6*(.5+.5*Math.sin(state.elapsed+i)))+')';ctx.fillRect((i*73+19)%360,(i*47+8)%440,i%6===0?2:1, i%6===0?2:1);}if(stage===3){ctx.save();ctx.translate(180,210);ctx.rotate(-.55);for(let i=0;i<8;i++){ctx.fillStyle='rgba(195,154,241,.045)';ctx.beginPath();ctx.ellipse(0,0,190-i*16,65-i*6,0,0,Math.PI*2);ctx.fill();}ctx.restore();}}
+    ctx.fillStyle=dark?'#dfc8eb':'#708b86';ctx.font='12px sans-serif';ctx.textAlign='center';ctx.fillText(['초록 땅','구름 위 하늘','별빛 우주','은하 속으로'][stage]+' · '+(count*10)+'m',180,22);
+    ctx.save();ctx.translate(180+Math.sin(state.elapsed*45)*state.impact*4,420);ctx.rotate(0);ctx.translate(-180,-420);const start=Math.max(0,count-10);const base=420+Math.max(0,count-9)*32;
+    if(count<10){ctx.fillStyle='#c7d8bb';ctx.fillRect(0,445,360,35);ctx.fillStyle='#99b88d';for(let i=0;i<18;i++){ctx.beginPath();ctx.moveTo(i*23,450);ctx.lineTo(i*23+3,443);ctx.lineTo(i*23+6,450);ctx.fill();}ctx.fillStyle='#adbfaa';ctx.beginPath();ctx.roundRect(0,420,360,17,2);ctx.fill();}
+    if(!state.collapse)for(let i=start;i<count;i++)paintBlock(state.blocks[i],state.blocks[i].x,base-i*32-28);
+    ctx.restore();for(const p of state.dust||[]){ctx.fillStyle='rgba(203,183,166,'+Math.min(.5,p.life*.6)+')';ctx.beginPath();ctx.arc(p.x,p.y,5+(1-p.life)*7,0,Math.PI*2);ctx.fill();}if(state.collapse){for(const b of state.collapse.bodies)paintBlock(b,b.x,b.y);}else if(state.active)paintBlock(state.active,state.active.x,state.active.y);
+    if(state.perfect>0){ctx.fillStyle=dark?'#f9dba9':'#aa6981';ctx.font='bold 15px sans-serif';ctx.fillText('딱 맞았어! ✨',180,65);}
+    if(state.collapse){ctx.fillStyle=dark?'#f8d6ea':'#ae7488';ctx.font='bold 15px sans-serif';ctx.fillText('와르르…!',180,65);}else if(state.impact>.3){ctx.fillStyle=dark?'#e4c4f0':'#ae7488';ctx.font='12px sans-serif';ctx.fillText('쿵! 구마 조심!',180,460);}
+    $('game-score').textContent=state.score+'m';$('game-time').textContent=count+'층';const goal=person==='rabbit'?450:500;$('game-level').max=goal;$('game-level').value=Math.min(goal,state.score);$('game-level-label').textContent='보상 '+Math.min(100,Math.floor(state.score/goal*100))+'%';
+  }
+  function paintBlock(block,x,y){ctx.save();ctx.translate(x,y);if(state.collapse)ctx.rotate(block.rotation||0);else if(block.kind==='rabbit'&&block.falling)ctx.rotate(Math.sin(state.elapsed*8)*.025);const height=30;ctx.shadowColor=block.kind==='sweet'?'#42273c55':'#7e668522';ctx.shadowBlur=block.kind==='sweet'?7:3;ctx.shadowOffsetY=block.kind==='sweet'?4:2;ctx.fillStyle=block.kind==='sweet'?'#b27696':'#fff5ed';ctx.strokeStyle=block.kind==='sweet'?'#835577':'#e3cbd9';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(-block.w/2,-height/2,block.w,height,7);ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.shadowOffsetY=0;drawSprite(block.kind,0,0,27);ctx.restore();}
+  if(preview){const demo=document.createElement('div');demo.className='tower-preview-tools';demo.innerHTML='<small>배경 미리보기 · 실제 점수·보상에 반영되지 않아요</small><div><button type="button" data-tower-scene="0">땅</button><button type="button" data-tower-scene="10">하늘</button><button type="button" data-tower-scene="25">별빛 우주</button><button type="button" data-tower-scene="40">은하 우주</button></div><button type="button" data-tower-demo-start>처음부터 플레이 ▶</button><button type="button" data-tower-collapse-preview>무너짐 보기 ↘</button>';root.querySelector('.game-stage').after(demo);demo.addEventListener('click',e=>{if(running||paused||saving||pending)return;if(e.target.closest('[data-tower-collapse-preview]')){switchMode('tower');state=rules.create();state.blocks=Array.from({length:8},(_,i)=>({kind:i%4===3?'sweet':'rabbit',mass:i%4===3?3.5:1,w:128-i*0.9,x:180+i*3}));rules.collapse(state,window.matchMedia('(prefers-reduced-motion: reduce)').matches);collapsePreview=true;running=true;paused=false;lastTime=0;$('game-overlay').hidden=true;controls();window.FX?.feedback('collision',canvas);frame=requestAnimationFrame(loop);return;}if(e.target.closest('[data-tower-demo-start]')){switchMode('tower');start();return;}const b=e.target.closest('[data-tower-scene]');if(!b)return;switchMode('tower');state=rules.create();const count=Number(b.dataset.towerScene);state.blocks=Array.from({length:count},(_,i)=>({kind:i%5===4?'sweet':'rabbit',mass:i%5===4?3.5:1,w:Math.max(30,(i%5===4?140:128)-Math.min(i,9)*0.9-Math.max(0,i-9)*2.3),x:180+Math.sin(i)*4}));rules.spawn(state,()=>1);state.score=0;draw();$('game-overlay').hidden=true;});}
   function drawSprite(owner,x,y,size){
     const img=sprites[owner];
     if(img.complete&&img.naturalWidth){const ratio=img.naturalWidth/img.naturalHeight,h=size,w=h*ratio;ctx.drawImage(img,x-w/2,y-h/2,w,h);}else{ctx.font='28px sans-serif';ctx.textAlign='center';ctx.fillText(owner==='rabbit'?'🐰':'🍠',x,y+9);}
   }
   function draw(){
+    if(mode==='tower'){drawTower();return;}
     ctx.clearRect(0,0,rules.W,rules.H);const gradient=ctx.createLinearGradient(0,0,0,rules.H);gradient.addColorStop(0,person==='rabbit'?'#f2eafa':'#fff0dc');gradient.addColorStop(1,'#fffaf4');ctx.fillStyle=gradient;ctx.fillRect(0,0,rules.W,rules.H);
     ctx.fillStyle='#fff9';for(let i=0;i<16;i++){const x=(i*79+23)%rules.W,y=(i*53+34)%390;ctx.beginPath();ctx.arc(x,y,2+(i%3),0,Math.PI*2);ctx.fill();}
     ctx.fillStyle='#e8d7df';ctx.fillRect(0,457,rules.W,2);ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillStyle='#b198a3';ctx.fillText('←  사뿐사뿐, 좌우로  →',rules.W/2,474);
     const enemy=person==='rabbit'?'sweet':'rabbit';for(const e of state.enemies)drawSprite(enemy,e.x,e.y,50);
     ctx.fillStyle='#b77e9226';ctx.beginPath();ctx.ellipse(state.x,rules.PLAYER_Y+25,23,5,0,0,Math.PI*2);ctx.fill();drawSprite(person,state.x,rules.PLAYER_Y,66);
-    if($('game-level')){$('game-level').value=Math.min(3000,state.score);$('game-level-label').textContent=state.score>=3000?'최고 난이도':'난이도 '+Math.floor(Math.min(1,state.score/3000)*100)+'%';}
+    if($('game-level')){$('game-level').max=3000;$('game-level').value=Math.min(3000,state.score);$('game-level-label').textContent=state.score>=3000?'최고 난이도':'난이도 '+Math.floor(Math.min(1,state.score/3000)*100)+'%';}
     $('game-score').textContent=String(state.score);$('game-time').textContent=state.elapsed.toFixed(1)+'초';
   }
   function overlay(title,detail,label,icon='♡'){ $('game-overlay').hidden=false;$('game-overlay-title').textContent=title;$('game-overlay-detail').textContent=detail;$('game-start').textContent=label;$('game-overlay-icon').textContent=icon;}
-  function controls(){document.querySelectorAll('[data-game-person]').forEach(b=>{b.disabled=running||paused;b.setAttribute('aria-pressed',String(b.dataset.gamePerson===person));});$('game-pause').disabled=!running&&!paused;$('game-pause').textContent=paused?'계속하기':'잠깐 쉬기';}
+  function controls(){document.querySelectorAll('[data-game-person],[data-game-mode]').forEach(b=>{b.disabled=running||paused||saving||!!pending;b.setAttribute('aria-pressed',String(b.dataset.gameMode?b.dataset.gameMode===mode:b.dataset.gamePerson===person));});$('game-pause').disabled=!running&&!paused;$('game-pause').textContent=paused?'계속하기':'잠깐 쉬기';}
   function clearInput(){keys.clear();held=0;target=null;pointer=null;}
   function pause(){if(!running)return;running=false;paused=true;cancelAnimationFrame(frame);clearInput();controls();overlay('잠깐 쉬어가자','점수와 위치는 그대로예요.','계속하기','☁');}
-  function choose(owner){if(!names[owner]||running||paused)return;person=owner;state=rules.create();$('game-description').textContent=owner==='rabbit'?'이토끼가 떨어지는 구마를 피해요.':'구마구마가 떨어지는 토끼를 피해요.';controls();renderScores();renderReward();draw();overlay('준비됐어?',owner==='rabbit'?'토끼를 좌우로 움직여 구마를 피해요.':'구마를 좌우로 움직여 토끼를 피해요.','게임 시작');}
+  function choose(owner){if(!names[owner]||running||paused)return;person=owner;state=rules.create();$('game-description').textContent=owner==='rabbit'?'이토끼가 떨어지는 구마를 피해요.':'구마구마가 떨어지는 토끼를 피해요.';controls();renderScores();renderReward();draw();if(mode==='tower'){overlay('둘이 쌓는 탑','눌러서 블록을 떨어뜨려요. 토끼는 가볍게, 구마는 묵직하게!','탑 쌓기 시작','🐰');return;}overlay('준비됐어?',owner==='rabbit'?'토끼를 좌우로 움직여 구마를 피해요.':'구마를 좌우로 움직여 토끼를 피해요.','게임 시작');}
   async function saveScore(record){
-    if(saving)return;saving=true;pending=record;$('game-save-status').textContent='점수를 저장하는 중…';$('game-retry').hidden=true;
+    if(saving)return;saving=true;pending=record;$('game-save-status').textContent='기록을 저장하는 중…';$('game-retry').hidden=true;
     try{
-      if(preview){const latest=normalize(JSON.parse(localStorage.getItem(storageKey)||'{}'));const old=latest[record.owner];latest[record.owner]={best:Math.max(old.best,record.score),last:record.score,updatedAt:record.at};localStorage.setItem(storageKey,JSON.stringify(latest));scores=latest;ready=true;renderScores();}
-      else{if(!ref||!connected||!ready)throw Error('연결을 확인한 뒤 점수를 다시 저장해 주세요.');const result=await ref.child(record.owner).transaction(current=>{const old=normalize({[record.owner]:current})[record.owner];return {best:Math.max(old.best,record.score),last:old.updatedAt>record.at?old.last:record.score,updatedAt:Math.max(old.updatedAt,record.at)};},undefined,false);if(!result.committed)throw Error('점수를 저장하지 못했어요. 다시 시도해 주세요.');}
+      if(preview){const recordKey=record.game==='tower'?storageKey+'-tower-meters-v1':storageKey;const latest=normalize(JSON.parse(localStorage.getItem(recordKey)||'{}'));const old=latest[record.owner];latest[record.owner]={best:Math.max(old.best,record.score),last:record.score,updatedAt:record.at};localStorage.setItem(recordKey,JSON.stringify(latest));if(record.game==='tower'){towerScores=latest;towerReady=true;}else{scores=latest;ready=true;}renderScores();}
+      else{const recordRef=record.game==='tower'?towerRef:ref;if(!recordRef||!connected||!(record.game==='tower'?towerReady:ready))throw Error('연결을 확인한 뒤 기록을 다시 저장해 주세요.');const result=await recordRef.child(record.owner).transaction(current=>{const old=normalize({[record.owner]:current})[record.owner];return {best:Math.max(old.best,record.score),last:old.updatedAt>record.at?old.last:record.score,updatedAt:Math.max(old.updatedAt,record.at)};},undefined,false);if(!result.committed)throw Error('기록을 저장하지 못했어요. 다시 시도해 주세요.');}
       const reward=await claimReward(record);renderReward();
       if(reward?.awarded){if(reward.issued)window.CoupleReaction?.show('reward',record.owner);$('game-overlay-icon').textContent='🎁';$('game-overlay-detail').textContent+=' · '+reward.prize;window.FX?.toast(reward.message);}
-      pending=null;$('game-save-status').textContent=preview?'점수를 저장했어요. 홈에서도 확인할 수 있어요.':'최고 점수를 함께 저장했어요.';if(reward)$('game-save-status').textContent+=' '+reward.message;
-    }catch(e){$('game-save-status').textContent=e.message||'점수를 저장하지 못했어요. 다시 저장해 주세요.';$('game-retry').hidden=false;}
-    finally{saving=false;}
+      pending=null;$('game-save-status').textContent=preview?'기록을 저장했어요. 홈에서도 확인할 수 있어요.':'최고 기록을 함께 저장했어요.';if(reward)$('game-save-status').textContent+=' '+reward.message;
+    }catch(e){$('game-save-status').textContent=e.message||'기록을 저장하지 못했어요. 다시 저장해 주세요.';$('game-retry').hidden=false;}
+    finally{saving=false;controls();}
   }
-  function finish(){window.FX?.feedback('collision',canvas);running=false;paused=false;clearInput();controls();const best=ready?scores[person].best:0;overlay(state.score>best?'새로운 최고 기록!':'앗, 만났네!',`${state.score}점 · ${state.elapsed.toFixed(1)}초 동안 버텼어요.`,'다시 도전',state.score>best?'🏆':'♥');void saveScore({owner:person,score:state.score,at:Date.now(),runId});}
-  function loop(time){if(!running)return;if(document.hidden||document.body.dataset.siteMode!=='game'){pause();return;}const seconds=lastTime?(time-lastTime)/1000:0;lastTime=time;const direction=held||(Number(keys.has('ArrowRight')||keys.has('d'))-Number(keys.has('ArrowLeft')||keys.has('a')));const previousScore=state.score;rules.step(state,seconds,{direction,target:direction?null:target});const goal=person==='rabbit'?3000:3500;if(previousScore<=goal&&state.score>goal)window.FX?.feedback('goal',canvas);draw();if(state.over)finish();else frame=requestAnimationFrame(loop);}
-  function start(){if(saving){$('game-save-status').textContent='점수 저장이 끝나면 다시 시작할 수 있어요.';return;}if(pending){$('game-save-status').textContent='아직 저장하지 못한 점수가 있어요. 다시 저장을 눌러 주세요.';return;}if(!paused){state=rules.create();runId=crypto.randomUUID();}running=true;paused=false;lastTime=0;clearInput();$('game-overlay').hidden=true;$('game-save-status').textContent=preview?'미리보기 플레이 · 실제 공유 점수에는 반영하지 않아요.':'';controls();canvas.focus({preventScroll:true});frame=requestAnimationFrame(loop);}
+  function finish(){if(collapsePreview){collapsePreview=false;running=false;paused=false;clearInput();controls();overlay('와르르…!','무너짐 미리보기예요. 실제 점수나 보상에는 반영되지 않아요.','처음부터 플레이','🐰');return;}if(!state.collapse)window.FX?.feedback('collision',canvas);running=false;paused=false;clearInput();controls();const best=(mode==='tower'?towerScores:scores)[person]?.best||0;overlay(state.score>best?'새로운 최고 기록!':mode==='tower'?'탑이 무너졌어!':'앗, 만났네!',mode==='tower'?`${state.blocks.length}층 · ${state.score}m, 다시 더 높이 쌓아봐요!`:`${state.score}점 · ${state.elapsed.toFixed(1)}초 동안 버텼어요.`,'다시 도전',state.score>best?'🏆':'♥');void saveScore({owner:person,score:state.score,at:Date.now(),runId,game:mode});}
+  function loop(time){if(!running)return;if(document.hidden||document.body.dataset.siteMode!=='game'){pause();return;}const seconds=lastTime?(time-lastTime)/1000:0;lastTime=time;const direction=held||(Number(keys.has('ArrowRight')||keys.has('d'))-Number(keys.has('ArrowLeft')||keys.has('a')));const previousScore=state.score;if(mode==='tower')rules.step(state,seconds);else rules.step(state,seconds,{direction,target:direction?null:target});const goal=mode==='tower'?(person==='rabbit'?450:500):(person==='rabbit'?3001:3500);if(previousScore<goal&&state.score>=goal)window.FX?.feedback('goal',canvas);if(mode==='tower'&&state.over&&!state.collapse){rules.collapse(state,window.matchMedia('(prefers-reduced-motion: reduce)').matches);clearInput();window.FX?.feedback('collision',canvas);}draw();if(state.over&&(mode!=='tower'||state.collapse?.done))finish();else frame=requestAnimationFrame(loop);}
+  function start(){if(saving){$('game-save-status').textContent='점수 저장이 끝나면 다시 시작할 수 있어요.';return;}if(pending){$('game-save-status').textContent='아직 저장하지 못한 점수가 있어요. 다시 저장을 눌러 주세요.';return;}if(!paused){state=rules.create();runId=crypto.randomUUID();}running=true;paused=false;lastTime=0;clearInput();$('game-overlay').hidden=true;$('game-save-status').textContent=preview?'미리보기 플레이 · 실제 공유 기록에는 반영하지 않아요.':'';controls();canvas.focus({preventScroll:true});frame=requestAnimationFrame(loop);}
   $('game-start').addEventListener('click',start);$('game-pause').addEventListener('click',()=>paused?start():pause());$('game-retry').addEventListener('click',()=>{if(pending)void saveScore(pending);});
   document.querySelector('.game-person-toggle').addEventListener('click',e=>{const owner=e.target.closest('[data-game-person]')?.dataset.gamePerson;if(owner)choose(owner);});
-  document.addEventListener('keydown',e=>{if(document.body.dataset.siteMode!=='game'||e.target.matches('input,select,textarea'))return;const key=e.key.toLowerCase();if(['ArrowLeft','ArrowRight','a','d'].includes(e.key)||['a','d'].includes(key)){if(!running)return;e.preventDefault();keys.add(e.key.startsWith('Arrow')?e.key:key);}if(e.code==='Space'&&e.target===canvas){e.preventDefault();paused?start():pause();}});
+  document.addEventListener('keydown',e=>{if(document.body.dataset.siteMode!=='game'||e.target.matches('input,select,textarea'))return;const key=e.key.toLowerCase();if(['ArrowLeft','ArrowRight','a','d'].includes(e.key)||['a','d'].includes(key)){if(!running)return;e.preventDefault();keys.add(e.key.startsWith('Arrow')?e.key:key);}if(e.code==='Space'&&e.target===canvas){e.preventDefault();if(mode==='tower'&&running){if(!e.repeat)rules.drop(state);}else paused?start():pause();}});
   document.addEventListener('keyup',e=>{keys.delete(e.key);keys.delete(e.key.toLowerCase());});window.addEventListener('blur',pause);
   function position(e){const box=canvas.getBoundingClientRect();target=Math.max(23,Math.min(rules.W-23,(e.clientX-box.left)/box.width*rules.W));}
   for(const el of [canvas,$('game-left'),$('game-right')]){el.addEventListener('contextmenu',e=>e.preventDefault());el.addEventListener('selectstart',e=>e.preventDefault());}
-  canvas.addEventListener('pointerdown',e=>{if(!running||e.button!==0)return;e.preventDefault();pointer=e.pointerId;canvas.setPointerCapture(pointer);position(e);});canvas.addEventListener('pointermove',e=>{if(running&&pointer===e.pointerId)position(e);});for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,()=>{pointer=null;target=null;});
-  for(const [id,direction] of [['game-left',-1],['game-right',1]]){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();if(!running)return;held=direction;b.setPointerCapture(e.pointerId);});for(const type of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(type,()=>{held=0;});b.addEventListener('keydown',e=>{if(running&&[' ','Enter'].includes(e.key)){e.preventDefault();held=direction;}});b.addEventListener('keyup',()=>{held=0;});b.addEventListener('blur',()=>{held=0;});}
+  canvas.addEventListener('pointerdown',e=>{if(!running||e.button!==0)return;e.preventDefault();if(mode==='tower'){rules.drop(state);return;}pointer=e.pointerId;canvas.setPointerCapture(pointer);position(e);});canvas.addEventListener('pointermove',e=>{if(running&&pointer===e.pointerId)position(e);});for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,()=>{pointer=null;target=null;});
+  for(const [id,direction] of [['game-left',-1],['game-right',1]]){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();if(!running)return;if(mode==='tower'){if(direction===-1)rules.drop(state);return;}held=direction;b.setPointerCapture(e.pointerId);});for(const type of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(type,()=>{held=0;});b.addEventListener('keydown',e=>{if(running&&[' ','Enter'].includes(e.key)){e.preventDefault();if(mode==='tower'){if(direction===-1&&!e.repeat)rules.drop(state);}else held=direction;}});b.addEventListener('keyup',()=>{held=0;});b.addEventListener('blur',()=>{held=0;});}
   document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});window.addEventListener('site-mode-change',()=>{if(document.body.dataset.siteMode!=='game')pause();else if(!running&&!paused)choose(window.CoupleHome?.getPerson()||person);});
-  $('home-game-scores').addEventListener('click',e=>{const owner=e.target.closest('[data-play-person]')?.dataset.playPerson;if(owner){window.SiteNav.open('game');choose(owner);}});
+  $('home-game-scores').addEventListener('click',e=>{const button=e.target.closest('[data-play-person]');if(button){window.SiteNav.open('game');switchMode(button.dataset.playMode||'dodge');choose(button.dataset.playPerson);}});
   window.MiniGame=Object.freeze({open(owner){window.SiteNav.open('game');choose(owner||window.CoupleHome?.getPerson()||'rabbit');},pause});
-  function connect(){if(preview){try{scores=normalize(JSON.parse(localStorage.getItem(storageKey)||'{}'));ready=true;}catch{$('game-save-status').textContent='점수 저장공간을 읽을 수 없어요.';}renderScores();return;}try{const db=window.firebase.app().database();ref=db.ref('couple_home_v1/gameScores');sweetRewardRef=db.ref('couple_home_v1/gameRewards/sweet');sweetRewardRef.on('value',snap=>{const raw=snap.val()||{};sweetWallet={...raw,halfTickets:Math.max(0,Number.isInteger(raw.halfTickets)?raw.halfTickets:0)};sweetRewardReady=true;renderReward();},()=>{sweetRewardReady=false;renderReward();});db.ref('.info/connected').on('value',snap=>{connected=snap.val()===true;renderScores();});ref.on('value',snap=>{scores=normalize(snap.val());ready=true;renderScores();},()=>{$('home-game-status').textContent='점수를 공유하지 못했어요. 연결을 확인해 주세요.';});}catch{$('home-game-status').textContent='점수 공유 연결을 확인해 주세요.';}}
-  window.addEventListener('storage',e=>{if(preview&&e.key===storageKey){try{scores=normalize(JSON.parse(e.newValue||'{}'));ready=true;renderScores();}catch{}}});
+  function connect(){if(preview){try{scores=normalize(JSON.parse(localStorage.getItem(storageKey)||'{}'));ready=true;}catch{$('game-save-status').textContent='기록 저장공간을 읽을 수 없어요.';}renderScores();return;}try{const db=window.firebase.app().database();ref=db.ref('couple_home_v1/gameScores');towerRef=db.ref('couple_home_v1/towerHeights');towerRef.on('value',snap=>{towerScores=normalize(snap.val());towerReady=true;renderScores();},()=>{towerReady=false;});sweetRewardRef=db.ref('couple_home_v1/gameRewards/sweet');sweetRewardRef.on('value',snap=>{const raw=snap.val()||{};sweetWallet={...raw,halfTickets:Math.max(0,Number.isFinite(raw.halfTickets)?raw.halfTickets:0)};sweetRewardReady=true;renderReward();},()=>{sweetRewardReady=false;renderReward();});db.ref('.info/connected').on('value',snap=>{connected=snap.val()===true;renderScores();});ref.on('value',snap=>{scores=normalize(snap.val());ready=true;renderScores();},()=>{$('home-game-status').textContent='기록을 공유하지 못했어요. 연결을 확인해 주세요.';});}catch{$('home-game-status').textContent='기록 공유 연결을 확인해 주세요.';}}
+  window.addEventListener('storage',e=>{if(preview&&[storageKey,storageKey+'-tower-meters-v1'].includes(e.key)){try{if(e.key===storageKey){scores=normalize(JSON.parse(e.newValue||'{}'));ready=true;}else{towerScores=normalize(JSON.parse(e.newValue||'{}'));towerReady=true;}renderScores();}catch{}}});
   window.addEventListener('couple-approval-change',renderReward);
   if(preview){try{previewRewards=JSON.parse(localStorage.getItem('couple-game-rewards-preview-v1')||'{}');sweetWallet=JSON.parse(localStorage.getItem('couple-game-sweet-rewards-preview-v1')||'{"halfTickets":0}');}catch{}}
-  scores=normalize({});connect();choose(person);
+  towerScores=normalize({});if(preview){try{towerScores=normalize(JSON.parse(localStorage.getItem(storageKey+'-tower-meters-v1')||'{}'));towerReady=true;}catch{}}scores=normalize({});connect();choose(person);
 })();
 
 </script>
@@ -5845,7 +5899,7 @@ window.CoupleAuth=Object.freeze({
 'use strict';
 const preview=document.getElementById('app-calendar')?.dataset.preview==='true';
 const key='couple-game-sweet-rewards-preview-v1';let wallet={},ready=preview,ref=null,busy=false,pending=null;
-function wishStatus(raw){const halves=Math.max(0,Number.isInteger(raw?.halfTickets)?raw.halfTickets:0),recentUses=Object.keys(raw?.uses||{}).length,used=recentUses+Math.max(0,Number(raw?.archivedUses)||0);return {available:Math.max(0,Math.floor(halves/2)-recentUses),progress:halves%2/2,used};}
+function wishStatus(raw){const halves=Math.max(0,Number.isFinite(raw?.halfTickets)?raw.halfTickets:0),recentUses=Object.keys(raw?.uses||{}).length,used=recentUses+Math.max(0,Number(raw?.archivedUses)||0);return {available:Math.max(0,Math.floor(halves/2)-recentUses),progress:halves%2/2,used};}
 function spend(raw,id,at){raw=raw||{};if(raw.uses?.[id])return; if(wishStatus(raw).available<1)return;return {...raw,uses:{...raw.uses,[id]:{at}}};}
 window.CoupleRewardWallet={wishStatus,spend};
 const style=document.createElement('style');style.textContent='.reward-wallet{margin:0 0 16px;padding:18px 20px;border:1px solid var(--hm-line,#eadfe4);border-radius:20px;background:var(--hm-paper,#fff);color:var(--hm-ink,#493940)}.reward-wallet-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.reward-wallet strong{font-size:17px}.reward-wallet small{display:block;opacity:.65;margin-top:6px;font-size:12px}.reward-wallet button{border:0;border-radius:12px;padding:10px 14px;background:#866581;color:white;font-weight:700;cursor:pointer}.reward-wallet button:disabled{opacity:.4;cursor:default}.reward-wallet progress{width:100%;height:5px;accent-color:#b788a0;margin-top:14px}.reward-wallet details{margin-top:12px;font-size:12px}.reward-wallet ul{padding-left:18px;line-height:1.8}';document.head.append(style);
@@ -5855,7 +5909,7 @@ function render(){
 const rabbit=preview?JSON.parse(localStorage.getItem('couple-game-rewards-preview-v1')||'{}'):null;
 const status=preview?{ready:true,bankDays:((rabbit.totalAwards||0)%10)/10,issuedDays:Math.floor((rabbit.totalAwards||0)/10)}:window.__leaveGameRewardStatus?.();
 if(leave){leave.innerHTML='<div class="reward-wallet-top"><strong>🐰 포상 연차 적립</strong><strong>'+(status?.ready?(status.bankDays||0).toFixed(1)+' / 1일':'불러오는 중')+'</strong></div><progress max="1" value="'+(status?.bankDays||0)+'"></progress><small>1일을 모으면 유흥연차에 자동 지급 · 지금까지 '+(status?.issuedDays||0)+'일 지급</small>';}
-if(!sweet)return;const s=wishStatus(wallet);sweet.innerHTML='<div class="reward-wallet-top"><div><strong>🍠 소원권 '+(ready?s.available+'장':'확인 중')+'</strong><small>다음 소원권 '+s.progress+' / 1장 · 사용 '+s.used+'장</small></div><button type="button" id="wish-use" '+(!ready||busy||s.available<1||(!preview&&!window.CoupleAuth?.isPerson('sweet'))?'disabled':'')+'>1장 사용</button></div><progress max="1" value="'+s.progress+'"></progress><small>0.5장씩 모아 1장이 되면 사용할 수 있어요.</small>';
+if(!sweet)return;const s=wishStatus(wallet);sweet.innerHTML='<div class="reward-wallet-top"><div><strong>🍠 소원권 '+(ready?s.available+'장':'확인 중')+'</strong><small>다음 소원권 '+s.progress+' / 1장 · 사용 '+s.used+'장</small></div><button type="button" id="wish-use" '+(!ready||busy||s.available<1||(!preview&&!window.CoupleAuth?.isPerson('sweet'))?'disabled':'')+'>1장 사용</button></div><progress max="1" value="'+s.progress+'"></progress><small>게임별 0.25장씩 모아 1장이 되면 사용할 수 있어요.</small>';
 if(s.used){const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='최근 30일 사용 내역';details.append(summary);const ul=document.createElement('ul');Object.values(wallet.uses||{}).sort((a,b)=>b.at-a.at).forEach(u=>{const li=document.createElement('li');li.textContent=new Date(u.at).toLocaleString('ko-KR')+' · 소원권 1장 사용';ul.append(li);});details.append(ul);sweet.append(details);}
 sweet.querySelector('button').onclick=use;
 }
