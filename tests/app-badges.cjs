@@ -1,22 +1,26 @@
-const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
-const code=fs.readFileSync(require('path').join(__dirname,'..','app-sw.js'),'utf8');
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),path=require('path');
+const root=path.join(__dirname,'..'),code=fs.readFileSync(path.join(root,'app-sw.js'),'utf8'),helper=fs.readFileSync(path.join(root,'app-badge.js'),'utf8');
 function harness(shared=new Map(),{unsupported=false,reject=false}={}){
- const handlers={},badges=[],notifications=[],opened=[],messages=[];const cache={async match(key){return shared.get(key)?.clone()},async put(key,value){shared.set(key,value.clone())},async addAll(){}};
+ const handlers={},badges=[],notifications=[],opened=[],messages=[],closed=[];
+ const cache={async match(key){return shared.get(key)?.clone()},async put(key,value){shared.set(key,value.clone())},async addAll(){}};
  const nav=unsupported?{}:{async setAppBadge(n){if(reject)throw Error('disabled');badges.push(n)},async clearAppBadge(){if(reject)throw Error('disabled');badges.push(0)}};
- const self={navigator:nav,location:{origin:'https://minjaedy.github.io'},registration:{scope:'https://minjaedy.github.io/dydy/',async showNotification(title,options){notifications.push({title,...options})}},clients:{async matchAll(){return [{url:'https://minjaedy.github.io/dydy/#home',postMessage:m=>messages.push(m),navigate:async u=>opened.push(u),focus:async()=>{}}]},async openWindow(u){opened.push(u)},async claim(){}},skipWaiting(){},addEventListener(type,handler){handlers[type]=handler}};
- vm.runInNewContext(code,{self,caches:{open:async()=>cache,keys:async()=>[],delete:async()=>true},Response,URL,Date,Promise,Set,JSON,Number,String});
- async function emit(type,attrs){const waits=[];handlers[type]({...attrs,waitUntil:p=>waits.push(p)});await Promise.all(waits)}
- return {shared,badges,notifications,opened,messages,emit,push:payload=>emit('push',{data:{json:()=>payload}}),ack:(screen,all=false,url='https://minjaedy.github.io/dydy/')=>emit('message',{data:{type:'COUPLE_BADGE_ACK',screen,all},source:{url}})};
+ const self={navigator:nav,location:{origin:'https://minjaedy.github.io'},registration:{scope:'https://minjaedy.github.io/dydy/',async showNotification(title,options){const n={title,...options,close(){closed.push([this.data.owner,this.tag]);}};notifications.push(n)},async getNotifications(){return notifications}},clients:{async matchAll(){return [{url:'https://minjaedy.github.io/dydy/#home',postMessage:m=>messages.push(m),navigate:async u=>opened.push(u),focus:async()=>{}}]},async openWindow(u){opened.push(u)},async claim(){}},skipWaiting(){},addEventListener(type,handler){(handlers[type]||=[]).push(handler)}};
+ const c={self,navigator:nav,caches:{open:async()=>cache,keys:async()=>[],delete:async()=>true},Response,URL,Date,Promise,Set,JSON,Number,String};vm.createContext(c);c.importScripts=()=>vm.runInContext(helper,c);vm.runInContext(code,c);
+ async function emit(type,attrs={}){const waits=[];for(const fn of handlers[type]||[])fn({...attrs,waitUntil:p=>waits.push(p)});await Promise.all(waits)}
+ const sync=(snapshot,url='https://minjaedy.github.io/dydy/')=>emit('message',{data:{type:'COUPLE_BADGE_STATE',snapshot,badgeOwner:'sweet',legacyOwner:'sweet'},source:{url}});
+ return {shared,badges,notifications,opened,messages,closed,emit,sync,push:payload=>emit('push',{data:{json:()=>payload}})};
 }
 (async()=>{
- const h=harness();await h.push({screen:'chat',tag:'chat-a',body:'Do not persist this body'});assert.equal(h.badges.at(-1),1);assert.equal(h.notifications.length,1);await h.push({screen:'chat',tag:'chat-a'});assert.equal(h.badges.at(-1),1);await h.push({screen:'calendar',tag:'calendar-a'});assert.equal(h.badges.at(-1),2);
- await h.ack('chat',false,'https://evil.example/');assert.equal(h.badges.at(-1),2);await h.ack('chat',false,'https://minjaedy.github.io/other/');assert.equal(h.badges.at(-1),2);await h.ack('chat');assert.equal(h.badges.at(-1),1);
- const restored=harness(h.shared);await restored.push({screen:'leave',tag:'leave-a'});assert.equal(restored.badges.at(-1),2);await restored.emit('notificationclick',{notification:{tag:'leave-a',data:{url:'https://minjaedy.github.io/dydy/#leave'},close(){}}});assert.equal(restored.badges.at(-1),1);assert.equal(restored.opened.at(-1),'https://minjaedy.github.io/dydy/#leave');await restored.emit('notificationclose',{notification:{tag:'calendar-a'}});assert.equal(restored.badges.at(-1),0);
- const concurrent=harness();await Promise.all([concurrent.push({tag:'a',screen:'chat'}),concurrent.push({tag:'b',screen:'chat'})]);assert.equal(concurrent.badges.at(-1),2);await concurrent.ack(null,true);assert.equal(concurrent.badges.at(-1),0);
- for(const opts of [{unsupported:true},{reject:true}]){const fallback=harness(new Map(),opts);await fallback.push({tag:'a',screen:'calendar'});assert.equal(fallback.notifications.length,1);}
- const key='https://minjaedy.github.io/dydy/.badge-state';const many=new Map([[key,new Response(JSON.stringify(Array.from({length:205},(_,i)=>({tag:String(i),screen:'chat',at:Date.now()}))))]]);const capped=harness(many);await capped.push({tag:'new',screen:'home'});assert.equal(capped.badges.at(-1),200);
- const stale=new Map([[key,new Response(JSON.stringify([{tag:'expired',screen:'chat',at:0}]))]]);const expiry=harness(stale);await expiry.push({tag:'fresh',screen:'calendar'});assert.equal(expiry.badges.at(-1),1);
- const saved=await h.shared.get(key).clone().text();assert(!saved.includes('Do not persist this body'));assert(h.messages.some(m=>m.type==='COUPLE_BADGE_CHANGED'));
- const isolated=harness();let intercepted=0;for(const url of ['https://minjaedy.github.io/mixroom/','https://minjaedy.github.io/cale/','https://minjaedy.github.io/dydy-other/']){await isolated.emit('notificationclick',{notification:{tag:'foreign',data:{url},close(){}}});await isolated.emit('fetch',{request:{mode:'navigate',url},respondWith(){intercepted++}});}assert.equal(isolated.opened.length,0);assert.equal(intercepted,0);
- console.log('Passed: badge increments, dedup, per-screen/all read, persistence, concurrent pushes, click/close, scope checks, unsupported/denied APIs, expiry/cap, no body persistence.');
+ const h=harness();await h.push({owner:'sweet',screen:'calendar',tag:'same',body:'private body',badge:{owner:'sweet',version:1,count:1}});assert.equal(h.badges.at(-1),1);
+ await h.push({owner:'rabbit',screen:'calendar',tag:'same',badge:{owner:'rabbit',version:1,count:1}});assert.equal(h.badges.at(-1),1);
+ await h.sync({owner:'sweet',version:2,count:0,readTags:['same']});assert.equal(h.badges.at(-1),0);assert.deepEqual(h.closed,[['sweet','same']]);
+ await h.push({owner:'sweet',tag:'same',badge:{owner:'sweet',version:1,count:1}});assert.equal(h.badges.at(-1),0);assert.equal(h.notifications.length,3); // Every push remains visible; no silent push workaround.
+ await h.sync({owner:'rabbit',version:2,count:0,readTags:['same']},'https://minjaedy.github.io/mixroom/');assert.deepEqual(h.closed,[['sweet','same']]);
+ const restored=harness(h.shared);await restored.emit('activate');assert.equal(restored.badges.at(-1),0);
+ await restored.push({owner:'sweet',tag:'fresh',screen:'leave',badge:{owner:'sweet',version:3,count:1}});assert.equal(restored.badges.at(-1),1);
+ await restored.emit('notificationclick',{notification:{tag:'fresh',data:{owner:'sweet',url:'https://minjaedy.github.io/dydy/#leave'},close(){}}});assert.equal(restored.opened.at(-1),'https://minjaedy.github.io/dydy/#leave');
+ for(const opts of [{unsupported:true},{reject:true}]){const fallback=harness(new Map(),opts);await fallback.push({owner:'sweet',tag:'x',badge:{owner:'sweet',version:1,count:1}});assert.equal(fallback.notifications.length,1);}
+ for(const url of ['https://evil.example/','https://minjaedy.github.io/mixroom/','https://minjaedy.github.io/dydy-other/']){const before=h.opened.length;await h.emit('notificationclick',{notification:{tag:'x',data:{url},close(){}}});assert.equal(h.opened.length,before);}
+ const saved=await h.shared.get('https://minjaedy.github.io/dydy/.badge-state').clone().text();assert(!saved.includes('private body'));assert(h.messages.some(m=>m.type==='COUPLE_BADGE_CHANGED'));
+ console.log('Passed: owner-isolated badges/notification closure, stale pushes, persistent restore, scope, visible fallback and no cached bodies.');
 })().catch(e=>{console.error(e);process.exitCode=1});

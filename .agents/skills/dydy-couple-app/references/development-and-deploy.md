@@ -97,7 +97,7 @@ D1 `schema.sql`의 `CREATE TABLE IF NOT EXISTS`만으로 기존 테이블 열은
 
 ## 배지 검증
 
-배지 관련 변경은 Git 체크아웃에서 `node tests/app-badges.cjs`와 `node tests/app-badge-client.cjs`로 확인한다. Service Worker의 저장·중복 방지·알림 클릭/읽음·권한 실패, 클라이언트의 로그인/가시성 조건을 검사한다. OS 아이콘 자체의 실제 표시는 설치된 기기에서 별도로 확인한다. 서버 Worker 재배포나 비밀키 변경은 배지 코드만 바꿀 때 필요하지 않다.
+배지 관련 변경은 Git 체크아웃에서 `node tests/app-badges.cjs`와 `node tests/app-badge-client.cjs`로 확인한다. Service Worker의 저장·중복 방지·알림 클릭/읽음·권한 실패, 클라이언트의 로그인/가시성 조건을 검사한다. OS 아이콘 자체의 실제 표시는 설치된 기기에서 별도로 확인한다. 읽음 동기화는 Worker도 배포해야 한다. 최초 설치에서는 `notification-schema.sql`을 원격 스키마 확인 후 한 번 적용한다. 기존 VAPID 키는 그대로 유지한다.
 
 ## 설치 앱 식별자와 아이콘
 

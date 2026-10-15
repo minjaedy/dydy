@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261015-isolated-app-icons-81">
+<meta name="app-version" content="20261015-owner-notification-sync-82">
 <title>구마를 안은 행복한 토끼</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/x-icon" href="./assets/couple-icon-v3.ico">
@@ -5301,6 +5301,7 @@ window.CoupleAuth=Object.freeze({
   return entry;
  },
  getPerson(){return verified&&verified.expires>Date.now()?verified.owner:null;},
+ async notificationRequest(path,data={}){if(!verified?.token||verified.expires<=Date.now())throw Error('사용자를 다시 선택해 인증해 주세요.');const r=await fetch(server+'/notifications/'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+verified.token},body:JSON.stringify(data),signal:AbortSignal.timeout(15000)});const result=await r.json();if(!r.ok)throw Error(result.error||'알림을 연결하지 못했어요.');return result;},
  async chatRequest(path,options={}){if(!verified?.token||verified.expires<=Date.now())throw Error('사용자를 다시 선택해 인증해 주세요.');const r=await fetch(server+'/chat/'+path,{...options,headers:{'Content-Type':'application/json',Authorization:'Bearer '+verified.token},signal:AbortSignal.timeout(20000)});const data=await r.json();if(!r.ok)throw Error(data.error||'대화를 연결하지 못했어요.');return data;},
  isPerson(selected){return !!verified&&verified.expires>Date.now()&&verified.owner===selected;},
  isAdmin(app){return !!verified&&verified.expires>Date.now()&&verified.owner===(app==='leave'?'sweet':'rabbit');},
@@ -5510,24 +5511,50 @@ window.CoupleAuth=Object.freeze({
     renderInbox();
 
   }
-  function renderInbox() {
-    const list=inbox(), unread=list.filter(n=>!n.read).length;bell.querySelector('span').textContent=unread?String(unread):'';bell.setAttribute('aria-label',`알림함 열기${unread?', 안 읽은 알림 '+unread+'개':''}`);
-    $('social-notification-person').textContent=names[person]+'의 알림';$('social-unread-label').textContent=unread?'안 읽은 알림 '+unread+'개':'모두 확인했어요';
-    $('social-inbox').innerHTML=list.length?list.map(n=>`<button type="button" class="social-notice" data-notice="${esc(n.key)}" data-unread="${!n.read}"><strong>${esc(n.title)}</strong><small>${esc(n.detail)} · ${esc(n.date)}</small></button>`).join(''):'<p class="social-dialog-note">새 소식이 생기면 여기에 모아둘게요.</p>';
+  const noticeTag=n=>n.key.startsWith('new:')?'new-'+n.key.slice(4):'local:'+n.key;
+  function displayedNotices(){
+    const shared=preview?null:window.CouplePush?.getInbox(person);
+    if(shared)return shared.items.map(n=>{let detail={};try{detail=JSON.parse(n.detail||'{}')}catch{}return {key:n.tag,title:n.title,detail:n.body,date:detail.date||new Date(n.created_at).toLocaleDateString('ko-KR'),eventId:detail.eventId,screen:n.screen};});
+    return inbox().filter(n=>!n.read);
   }
+  function renderInbox() {
+    const list=displayedNotices(),unread=(preview?undefined:window.CouplePush?.getInbox(person)?.count)??list.length;bell.querySelector('span').textContent=unread?String(unread):'';bell.setAttribute('aria-label',`알림함 열기${unread?', 안 읽은 알림 '+unread+'개':''}`);
+    $('social-notification-person').textContent=names[person]+'의 알림';$('social-unread-label').textContent=unread?'안 읽은 알림 '+unread+'개':'모두 확인했어요';
+    $('social-inbox').innerHTML=list.length?list.map(n=>`<button type="button" class="social-notice" data-notice="${esc(n.key)}" data-unread="true"><strong>${esc(n.title)}</strong><small>${esc(n.detail)} · ${esc(n.date)}</small></button>`).join(''):'<p class="social-dialog-note">읽지 않은 알림이 없어요.</p>';
+  }
+  window.addEventListener('couple-notifications-change',e=>{
+    const data=e.detail;if(!['rabbit','sweet'].includes(data?.owner))return;
+    const readTags=new Set(data.readTags||[]);
+    try{persist('inbox:'+data.owner,inbox(data.owner).map(n=>readTags.has(noticeTag(n))?{...n,read:true}:n));}catch{}
+    if(data.owner===person)renderInbox();
+  });
   function renderSettings() {const s=settings();document.querySelectorAll('[data-notify]').forEach(el=>{el.checked=!!s[el.dataset.notify];});$('social-notice-days').value=String(s.days);notificationStatus();}
   $('social-person').addEventListener('change',()=>{person=$('social-person').value;try{persist('person',person);}catch{}renderPerson();chooseEmotion(moods[person]?.emoji||'🥰');renderMoods();renderSettings();scanNotifications();});
   $('social-settings').addEventListener('change',async()=>{const owner=person,s={};document.querySelectorAll('[data-notify]').forEach(el=>s[el.dataset.notify]=el.checked);s.days=Number($('social-notice-days').value);try{if(!preview){if(!preferencesReady||!connected)throw Error('알림 설정 연결을 확인해 주세요.');await preferencesRef.child(owner).set(s);}persist('settings:'+owner,s);scanNotifications();}catch{renderSettings();notificationStatus('알림 설정을 저장하지 못했어요. 연결을 확인하고 다시 선택해 주세요.');}});
-  bell.addEventListener('click',()=>{scanNotifications();renderSettings();$('social-notifications').showModal();});
+  bell.addEventListener('click',()=>{scanNotifications();renderSettings();$('social-notifications').showModal();void window.CouplePush?.refreshInbox();});
   $('social-close').addEventListener('click',()=>{$('social-notifications').close();bell.focus();});
-  $('social-read-all').addEventListener('click',()=>{try{persist('inbox:'+person,inbox().map(n=>({...n,read:true})));renderInbox();void window.CouplePush?.acknowledge('calendar');}catch{status('읽음 상태를 저장하지 못했어요.');}});
-  $('social-inbox').addEventListener('click',e=>{const key=e.target.closest('[data-notice]')?.dataset.notice;if(!key)return;const list=inbox(), n=list.find(n=>n.key===key);if(!n)return;n.read=true;try{persist('inbox:'+person,list);}catch{}renderInbox();$('social-notifications').close();window.SiteNav.open('calendar');window.CoupleCalendar.open({date:n.date,eventId:n.eventId});});
+  $('social-read-all').addEventListener('click',async()=>{
+    const button=$('social-read-all');button.disabled=true;
+    try{if(preview){persist('inbox:'+person,inbox().map(n=>({...n,read:true})));renderInbox();}else await window.CouplePush?.readNotifications({all:true});}
+    catch{notificationStatus('읽음 상태를 저장하지 못했어요. 연결 후 다시 시도해 주세요.');}finally{button.disabled=false;}
+  });
+  $('social-inbox').addEventListener('click',async e=>{
+    const button=e.target.closest('[data-notice]'),key=button?.dataset.notice;if(!key)return;
+    const n=displayedNotices().find(n=>n.key===key);if(!n)return;
+    button.disabled=true;
+    try{
+      if(preview){persist('inbox:'+person,inbox().map(item=>item.key===key?{...item,read:true}:item));renderInbox();}
+      else await window.CouplePush?.readNotifications({tags:[key.startsWith('new:')||key.startsWith('reminder:')?noticeTag(n):key]});
+      $('social-notifications').close();window.SiteNav.open(n.screen||'calendar');
+      if((!n.screen||n.screen==='calendar')&&/^\d{4}-\d{2}-\d{2}$/.test(n.date))window.CoupleCalendar.open({date:n.date,eventId:n.eventId});
+    }catch{button.disabled=false;notificationStatus('읽음 상태를 저장하지 못했어요. 다시 눌러 주세요.');}
+  });
   window.addEventListener('couple-calendar-change',()=>{updateCharacter();scanNotifications();});
   window.addEventListener('storage',e=>{if(!e.key?.startsWith(prefix+':'))return;if(preview&&e.key===prefix+':moods:'+date){moods=normalized(read('moods:'+date,{}));renderMoods();}renderInbox();renderSettings();});
   function refresh(){connectMoods();updateCharacter();scanNotifications();}
   window.addEventListener('site-mode-change',e=>{if(e.detail?.mode==='home'){themeSelection=null;updateCharacter();}});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(document.body.dataset.siteMode==='home')themeSelection=null;refresh();}});setInterval(()=>{if(!document.hidden)refresh();},60000);
-  window.CoupleHome=Object.freeze({getPerson:()=>person,updateCharacter,clock,celebration,celebrations,seasonForDate,notifyNewEvent});
+  window.CoupleHome=Object.freeze({getPerson:()=>person,notificationItems:inbox,updateCharacter,clock,celebration,celebrations,seasonForDate,notifyNewEvent});
   renderSettings();connectMoods();updateCharacter();scanNotifications();
 })();
 
@@ -5861,6 +5888,16 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step,collapse}
 <!-- couple-calendar-install-script:end -->
 <!-- couple-calendar-push-script:start -->
 <script>
+// Shared by the page and service worker. Only counts and owner identifiers.
+(()=>{
+  const validOwner=x=>x==='rabbit'||x==='sweet';
+  function accept(previous,snapshot){
+    return validOwner(snapshot?.owner)&&Number.isSafeInteger(snapshot.count)&&snapshot.count>=0&&Number.isSafeInteger(snapshot.version)&&snapshot.version>=0&&(!previous||previous.owner!==snapshot.owner||previous.version<=snapshot.version);
+  }
+  async function apply(count){try{if(count)await navigator.setAppBadge?.(count);else await navigator.clearAppBadge?.();}catch{}}
+  self.CoupleBadge={validOwner,accept,apply};
+})();
+
 (function () {
   'use strict';
   const preview=document.getElementById('app-calendar')?.dataset.preview==='true';
@@ -5881,7 +5918,17 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step,collapse}
     const r=await fetch(SERVER+path,{method,keepalive:true,headers:{'Content-Type':'application/json',...(identity?.token?{Authorization:'Bearer '+identity.token}:{})},...(data?{body:JSON.stringify(data)}:{}),signal:AbortSignal.timeout(20000)});
     const result=await r.json();if(!r.ok)throw Error(result.error||'연결하지 못했어요.');return result;
   }
-  async function registration(){await navigator.serviceWorker.register('./app-sw.js',{updateViaCache:'none'});return navigator.serviceWorker.ready;}
+  const APP_BASE=new URL('./',location.href);
+  let registrationPromise;
+  async function registration(){
+    if(!registrationPromise)registrationPromise=navigator.serviceWorker.register(new URL('app-sw.js',APP_BASE),{scope:APP_BASE.href,updateViaCache:'none'}).then(async reg=>{
+      if(reg.active)return reg;
+      const worker=reg.installing||reg.waiting;
+      if(worker)await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('알림 준비 중이에요. 다시 시도해 주세요.')),12000);const changed=()=>{if(worker.state==='activated'){clearTimeout(timer);resolve();}else if(worker.state==='redundant'){clearTimeout(timer);reject(Error('알림 연결을 다시 확인해 주세요.'));}};worker.addEventListener('statechange',changed);changed();});
+      return reg;
+    }).catch(error=>{registrationPromise=null;throw error;});
+    return registrationPromise;
+  }
   async function render(){
     $('push-pair').hidden=!!identity;$('push-pair').elements.owner.value=window.CoupleHome?.getPerson?.()||'rabbit';panel.querySelector('.push-controls').hidden=!identity;
     if(preview){status('미리보기예요. 실제 설치와 알림 연결은 공개 사이트에서 해주세요.');$('push-pair').hidden=true;return;}
@@ -5893,25 +5940,84 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step,collapse}
   $('push-pair').addEventListener('submit',e=>{e.preventDefault();void action(async()=>{const f=e.target;identity=await api('/pair',{owner:f.elements.owner.value,code:f.elements.code.value.trim()});localStorage.setItem('couple-push-device',JSON.stringify(identity));f.reset();await render();});});
   $('push-enable').addEventListener('click',()=>{if(preview)return;const permission=Notification.requestPermission();void action(async()=>{if(await permission!=='granted')throw Error('아이폰 설정에서 우리 앱의 알림을 허용해 주세요.');const reg=await registration(),config=await api('/config',null,'GET');const raw=atob(config.publicKey.replace(/-/g,'+').replace(/_/g,'/'));const key=Uint8Array.from(raw,c=>c.charCodeAt(0));const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});await api('/subscription',sub.toJSON());await render();});});
   $('push-test').addEventListener('click',()=>void action(async()=>{await api('/test',{});status('테스트 알림을 보냈어요. 잠금화면이나 알림센터에서 확인해 주세요.');}));
-  $('push-disable').addEventListener('click',()=>void action(async()=>{await api('/subscription',null,'DELETE');const sub=await(await registration()).pushManager.getSubscription();await sub?.unsubscribe();await acknowledge(null,true);await render();status('이 기기의 앱 알림을 껐어요.');}));
-  const badgeScreens=new Set(['home','calendar','leave','smoke','travel','chat']);
+  $('push-disable').addEventListener('click',()=>void action(async()=>{await api('/subscription',null,'DELETE');const sub=await(await registration()).pushManager.getSubscription();await sub?.unsubscribe();await clearLocalBadge();await render();status('이 기기의 앱 알림을 껐어요.');}));
+  const badgeScreens=new Set(['calendar','leave','smoke','travel']);
+  const snapshots=new Map();let refreshing=null,refreshAgain=false,signalRef=null,signalOwner=null;
+  const ownerNow=()=>window.CoupleAuth?.getPerson?.();
+  const noticeTag=n=>n.key.startsWith('new:')?'new-'+n.key.slice(4):'local:'+n.key;
+  function localNotices(owner){return window.CoupleHome?.notificationItems?.(owner)||[];}
+  function imported(owner){try{return JSON.parse(localStorage.getItem('couple-notice-imported:'+owner)||'[]');}catch{return [];}}
+  async function context(owner){
+    let reg=null,notifications=[];
+    try{if('serviceWorker' in navigator){reg=await registration();notifications=await reg.getNotifications();}}catch{}
+    const items=localNotices(owner),keys=[...new Set([...items.map(noticeTag),...notifications.filter(n=>n.data?.owner===owner).map(n=>n.tag)])].slice(0,260);
+    return {reg,notifications,items,keys};
+  }
+  async function acceptSnapshot(snapshot,info){
+    const owner=ownerNow();if(snapshot.owner!==owner||!window.CoupleBadge.accept(snapshots.get(owner),snapshot))return false;
+    snapshots.set(owner,snapshot);
+    const badgeOwner=identity?.owner||owner,read=new Set(snapshot.readTags||[]);
+    if(badgeOwner===owner)await window.CoupleBadge.apply(snapshot.count);
+    try{info.reg?.active?.postMessage({type:'COUPLE_BADGE_STATE',snapshot:{owner,version:snapshot.version,count:snapshot.count,readTags:snapshot.readTags,expiredBefore:snapshot.expiredBefore},badgeOwner});}catch{}
+    for(const n of info.notifications){const recipient=n.data?.owner;if(recipient===owner&&(read.has(n.tag)||(n.data?.at&&n.data.at<snapshot.expiredBefore)))n.close();}
+    window.dispatchEvent(new CustomEvent('couple-notifications-change',{detail:snapshot}));return true;
+  }
+  async function refreshInbox(){
+    if(preview||document.visibilityState!=='visible'||!ownerNow())return;
+    if(refreshing){refreshAgain=true;return refreshing;}
+    const owner=ownerNow();
+    refreshing=(async()=>{
+      const info=await context(owner);if(ownerNow()!==owner)return;
+      const done=new Set(imported(owner));const localItems=info.items.filter(n=>!done.has(n.key+':'+!!n.read));
+      let snapshot=await window.CoupleAuth.notificationRequest('state',{keys:info.keys,localItems});
+      if(ownerNow()!==owner)return;
+      try{localStorage.setItem('couple-notice-imported:'+owner,JSON.stringify([...done,...localItems.map(n=>n.key+':'+!!n.read)].slice(-500)));}catch{}
+      const screen=document.body.dataset.siteMode;
+      // Home/focus alone is not evidence that an alert or chat has been read.
+      if(document.visibilityState==='visible'&&badgeScreens.has(screen)&&snapshot.items.some(n=>n.screen===screen))snapshot=await window.CoupleAuth.notificationRequest('read',{through:snapshot.through,screen,keys:info.keys});
+      await acceptSnapshot(snapshot,info);
+    })().catch(()=>{}).finally(()=>{refreshing=null;if(refreshAgain){refreshAgain=false;setTimeout(()=>void refreshInbox(),250);}});
+    return refreshing;
+  }
+  async function readSelection(selection){
+    if(preview)return;
+    const owner=ownerNow();if(!owner)throw Error('사용자를 먼저 선택해 주세요.');
+    let snapshot=snapshots.get(owner);if(!snapshot){await refreshInbox();snapshot=snapshots.get(owner);}if(!snapshot)throw Error('알림 연결을 확인해 주세요.');
+    // Capture the displayed cursor before any network await. Later notices stay unread.
+    const through=snapshot.through,info=await context(owner);if(ownerNow()!==owner)return;
+    const next=await window.CoupleAuth.notificationRequest('read',{...selection,through,keys:info.keys});
+    await acceptSnapshot(next,info);
+  }
   async function acknowledge(screen,all=false){
-    if(preview||!('serviceWorker' in navigator))return;
-    try{const reg=await navigator.serviceWorker.getRegistration();if(reg?.active)reg.active.postMessage({type:'COUPLE_BADGE_ACK',screen,all});}catch{}
+    if(preview||!ownerNow())return;
+    try{await readSelection(all?{all:true}:{screen});}catch{}
   }
-  function acknowledgeVisible(){
-    if(preview||document.visibilityState!=='visible')return;
-    const owner=window.CoupleAuth?.getPerson?.();if(!owner||(identity&&owner!==identity.owner))return;
-    const screen=document.body.dataset.siteMode;if(badgeScreens.has(screen))void acknowledge(screen);
+  async function clearLocalBadge(){
+    await window.CoupleBadge.apply(0);
+    try{(await registration()).active?.postMessage({type:'COUPLE_BADGE_LOCAL_CLEAR',owner:identity?.owner});}catch{}
   }
-  ['site-mode-change','couple-auth-change','focus'].forEach(name=>window.addEventListener(name,acknowledgeVisible));
+  function acknowledgeVisible(){void refreshInbox();}
+  function connectSignal(){
+    const owner=ownerNow();if(signalOwner!==owner){signalRef?.off();signalRef=null;signalOwner=owner;}
+    if(!preview&&owner&&!signalRef){try{signalRef=window.firebase.app().database().ref('couple_home_v1/notificationSignals/'+owner);signalRef.on('value',acknowledgeVisible,()=>{});}catch{}}
+    acknowledgeVisible();
+  }
+  ['site-mode-change','focus'].forEach(name=>window.addEventListener(name,acknowledgeVisible));
+  window.addEventListener('couple-auth-change',connectSignal);
+  window.addEventListener('couple-calendar-change',acknowledgeVisible);
   document.addEventListener('visibilitychange',acknowledgeVisible);
-  if(!preview&&'serviceWorker' in navigator){navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='COUPLE_BADGE_CHANGED')acknowledgeVisible();});navigator.serviceWorker.addEventListener('controllerchange',acknowledgeVisible);}
+  setInterval(acknowledgeVisible,60000);
+  if(!preview&&'serviceWorker' in navigator){navigator.serviceWorker.addEventListener('message',e=>{
+    if(e.data?.type==='COUPLE_BADGE_CHANGED'){
+      const state=e.data.snapshot;if(state?.owner===(identity?.owner||ownerNow())&&state.version>=(snapshots.get(state.owner)?.version??-1))void window.CoupleBadge.apply(state.count);
+      acknowledgeVisible();
+    }
+  });navigator.serviceWorker.addEventListener('controllerchange',()=>{registrationPromise=null;acknowledgeVisible();});}
   const badgeNote=document.createElement('p');badgeNote.className='install-note';badgeNote.id='push-badge-hint';
   badgeNote.textContent=ios?'홈 화면 앱 아이콘에도 새 알림 배지가 표시돼요. 아이폰 설정 → 알림 → 우리 앱에서 배지를 켜 주세요.':/Win/.test(navigator.platform||navigator.userAgent)?'Edge·Chrome으로 앱을 설치하면 작업표시줄 배지를 지원해요. Windows 작업표시줄의 배지 표시도 켜 주세요.':/Mac/.test(navigator.platform||navigator.userAgent)?'Dock에 추가한 웹 앱이나 Chrome·Edge로 설치한 앱에서 아이콘 배지를 지원해요. 시스템 알림의 배지 설정도 확인해 주세요.':'지원되는 설치형 앱에서는 아이콘에 새 알림 배지가 표시돼요.';
   panel.append(badgeNote);
-  window.CouplePush=Object.freeze({acknowledge,clearBadge:()=>acknowledge(null,true),sync:async()=>{if(preview||!identity)return;for(let attempt=0;attempt<3;attempt++){try{await api('/sync',{});return;}catch{if(attempt<2)await new Promise(resolve=>setTimeout(resolve,1000*(attempt+1)));}}}});
-  void render();acknowledgeVisible();
+  window.CouplePush=Object.freeze({acknowledge,clearBadge:()=>acknowledge(null,true),refreshInbox,getInbox:owner=>snapshots.get(owner)||null,readNotifications:readSelection,sync:async()=>{if(preview||!identity)return;for(let attempt=0;attempt<3;attempt++){try{await api('/sync',{});void refreshInbox();return;}catch{if(attempt<2)await new Promise(resolve=>setTimeout(resolve,1000*(attempt+1)));}}}});
+  void render().catch(()=>{});connectSignal();
 })();
 
 </script>

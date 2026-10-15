@@ -15,56 +15,88 @@ self.addEventListener('fetch', event => {
     event.respondWith(fetch(event.request).catch(() => caches.match('./offline.html')));
   }
 });
-// Only notification identifiers are stored locally; never cache message bodies or API data.
-const BADGE_CACHE='couple-badges-v1';
+// Keep only owner-scoped badge metadata. Never persist credentials or message bodies.
+importScripts('./app-badge.js');
+const BADGE_CACHE='couple-badges-v2';
 const BADGE_URL=new URL('./.badge-state',self.registration.scope).href;
 const BADGE_SCREENS=new Set(['home','calendar','leave','smoke','travel','chat']);
-let badgeQueue=Promise.resolve(),badgeMemory=[];
-function updateBadge(change=items=>items){
-  const work=badgeQueue.then(async()=>{
-    let cache,items=badgeMemory;
-    try{cache=await caches.open(BADGE_CACHE);const stored=await cache.match(BADGE_URL);if(stored){const value=await stored.json();if(Array.isArray(value))items=value;}}catch{}
+let badgeQueue=Promise.resolve(),badgeMemory={owner:null,snapshots:{},items:[]};
+function ownURL(value){try{const u=new URL(value,self.registration.scope),base=new URL(self.registration.scope);return u.origin===base.origin&&u.pathname.startsWith(base.pathname)?u:null;}catch{return null;}}
+function updateBadge(change=state=>state){
+  badgeQueue=badgeQueue.catch(()=>{}).then(async()=>{
+    let cache,state=badgeMemory;
+    try{cache=await caches.open(BADGE_CACHE);const stored=await cache.match(BADGE_URL);if(stored){const value=await stored.json();if(value&&value.snapshots&&Array.isArray(value.items))state=value;}}catch{}
     const cutoff=Date.now()-30*86400000;
-    items=change(items.filter(item=>item&&typeof item.tag==='string'&&Number(item.at)>=cutoff)).slice(-200);
-    badgeMemory=items;
-    try{if(cache)await cache.put(BADGE_URL,new Response(JSON.stringify(items),{headers:{'Content-Type':'application/json'}}));}catch{}
-    try{if(items.length&&typeof self.navigator?.setAppBadge==='function')await self.navigator.setAppBadge(items.length);else if(!items.length&&typeof self.navigator?.clearAppBadge==='function')await self.navigator.clearAppBadge();}catch{}
+    state.items=state.items.filter(x=>x.at>=cutoff).slice(-200);
+    state=change(state)||state;
+    badgeMemory=state;
+    try{await cache?.put(BADGE_URL,new Response(JSON.stringify(state),{headers:{'Content-Type':'application/json'}}));}catch{}
+    const snapshot=state.snapshots[state.owner];
+    const count=snapshot&&snapshot.updatedAt>=cutoff?snapshot.count:state.items.filter(x=>!state.owner||x.owner===state.owner).length;
+    await self.CoupleBadge.apply(count);
+    return {owner:state.owner,count,version:snapshot?.version??-1};
   });
-  badgeQueue=work.catch(()=>{});return badgeQueue;
+  return badgeQueue;
 }
+function snapshotInto(state,snapshot){
+  if(!self.CoupleBadge.accept(state.snapshots[snapshot?.owner],snapshot))return state;
+  state.snapshots[snapshot.owner]={owner:snapshot.owner,count:snapshot.count,version:snapshot.version,updatedAt:Date.now()};
+  if(!state.owner)state.owner=snapshot.owner;
+  const read=new Set(snapshot.readTags||[]);
+  state.items=state.items.filter(x=>x.owner!==snapshot.owner||!read.has(x.tag));
+  return state;
+}
+async function closeRead(snapshot){
+  const read=new Set(snapshot.readTags||[]);
+  try{for(const n of await self.registration.getNotifications()){
+    const owner=n.data?.owner;
+    if(owner===snapshot.owner&&(read.has(n.tag)||(n.data?.at&&n.data.at<snapshot.expiredBefore)))n.close();
+  }}catch{}
+}
+async function notifyPages(type,detail={}){
+  try{for(const client of await self.clients.matchAll({type:'window',includeUncontrolled:true}))if(ownURL(client.url))client.postMessage({type,...detail});}catch{}
+}
+self.addEventListener('activate',event=>event.waitUntil(updateBadge()));
 self.addEventListener('message',event=>{
-  if(event.data?.type!=='COUPLE_BADGE_ACK'||!event.source?.url)return;
-  let source;try{source=new URL(event.source.url);}catch{return;}
-  if(source.origin!==self.location.origin||!source.href.startsWith(self.registration.scope))return;
-  const screen=event.data.screen;
-  if(event.data.all!==true&&!BADGE_SCREENS.has(screen))return;
-  event.waitUntil(updateBadge(items=>event.data.all===true?[]:items.filter(item=>item.screen!==screen)));
+  if(!ownURL(event.source?.url)||!event.source?.url)return;
+  const data=event.data||{};
+  if(data.type==='COUPLE_BADGE_STATE'&&self.CoupleBadge.validOwner(data.snapshot?.owner))event.waitUntil(updateBadge(state=>{
+    if(self.CoupleBadge.validOwner(data.badgeOwner))state.owner=data.badgeOwner;
+    return snapshotInto(state,data.snapshot);
+  }).then(()=>closeRead(data.snapshot)));
+  // Disabling push only clears this installation's badge, not any person's reads.
+  if(data.type==='COUPLE_BADGE_LOCAL_CLEAR')event.waitUntil(updateBadge(state=>{
+    if(state.owner===data.owner){delete state.snapshots[state.owner];state.items=state.items.filter(x=>x.owner!==data.owner);}return state;
+  }));
 });
 self.addEventListener('push',event=>{
   let data={};try{data=event.data?.json()||{};}catch{}
-  const target=BADGE_SCREENS.has(data.screen)?data.screen:'home';
-  const tag=String(data.tag||'couple-update').slice(0,120);
-  // Always show a notification, even when badging is unsupported or fails.
-  const notification=self.registration.showNotification(String(data.title||({leave:'🐰 유흥연차 알림',smoke:'💨 흡연 결재 알림',calendar:'🗓 일정 알림',travel:'✈ 여행 알림'}[target])||'🐰🍠 새 소식').slice(0,60),{
-    body:String(data.body||'우리의 새 소식이 도착했어요.').slice(0,250),icon:'./assets/couple-icon-v3-192.png',tag,
-    data:{url:new URL('./#'+target,self.registration.scope).href}
+  const screen=BADGE_SCREENS.has(data.screen)?data.screen:'home',tag=String(data.tag||'couple-update').slice(0,240);
+  const owner=self.CoupleBadge.validOwner(data.owner)?data.owner:null,at=Number(data.at)||Date.now();
+  // Apple requires a genuinely visible notification for each push, even for stale data.
+  const notification=self.registration.showNotification(String(data.title||'🐰🍠 새 소식').slice(0,120),{
+    body:String(data.body||'우리의 새 소식이 도착했어요.').slice(0,300),icon:'./assets/couple-icon-v3-192.png',tag,
+    data:{url:new URL('./#'+screen,self.registration.scope).href,owner,at,seq:data.seq}
   });
-  const badge=updateBadge(items=>[...items.filter(item=>item.tag!==tag),{tag,screen:target,at:Date.now()}]).then(async()=>{
-    try{for(const client of await self.clients.matchAll({type:'window',includeUncontrolled:true}))if(client.url.startsWith(self.registration.scope))client.postMessage({type:'COUPLE_BADGE_CHANGED'});}catch{}
-  });
+  const badge=updateBadge(state=>{
+    state.items=[...state.items.filter(x=>x.tag!==tag||x.owner!==owner),{tag,screen,owner,at}].slice(-200);
+    return snapshotInto(state,data.badge);
+  }).then(snapshot=>notifyPages('COUPLE_BADGE_CHANGED',{snapshot}));
   event.waitUntil(Promise.all([notification,badge]));
 });
-self.addEventListener('notificationclose',event=>{
-  event.waitUntil(updateBadge(items=>items.filter(item=>item.tag!==event.notification.tag)));
-});
+function dismiss(notification){
+  return updateBadge(state=>{
+    const owner=notification.data?.owner||state.owner;
+    const exists=state.items.some(x=>x.tag===notification.tag&&x.owner===owner);
+    state.items=state.items.filter(x=>x.tag!==notification.tag||x.owner!==owner);
+    if(exists&&state.snapshots[owner])state.snapshots[owner].count=Math.max(0,state.snapshots[owner].count-1);
+    return state;
+  });
+}
+self.addEventListener('notificationclose',event=>event.waitUntil(dismiss(event.notification)));
 self.addEventListener('notificationclick',event=>{
-  event.notification.close();
-  const ack=updateBadge(items=>items.filter(item=>item.tag!==event.notification.tag));
-  const target=new URL(event.notification.data?.url||'./#home',self.registration.scope);
-  if(target.origin!==self.location.origin||!target.pathname.startsWith(new URL(self.registration.scope).pathname)){event.waitUntil(ack);return;}
-  event.waitUntil(Promise.all([ack,self.clients.matchAll({type:'window',includeUncontrolled:true}).then(async windows=>{
-    const app=windows.find(client=>client.url.startsWith(self.registration.scope));
-    if(app){await app.navigate(target.href);return app.focus();}
-    return self.clients.openWindow(target.href);
-  })]));
+  event.notification.close();const target=ownURL(event.notification.data?.url||'./#home');
+  event.waitUntil(Promise.all([dismiss(event.notification),target?self.clients.matchAll({type:'window',includeUncontrolled:true}).then(async windows=>{
+    const app=windows.find(client=>ownURL(client.url));if(app){await app.navigate(target.href);return app.focus();}return self.clients.openWindow(target.href);
+  }):Promise.resolve()]));
 });

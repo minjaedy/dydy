@@ -76,12 +76,16 @@ D1에는 `devices`, `deliveries`, `meta`, `pairing_attempts`, `passkeys`, `auth_
 
 장기 사용을 지원하는 정리 구조이지 10년 무료·무장애 보장이 아니다. 요금제나 한도를 질문받으면 그때 실제 사용량과 공식 정책을 확인한다.
 
-## 설치형 앱 아이콘 배지
+## 설치형 앱 아이콘 배지와 사용자별 읽음
 
-`app-sw.js`가 받은 푸시의 tag·화면 종류·수신 시각만 기기의 `couple-badges-v1` Cache Storage에 보관하고 Badging API를 호출한다. 메시지 본문·사진·인증 토큰은 이 캐시에 넣지 않는다. 중복 tag는 한 개로 세고, 30일 만료·최대 200개로 로컬 증가를 제한한다.
+`notification_inbox`는 `(owner,tag)`로 알림을 구분하고 `notification_versions`는 사용자별 순서를 관리한다. `/notifications/state`와 `/notifications/read`는 유효한 **사용자 세션**에서 owner를 정한다. 요청 본문의 owner나 기기 등록 사용자를 로그인한 사용자로 간주하지 않는다. 같은 일정을 두 사람에게 보냈더라도 읽음은 서로 독립이다.
 
-이 수치는 **이 기기에서 받은 미확인 푸시** 수이며 서버의 채팅 미읽음 전체 수와 같지 않다. 다른 기기에서 읽었다고 자동으로 모든 기기의 배지가 즉시 동기화되는 구현은 아니다.
+읽은 알림은 앱 목록에서 제외하며 30일 후 서버 기록을 정리한다. 모두 읽음·화면 확인은 사용자가 받은 snapshot의 `through`까지만 반영해 뒤늦게 도착한 새 알림을 지우지 않는다. 기존 캘린더 알림은 동일 사용자에게만 이관한다. `couple_home_v1/notificationSignals/{owner}`의 두 고정 값은 내용 없는 갱신 신호이며 읽음의 정본은 D1이다. 활성 화면에서 실시간 신호·60초 보완 확인·재접속을 통해 동기화한다.
 
-`couple-push.js`는 인증된 사용자가 해당 화면을 볼 때 `COUPLE_BADGE_ACK`를 service worker로 보낸다. 알림 클릭·지우기, 캘린더 알림 모두 읽음, 홈 빠른 승인·반려도 해당 배지를 정리한다. API 오류나 미지원은 알림 표시 실패로 전파하지 않는다. 테스트 알림도 확인 전까지 한 개로 센다.
+`app-badge.js`, `app-sw.js`, `couple-push.js`가 페이지와 worker 양쪽에서 Badging API를 호출한다. `couple-badges-v2` 캐시는 사용자·버전·개수·tag·수신 시각만 저장하며 메시지 본문·토큰을 넣지 않는다. 기기의 알림 등록 사용자와 로그인 사용자가 다르면 다른 사람의 배지는 변경하지 않는다. 로그인 전·미리보기·숨겨진 화면에서 자동 읽음을 실행하지 않고, 홈을 보는 것만으로 테스트 알림을 읽음 처리하지 않는다.
 
-아이폰 홈 화면 앱, Mac Safari의 Dock 웹 앱 및 Windows/Mac Chrome·Edge 설치 앱에서 지원 여부를 감지한다. 일반 브라우저 탭만으로 OS 아이콘 배지를 보장하지 않는다. OS 권한과 배지 설정이 필요하고 숫자/점 모양은 플랫폼이 결정한다. 공식 근거: [WebKit iOS](https://webkit.org/blog/14112/badging-for-home-screen-web-apps/), [WebKit Mac](https://webkit.org/blog/14445/webkit-features-in-safari-17-0/), [Chrome Badging](https://developer.chrome.com/docs/capabilities/web-apis/badging-api).
+열려 있는 같은 사용자 기기에서 읽음을 동기화하고 그 사용자로 명시된 시스템 알림만 닫는다. 소유자를 알 수 없는 예전 알림은 임의로 지우지 않는다. Apple은 보이지 않는 푸시를 허용하지 않으므로 종료된 앱의 알림센터를 무음 원격 정리한다고 보장하지 않는다. 다음 실행 때 정리하며, 다음 실제 푸시에도 서버의 최신 배지 개수를 싣는다. 가짜 알림을 띄웠다 즉시 닫는 방식은 사용하지 않는다.
+
+아이폰 홈 화면 앱, Mac Safari Dock 웹 앱, Windows/Mac Chrome·Edge 설치 앱에서 지원을 감지한다. OS 배지 권한·작업표시줄 배지 표시 설정이 필요하다. 일반 브라우저 탭이나 예전에 충돌한 ID로 설치한 앱에서 OS 배지를 보장하지 않는다. 물리적인 OS 아이콘 표시와 자동 코드 검증은 구분한다.
+
+공식 근거: [Apple Web Push](https://developer.apple.com/documentation/usernotifications/sending-web-push-notifications-in-web-apps-and-browsers), [Chrome Badging](https://developer.chrome.com/docs/capabilities/web-apis/badging-api).

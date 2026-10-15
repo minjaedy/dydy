@@ -3,6 +3,7 @@ import {cleanAppRetention} from './app-retention.js';
 import {cleanCalendarYear} from './calendar-cleanup.js';
 import {chatRoute,scheduledChatCleanup,deliverChat,recordAppCards} from './chat.js';
 import {authRoute,cleanAuth,session} from './auth.js';
+import {recordNotification,notificationBadge,notificationsRoute,signalNotifications,cleanNotifications} from './notifications.js';
 import webpush from 'web-push';
 import specialDays from './special-days.json' with {type:'json'};
 export const DELIVERY_RETENTION_MS = 7*86400000;
@@ -57,6 +58,10 @@ export function notificationTitle(screen,key,body=''){
   return '🐰🍠 앱 알림 연결';
 }
 async function send(env,owner,key,body,screen,deviceId=null){
+  const recorded=await recordNotification(env,owner,key,notificationTitle(screen,key,body),body,screen);
+  const notice=recorded.notice||await sql(env,'SELECT seq,created_at,read_at FROM notification_inbox WHERE owner=? AND tag=?',owner,key).first();
+  // A retry or a second registered device must not resurrect an already read item.
+  if(notice.read_at)return;
   const devices=(await sql(env,'SELECT id,subscription FROM devices WHERE owner=? AND subscription IS NOT NULL',owner).all()).results;
   for(const d of devices){
     if(deviceId&&d.id!==deviceId)continue;
@@ -65,7 +70,8 @@ async function send(env,owner,key,body,screen,deviceId=null){
     if(!claim.meta.changes)continue;
     let stage='prepare';
     try{
-      const req=webpush.generateRequestDetails(JSON.parse(d.subscription),JSON.stringify({title:notificationTitle(screen,key,body),body,screen,tag:key}),{TTL:86400,vapidDetails:{subject:env.APP_URL,publicKey:env.VAPID_PUBLIC_KEY,privateKey:env.VAPID_PRIVATE_KEY}});
+      const badge=await notificationBadge(env,owner);
+      const req=webpush.generateRequestDetails(JSON.parse(d.subscription),JSON.stringify({title:notificationTitle(screen,key,body),body,screen,tag:key,owner,seq:notice.seq,at:notice.created_at,badge}),{TTL:86400,vapidDetails:{subject:env.APP_URL,publicKey:env.VAPID_PUBLIC_KEY,privateKey:env.VAPID_PRIVATE_KEY}});
       stage='transport';
       const res=await fetch(req.endpoint,{method:'POST',headers:req.headers,body:req.body,redirect:'manual',signal:AbortSignal.timeout(15000)});
       if(res.status===404||res.status===410){await sql(env,'UPDATE devices SET subscription=NULL WHERE id=?',d.id).run();}
@@ -73,6 +79,7 @@ async function send(env,owner,key,body,screen,deviceId=null){
       await sql(env,"UPDATE deliveries SET state='sent',lease_until=0,sent_at=? WHERE id=?",now,id).run();
     }catch(error){const detail=String(error?.message||'').replace(/https?:\/\/\S+/g,'[URL]').replace(/[A-Za-z0-9_-]{32,}/g,'[REDACTED]').slice(0,160);const kind=stage+'-'+(error?.name||'Error')+': '+detail;await sql(env,"UPDATE deliveries SET state='failed',lease_until=0,last_error=? WHERE id=?",kind,id).run();console.error('Push failed:',kind);throw Error('Push delivery failed');}
   }
+  if(recorded.meta.changes)await signalNotifications(env,owner);
 }
 async function scan(env){
   // No tokens or message bodies are logged.
@@ -103,7 +110,7 @@ async function scan(env){
   await sql(env,'DELETE FROM pairing_attempts WHERE expires<?',Date.now()).run();
   await sql(env,'DELETE FROM deliveries WHERE sent_at<?',Date.now()-DELIVERY_RETENTION_MS).run();
 }
-export async function cleanMaintenance(env){await cleanAuth(env);await sql(env,'DELETE FROM pairing_attempts WHERE expires<?',Date.now()).run();await sql(env,'DELETE FROM deliveries WHERE sent_at<? OR (sent_at IS NULL AND created_at<?)',Date.now()-DELIVERY_RETENTION_MS,Date.now()-DELIVERY_RETENTION_MS).run();}
+export async function cleanMaintenance(env){await cleanAuth(env);await cleanNotifications(env);await sql(env,'DELETE FROM pairing_attempts WHERE expires<?',Date.now()).run();await sql(env,'DELETE FROM deliveries WHERE sent_at<? OR (sent_at IS NULL AND created_at<?)',Date.now()-DELIVERY_RETENTION_MS,Date.now()-DELIVERY_RETENTION_MS).run();}
 export async function sync(env,immediate=false){
   // Delivery claims prevent duplicates even when an immediate scan overlaps cron.
   if(immediate){await scan(env);return;}
@@ -120,6 +127,7 @@ export default {
     try{
       const path=new URL(request.url).pathname;
       if(request.method==='OPTIONS')response=new Response(null,{status:204});
+      else if(path.startsWith('/notifications/')){const current=await session(env,request);response=current?await notificationsRoute(request,env,current,ctx):json({error:'사용자 인증 후 알림을 확인해 주세요.'},401);}
       else if(path.startsWith('/chat/')){const current=await session(env,request);response=current?await chatRoute(request,env,current,ctx,send):json({error:'사용자 인증 후 대화할 수 있어요.'},401);}
       else if(path.startsWith('/auth/'))response=await authRoute(request,env);
       else if(path==='/health'&&request.method==='GET'){await sql(env,'SELECT 1').first();await read(DATABASES.calendar,env);response=json({ok:true,database:true});}
