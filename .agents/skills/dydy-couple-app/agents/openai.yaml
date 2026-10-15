@@ -1,0 +1,4 @@
+interface:
+  display_name: "토끼와 구마 앱 운영"
+  short_description: "GitHub·Firebase·Cloudflare 연결과 앱 수정·배포 구조"
+  default_prompt: "$dydy-couple-app 스킬로 토끼와 구마 앱의 구조와 연결을 확인하고 요청한 수정 및 배포를 진행해 줘."
