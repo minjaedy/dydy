@@ -98,3 +98,9 @@ D1 `schema.sql`의 `CREATE TABLE IF NOT EXISTS`만으로 기존 테이블 열은
 ## 배지 검증
 
 배지 관련 변경은 Git 체크아웃에서 `node tests/app-badges.cjs`와 `node tests/app-badge-client.cjs`로 확인한다. Service Worker의 저장·중복 방지·알림 클릭/읽음·권한 실패, 클라이언트의 로그인/가시성 조건을 검사한다. OS 아이콘 자체의 실제 표시는 설치된 기기에서 별도로 확인한다. 서버 Worker 재배포나 비밀키 변경은 배지 코드만 바꿀 때 필요하지 않다.
+
+## 설치 앱 식별자와 아이콘
+
+DYDY의 manifest `id`는 `/dydy/`로 고정한다. 같은 GitHub Pages 도메인의 TEMPO는 `/cale/`, MIXROOM은 `/mixroom/`다. `id: "./"`는 origin 기준으로 루트 ID가 되어 서로 충돌하므로 사용하지 않는다. `start_url`/`scope`는 manifest 기준 상대 경로이고 id와 해석 기준이 다르다. ID는 아이콘/이름/배포 버전 때문에 다시 바꾸지 않는다.
+
+원본 `pwa-head.html`은 정적 favicon/Apple 아이콘 선언의 정본이다. 원본 index, manifest, app-sw, offline 페이지와 배포 파일을 함께 맞춘다. 32–1024px 투명 PNG와 별도의 180/512/1024px 불투명 maskable PNG를 사용하며 알림 아이콘도 버전 URL을 갱신한다. 자세한 이전/설치 안내는 저장소 `INSTALLATION.md`를 참고한다. `node tests/app-install.cjs`와 기존 배지 테스트를 실행한다. 웹 코드 검증을 실제 Mac Dock/Windows/iPhone 설치 화면 검증으로 표현하지 않는다.
