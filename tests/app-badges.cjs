@@ -1,0 +1,21 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const code=fs.readFileSync(require('path').join(__dirname,'..','app-sw.js'),'utf8');
+function harness(shared=new Map(),{unsupported=false,reject=false}={}){
+ const handlers={},badges=[],notifications=[],opened=[],messages=[];const cache={async match(key){return shared.get(key)?.clone()},async put(key,value){shared.set(key,value.clone())},async addAll(){}};
+ const nav=unsupported?{}:{async setAppBadge(n){if(reject)throw Error('disabled');badges.push(n)},async clearAppBadge(){if(reject)throw Error('disabled');badges.push(0)}};
+ const self={navigator:nav,location:{origin:'https://minjaedy.github.io'},registration:{scope:'https://minjaedy.github.io/dydy/',async showNotification(title,options){notifications.push({title,...options})}},clients:{async matchAll(){return [{url:'https://minjaedy.github.io/dydy/#home',postMessage:m=>messages.push(m),navigate:async u=>opened.push(u),focus:async()=>{}}]},async openWindow(u){opened.push(u)},async claim(){}},skipWaiting(){},addEventListener(type,handler){handlers[type]=handler}};
+ vm.runInNewContext(code,{self,caches:{open:async()=>cache,keys:async()=>[],delete:async()=>true},Response,URL,Date,Promise,Set,JSON,Number,String});
+ async function emit(type,attrs){const waits=[];handlers[type]({...attrs,waitUntil:p=>waits.push(p)});await Promise.all(waits)}
+ return {shared,badges,notifications,opened,messages,emit,push:payload=>emit('push',{data:{json:()=>payload}}),ack:(screen,all=false,url='https://minjaedy.github.io/dydy/')=>emit('message',{data:{type:'COUPLE_BADGE_ACK',screen,all},source:{url}})};
+}
+(async()=>{
+ const h=harness();await h.push({screen:'chat',tag:'chat-a',body:'Do not persist this body'});assert.equal(h.badges.at(-1),1);assert.equal(h.notifications.length,1);await h.push({screen:'chat',tag:'chat-a'});assert.equal(h.badges.at(-1),1);await h.push({screen:'calendar',tag:'calendar-a'});assert.equal(h.badges.at(-1),2);
+ await h.ack('chat',false,'https://evil.example/');assert.equal(h.badges.at(-1),2);await h.ack('chat',false,'https://minjaedy.github.io/other/');assert.equal(h.badges.at(-1),2);await h.ack('chat');assert.equal(h.badges.at(-1),1);
+ const restored=harness(h.shared);await restored.push({screen:'leave',tag:'leave-a'});assert.equal(restored.badges.at(-1),2);await restored.emit('notificationclick',{notification:{tag:'leave-a',data:{url:'https://minjaedy.github.io/dydy/#leave'},close(){}}});assert.equal(restored.badges.at(-1),1);assert.equal(restored.opened.at(-1),'https://minjaedy.github.io/dydy/#leave');await restored.emit('notificationclose',{notification:{tag:'calendar-a'}});assert.equal(restored.badges.at(-1),0);
+ const concurrent=harness();await Promise.all([concurrent.push({tag:'a',screen:'chat'}),concurrent.push({tag:'b',screen:'chat'})]);assert.equal(concurrent.badges.at(-1),2);await concurrent.ack(null,true);assert.equal(concurrent.badges.at(-1),0);
+ for(const opts of [{unsupported:true},{reject:true}]){const fallback=harness(new Map(),opts);await fallback.push({tag:'a',screen:'calendar'});assert.equal(fallback.notifications.length,1);}
+ const key='https://minjaedy.github.io/dydy/.badge-state';const many=new Map([[key,new Response(JSON.stringify(Array.from({length:205},(_,i)=>({tag:String(i),screen:'chat',at:Date.now()}))))]]);const capped=harness(many);await capped.push({tag:'new',screen:'home'});assert.equal(capped.badges.at(-1),200);
+ const stale=new Map([[key,new Response(JSON.stringify([{tag:'expired',screen:'chat',at:0}]))]]);const expiry=harness(stale);await expiry.push({tag:'fresh',screen:'calendar'});assert.equal(expiry.badges.at(-1),1);
+ const saved=await h.shared.get(key).clone().text();assert(!saved.includes('Do not persist this body'));assert(h.messages.some(m=>m.type==='COUPLE_BADGE_CHANGED'));
+ console.log('Passed: badge increments, dedup, per-screen/all read, persistence, concurrent pushes, click/close, scope checks, unsupported/denied APIs, expiry/cap, no body persistence.');
+})().catch(e=>{console.error(e);process.exitCode=1});

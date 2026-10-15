@@ -75,3 +75,13 @@ D1에는 `devices`, `deliveries`, `meta`, `pairing_attempts`, `passkeys`, `auth_
 - 분할 전 이미 받은 월 보상과 기존 잔액을 보존한다. 게임별 청구와 전체 월 한도를 같은 트랜잭션 안에서 확인한다.
 
 장기 사용을 지원하는 정리 구조이지 10년 무료·무장애 보장이 아니다. 요금제나 한도를 질문받으면 그때 실제 사용량과 공식 정책을 확인한다.
+
+## 설치형 앱 아이콘 배지
+
+`app-sw.js`가 받은 푸시의 tag·화면 종류·수신 시각만 기기의 `couple-badges-v1` Cache Storage에 보관하고 Badging API를 호출한다. 메시지 본문·사진·인증 토큰은 이 캐시에 넣지 않는다. 중복 tag는 한 개로 세고, 30일 만료·최대 200개로 로컬 증가를 제한한다.
+
+이 수치는 **이 기기에서 받은 미확인 푸시** 수이며 서버의 채팅 미읽음 전체 수와 같지 않다. 다른 기기에서 읽었다고 자동으로 모든 기기의 배지가 즉시 동기화되는 구현은 아니다.
+
+`couple-push.js`는 인증된 사용자가 해당 화면을 볼 때 `COUPLE_BADGE_ACK`를 service worker로 보낸다. 알림 클릭·지우기, 캘린더 알림 모두 읽음, 홈 빠른 승인·반려도 해당 배지를 정리한다. API 오류나 미지원은 알림 표시 실패로 전파하지 않는다. 테스트 알림도 확인 전까지 한 개로 센다.
+
+아이폰 홈 화면 앱, Mac Safari의 Dock 웹 앱 및 Windows/Mac Chrome·Edge 설치 앱에서 지원 여부를 감지한다. 일반 브라우저 탭만으로 OS 아이콘 배지를 보장하지 않는다. OS 권한과 배지 설정이 필요하고 숫자/점 모양은 플랫폼이 결정한다. 공식 근거: [WebKit iOS](https://webkit.org/blog/14112/badging-for-home-screen-web-apps/), [WebKit Mac](https://webkit.org/blog/14445/webkit-features-in-safari-17-0/), [Chrome Badging](https://developer.chrome.com/docs/capabilities/web-apis/badging-api).

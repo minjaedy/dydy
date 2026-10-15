@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261013-dual-game-heights-78">
+<meta name="app-version" content="20261015-icon-badges-79">
 <title>구마를 안은 행복한 토끼</title>
 <link id="siteFavicon" rel="icon" type="image/png" href="combo-favicon-32.png">
 <link id="siteAppleIcon" rel="apple-touch-icon" href="combo-icon-180.png">
@@ -5203,7 +5203,7 @@ renderApplicant();
       if(deciding)return;
       deciding=true;$('home-pending').querySelectorAll('button').forEach(b=>b.disabled=true);
       const decide=button.dataset.decisionApp==='leave'?window.__leaveHomeDecision:window.__smokeHomeDecision;
-      Promise.resolve().then(()=>{if(!decide)throw Error('다시 연결한 후 시도해 주세요.');return decide(button.dataset.requestId,button.dataset.homeDecision);}).then(()=>window.FX?.toast(button.dataset.homeDecision==='approve'?'승인했어요':'반려했어요')).catch(e=>window.FX?.alert(e.message||'저장하지 못했어요. 다시 시도해 주세요.')).finally(()=>{deciding=false;renderPending();});return;
+      Promise.resolve().then(()=>{if(!decide)throw Error('다시 연결한 후 시도해 주세요.');return decide(button.dataset.requestId,button.dataset.homeDecision);}).then(()=>{void window.CouplePush?.acknowledge(button.dataset.decisionApp);window.FX?.toast(button.dataset.homeDecision==='approve'?'승인했어요':'반려했어요');}).catch(e=>window.FX?.alert(e.message||'저장하지 못했어요. 다시 시도해 주세요.')).finally(()=>{deciding=false;renderPending();});return;
     }
     if(button.dataset.pendingRole){const prefix=button.dataset.openApp==='leave'?'L':'S';document.getElementById(prefix+'-btn'+button.dataset.pendingRole)?.click();}
     if (button.dataset.homeNextPerson) {
@@ -5513,7 +5513,7 @@ window.CoupleAuth=Object.freeze({
   $('social-settings').addEventListener('change',async()=>{const owner=person,s={};document.querySelectorAll('[data-notify]').forEach(el=>s[el.dataset.notify]=el.checked);s.days=Number($('social-notice-days').value);try{if(!preview){if(!preferencesReady||!connected)throw Error('알림 설정 연결을 확인해 주세요.');await preferencesRef.child(owner).set(s);}persist('settings:'+owner,s);scanNotifications();}catch{renderSettings();notificationStatus('알림 설정을 저장하지 못했어요. 연결을 확인하고 다시 선택해 주세요.');}});
   bell.addEventListener('click',()=>{scanNotifications();renderSettings();$('social-notifications').showModal();});
   $('social-close').addEventListener('click',()=>{$('social-notifications').close();bell.focus();});
-  $('social-read-all').addEventListener('click',()=>{try{persist('inbox:'+person,inbox().map(n=>({...n,read:true})));renderInbox();}catch{status('읽음 상태를 저장하지 못했어요.');}});
+  $('social-read-all').addEventListener('click',()=>{try{persist('inbox:'+person,inbox().map(n=>({...n,read:true})));renderInbox();void window.CouplePush?.acknowledge('calendar');}catch{status('읽음 상태를 저장하지 못했어요.');}});
   $('social-inbox').addEventListener('click',e=>{const key=e.target.closest('[data-notice]')?.dataset.notice;if(!key)return;const list=inbox(), n=list.find(n=>n.key===key);if(!n)return;n.read=true;try{persist('inbox:'+person,list);}catch{}renderInbox();$('social-notifications').close();window.SiteNav.open('calendar');window.CoupleCalendar.open({date:n.date,eventId:n.eventId});});
   window.addEventListener('couple-calendar-change',()=>{updateCharacter();scanNotifications();});
   window.addEventListener('storage',e=>{if(!e.key?.startsWith(prefix+':'))return;if(preview&&e.key===prefix+':moods:'+date){moods=normalized(read('moods:'+date,{}));renderMoods();}renderInbox();renderSettings();});
@@ -5844,7 +5844,7 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step,collapse}
     card.querySelector('#couple-install-button').hidden = true;
   });
   if (!preview && 'serviceWorker' in navigator && isSecureContext) {
-    navigator.serviceWorker.register('./app-sw.js').catch(() => {
+    navigator.serviceWorker.register('./app-sw.js',{updateViaCache:'none'}).catch(() => {
       card.querySelector('#couple-install-state').textContent = '설치 기능을 준비하지 못했어요. 연결 후 다시 열어주세요.';
     });
   }
@@ -5874,7 +5874,7 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step,collapse}
     const r=await fetch(SERVER+path,{method,keepalive:true,headers:{'Content-Type':'application/json',...(identity?.token?{Authorization:'Bearer '+identity.token}:{})},...(data?{body:JSON.stringify(data)}:{}),signal:AbortSignal.timeout(20000)});
     const result=await r.json();if(!r.ok)throw Error(result.error||'연결하지 못했어요.');return result;
   }
-  async function registration(){await navigator.serviceWorker.register('./app-sw.js');return navigator.serviceWorker.ready;}
+  async function registration(){await navigator.serviceWorker.register('./app-sw.js',{updateViaCache:'none'});return navigator.serviceWorker.ready;}
   async function render(){
     $('push-pair').hidden=!!identity;$('push-pair').elements.owner.value=window.CoupleHome?.getPerson?.()||'rabbit';panel.querySelector('.push-controls').hidden=!identity;
     if(preview){status('미리보기예요. 실제 설치와 알림 연결은 공개 사이트에서 해주세요.');$('push-pair').hidden=true;return;}
@@ -5886,9 +5886,25 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step,collapse}
   $('push-pair').addEventListener('submit',e=>{e.preventDefault();void action(async()=>{const f=e.target;identity=await api('/pair',{owner:f.elements.owner.value,code:f.elements.code.value.trim()});localStorage.setItem('couple-push-device',JSON.stringify(identity));f.reset();await render();});});
   $('push-enable').addEventListener('click',()=>{if(preview)return;const permission=Notification.requestPermission();void action(async()=>{if(await permission!=='granted')throw Error('아이폰 설정에서 우리 앱의 알림을 허용해 주세요.');const reg=await registration(),config=await api('/config',null,'GET');const raw=atob(config.publicKey.replace(/-/g,'+').replace(/_/g,'/'));const key=Uint8Array.from(raw,c=>c.charCodeAt(0));const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});await api('/subscription',sub.toJSON());await render();});});
   $('push-test').addEventListener('click',()=>void action(async()=>{await api('/test',{});status('테스트 알림을 보냈어요. 잠금화면이나 알림센터에서 확인해 주세요.');}));
-  $('push-disable').addEventListener('click',()=>void action(async()=>{await api('/subscription',null,'DELETE');const sub=await(await registration()).pushManager.getSubscription();await sub?.unsubscribe();await render();status('이 기기의 앱 알림을 껐어요.');}));
-  window.CouplePush=Object.freeze({sync:async()=>{if(preview||!identity)return;for(let attempt=0;attempt<3;attempt++){try{await api('/sync',{});return;}catch{if(attempt<2)await new Promise(resolve=>setTimeout(resolve,1000*(attempt+1)));}}}});
-  void render();
+  $('push-disable').addEventListener('click',()=>void action(async()=>{await api('/subscription',null,'DELETE');const sub=await(await registration()).pushManager.getSubscription();await sub?.unsubscribe();await acknowledge(null,true);await render();status('이 기기의 앱 알림을 껐어요.');}));
+  const badgeScreens=new Set(['home','calendar','leave','smoke','travel','chat']);
+  async function acknowledge(screen,all=false){
+    if(preview||!('serviceWorker' in navigator))return;
+    try{const reg=await navigator.serviceWorker.getRegistration();if(reg?.active)reg.active.postMessage({type:'COUPLE_BADGE_ACK',screen,all});}catch{}
+  }
+  function acknowledgeVisible(){
+    if(preview||document.visibilityState!=='visible')return;
+    const owner=window.CoupleAuth?.getPerson?.();if(!owner||(identity&&owner!==identity.owner))return;
+    const screen=document.body.dataset.siteMode;if(badgeScreens.has(screen))void acknowledge(screen);
+  }
+  ['site-mode-change','couple-auth-change','focus'].forEach(name=>window.addEventListener(name,acknowledgeVisible));
+  document.addEventListener('visibilitychange',acknowledgeVisible);
+  if(!preview&&'serviceWorker' in navigator){navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='COUPLE_BADGE_CHANGED')acknowledgeVisible();});navigator.serviceWorker.addEventListener('controllerchange',acknowledgeVisible);}
+  const badgeNote=document.createElement('p');badgeNote.className='install-note';badgeNote.id='push-badge-hint';
+  badgeNote.textContent=ios?'홈 화면 앱 아이콘에도 새 알림 배지가 표시돼요. 아이폰 설정 → 알림 → 우리 앱에서 배지를 켜 주세요.':/Win/.test(navigator.platform||navigator.userAgent)?'Edge·Chrome으로 앱을 설치하면 작업표시줄 배지를 지원해요. Windows 작업표시줄의 배지 표시도 켜 주세요.':/Mac/.test(navigator.platform||navigator.userAgent)?'Dock에 추가한 웹 앱이나 Chrome·Edge로 설치한 앱에서 아이콘 배지를 지원해요. 시스템 알림의 배지 설정도 확인해 주세요.':'지원되는 설치형 앱에서는 아이콘에 새 알림 배지가 표시돼요.';
+  panel.append(badgeNote);
+  window.CouplePush=Object.freeze({acknowledge,clearBadge:()=>acknowledge(null,true),sync:async()=>{if(preview||!identity)return;for(let attempt=0;attempt<3;attempt++){try{await api('/sync',{});return;}catch{if(attempt<2)await new Promise(resolve=>setTimeout(resolve,1000*(attempt+1)));}}}});
+  void render();acknowledgeVisible();
 })();
 
 </script>
