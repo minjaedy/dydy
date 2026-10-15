@@ -78,11 +78,18 @@ self.addEventListener('push',event=>{
     body:String(data.body||'우리의 새 소식이 도착했어요.').slice(0,300),icon:'./assets/couple-icon-v3-192.png',tag,
     data:{url:new URL('./#'+screen,self.registration.scope).href,owner,at,seq:data.seq}
   });
-  const badge=updateBadge(state=>{
-    state.items=[...state.items.filter(x=>x.tag!==tag||x.owner!==owner),{tag,screen,owner,at}].slice(-200);
-    return snapshotInto(state,data.badge);
-  }).then(snapshot=>notifyPages('COUPLE_BADGE_CHANGED',{snapshot}));
-  event.waitUntil(Promise.all([notification,badge]));
+  event.waitUntil((async()=>{
+    // Desktop browsers may prepare the app's notification process while showing
+    // the notification. Apply its badge afterwards, including with no open page.
+    // This cannot override an OS/browser restriction on badges for terminated apps.
+    try{await notification;}finally{
+      const snapshot=await updateBadge(state=>{
+        state.items=[...state.items.filter(x=>x.tag!==tag||x.owner!==owner),{tag,screen,owner,at}].slice(-200);
+        return snapshotInto(state,data.badge);
+      });
+      await notifyPages('COUPLE_BADGE_CHANGED',{snapshot});
+    }
+  })());
 });
 function dismiss(notification){
   return updateBadge(state=>{

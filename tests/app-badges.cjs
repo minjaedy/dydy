@@ -1,10 +1,10 @@
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),path=require('path');
 const root=path.join(__dirname,'..'),code=fs.readFileSync(path.join(root,'app-sw.js'),'utf8'),helper=fs.readFileSync(path.join(root,'app-badge.js'),'utf8');
-function harness(shared=new Map(),{unsupported=false,reject=false}={}){
+function harness(shared=new Map(),{unsupported=false,reject=false,notificationGate=null,noWindows=false,notificationError=false}={}){
  const handlers={},badges=[],notifications=[],opened=[],messages=[],closed=[];
  const cache={async match(key){return shared.get(key)?.clone()},async put(key,value){shared.set(key,value.clone())},async addAll(){}};
  const nav=unsupported?{}:{async setAppBadge(n){if(reject)throw Error('disabled');badges.push(n)},async clearAppBadge(){if(reject)throw Error('disabled');badges.push(0)}};
- const self={navigator:nav,location:{origin:'https://minjaedy.github.io'},registration:{scope:'https://minjaedy.github.io/dydy/',async showNotification(title,options){const n={title,...options,close(){closed.push([this.data.owner,this.tag]);}};notifications.push(n)},async getNotifications(){return notifications}},clients:{async matchAll(){return [{url:'https://minjaedy.github.io/dydy/#home',postMessage:m=>messages.push(m),navigate:async u=>opened.push(u),focus:async()=>{}}]},async openWindow(u){opened.push(u)},async claim(){}},skipWaiting(){},addEventListener(type,handler){(handlers[type]||=[]).push(handler)}};
+ const self={navigator:nav,location:{origin:'https://minjaedy.github.io'},registration:{scope:'https://minjaedy.github.io/dydy/',async showNotification(title,options){if(notificationGate)await notificationGate;if(notificationError)throw Error('notification unavailable');const n={title,...options,close(){closed.push([this.data.owner,this.tag]);}};notifications.push(n)},async getNotifications(){return notifications}},clients:{async matchAll(){return noWindows?[]:[{url:'https://minjaedy.github.io/dydy/#home',postMessage:m=>messages.push(m),navigate:async u=>opened.push(u),focus:async()=>{}}]},async openWindow(u){opened.push(u)},async claim(){}},skipWaiting(){},addEventListener(type,handler){(handlers[type]||=[]).push(handler)}};
  const c={self,navigator:nav,caches:{open:async()=>cache,keys:async()=>[],delete:async()=>true},Response,URL,Date,Promise,Set,JSON,Number,String};vm.createContext(c);c.importScripts=()=>vm.runInContext(helper,c);vm.runInContext(code,c);
  async function emit(type,attrs={}){const waits=[];for(const fn of handlers[type]||[])fn({...attrs,waitUntil:p=>waits.push(p)});await Promise.all(waits)}
  const sync=(snapshot,url='https://minjaedy.github.io/dydy/')=>emit('message',{data:{type:'COUPLE_BADGE_STATE',snapshot,badgeOwner:'sweet',legacyOwner:'sweet'},source:{url}});
@@ -22,5 +22,13 @@ function harness(shared=new Map(),{unsupported=false,reject=false}={}){
  for(const opts of [{unsupported:true},{reject:true}]){const fallback=harness(new Map(),opts);await fallback.push({owner:'sweet',tag:'x',badge:{owner:'sweet',version:1,count:1}});assert.equal(fallback.notifications.length,1);}
  for(const url of ['https://evil.example/','https://minjaedy.github.io/mixroom/','https://minjaedy.github.io/dydy-other/']){const before=h.opened.length;await h.emit('notificationclick',{notification:{tag:'x',data:{url},close(){}}});assert.equal(h.opened.length,before);}
  const saved=await h.shared.get('https://minjaedy.github.io/dydy/.badge-state').clone().text();assert(!saved.includes('private body'));assert(h.messages.some(m=>m.type==='COUPLE_BADGE_CHANGED'));
+ let finishNotification;const gate=new Promise(resolve=>{finishNotification=resolve});
+ const background=harness(new Map(),{noWindows:true,notificationGate:gate});
+ const pending=background.push({owner:'sweet',tag:'background',badge:{owner:'sweet',version:4,count:7}});
+ await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(background.badges,[]);
+ finishNotification();await pending;assert.deepEqual(background.badges,[7]);assert.equal(background.notifications.length,1);assert.deepEqual(background.opened,[]);
+ const failedNotification=harness(new Map(),{noWindows:true,notificationError:true});
+ await assert.rejects(failedNotification.push({owner:'sweet',tag:'unavailable',badge:{owner:'sweet',version:1,count:2}}),/notification unavailable/);
+ assert.deepEqual(failedNotification.badges,[2]); // waitUntil also covers badge work after a display failure.
  console.log('Passed: owner-isolated badges/notification closure, stale pushes, persistent restore, scope, visible fallback and no cached bodies.');
 })().catch(e=>{console.error(e);process.exitCode=1});
