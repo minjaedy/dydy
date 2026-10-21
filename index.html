@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261015-tower-reward-goals-84">
+<meta name="app-version" content="20261021-mood-stickers-85">
 <title>구마를 안은 행복한 토끼</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/x-icon" href="./assets/couple-icon-v3.ico">
@@ -1441,6 +1441,31 @@ html[data-theme=dark] .home-pending-group{background:var(--hm-paper,#2c2732);bor
 
 .home-entrance{--hm-bg:#fcf8f4;--hm-paper:#fffdfa;--hm-ink:#62484b;--hm-muted:#987e82;--hm-line:#eddfe1;color-scheme:light}.home-entrance::backdrop{background:var(--hm-bg)}html[data-theme=dark] .home-entrance{--hm-bg:#241e23;--hm-paper:#30272e;--hm-ink:#f0dce1;--hm-muted:#c2a9b0;--hm-line:#51404a;color-scheme:dark}html[data-theme=dark] .home-entrance::backdrop{background:#241e23}
 
+/* The same rabbit and Guma express both people's moods, without uploading image data. */
+.home-moods .social-mood-art{display:block;width:56px;height:56px;flex:none;overflow:hidden;pointer-events:none}
+.home-moods .social-mood-card p{gap:8px;min-height:56px!important}
+.home-moods .social-emotion-label{font-size:12px!important;font-weight:600;line-height:1.5}
+#social-mood-form{display:block;padding:16px;border:1px solid var(--hm-line);border-radius:20px;background:var(--hm-paper)}
+#social-mood-form legend{font-size:12px;font-weight:600;color:var(--hm-ink);margin-bottom:12px}
+#social-mood-categories{display:flex;gap:5px;margin-bottom:12px}
+#social-mood-categories button{border:0;border-radius:20px;padding:7px 12px;min-height:34px;background:transparent;color:var(--hm-muted);font:inherit;font-size:11px;cursor:pointer}
+#social-mood-categories button[aria-pressed=true]{background:var(--hm-rabbit,#f7e8ed);color:var(--hm-ink);font-weight:650}
+#social-emoji-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#social-emoji-options button{position:relative;min-width:0;padding:8px 2px;border:1px solid transparent;border-radius:14px;background:transparent;color:var(--hm-ink);cursor:pointer;transition:background .16s,border-color .16s}
+#social-emoji-options .social-mood-art{width:60px;height:60px;max-width:100%;margin:auto}
+#social-emoji-options button small{font-size:11px;line-height:1.4;margin-top:5px}
+#social-emoji-options button[aria-pressed=true]{border-color:var(--hm-pink,#b57899);background:var(--hm-rabbit,#f7e8ed)}
+#social-emoji-options button[aria-pressed=true]::after{content:'✓';position:absolute;right:5px;top:3px;font-size:11px;color:var(--hm-pink,#b57899)}
+#social-emoji-options button[aria-pressed=true] .social-mood-art{animation:moodChoose .23s ease-out}
+.social-mood-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;border-top:1px solid var(--hm-line);padding-top:12px;margin-top:12px}
+.social-mood-actions button{border:0;border-radius:12px;min-height:40px;padding:10px 15px;font:inherit;font-size:12px;cursor:pointer}
+#social-mood-cancel{background:transparent;color:var(--hm-muted)}
+#social-mood-form :focus-visible{outline:2px solid var(--hm-pink,#b57899);outline-offset:3px}
+#social-mood-save:disabled{opacity:.5;cursor:default}
+@keyframes moodChoose{50%{transform:translateY(-3px) scale(1.06)}}
+@media(max-width:360px){#social-mood-form{padding:12px}.home-moods .social-mood-card .social-mood-art{width:46px;height:46px}.home-moods .social-emotion-label{font-size:11px!important}#social-emoji-options .social-mood-art{width:52px;height:52px}}
+@media(prefers-reduced-motion:reduce){#social-emoji-options button{transition:none}#social-emoji-options button[aria-pressed=true] .social-mood-art{animation:none}}
+
 </style>
 <!-- couple-calendar-social-styles:end -->
 <!-- couple-calendar-game-styles:start -->
@@ -1910,7 +1935,19 @@ body[data-site-mode=chat] #chat-feed{scroll-behavior:auto}.chat-action-dialog{an
 <section class="home-moods" aria-labelledby="home-moods-title">
   <div class="home-section-heading"><h2 id="home-moods-title">오늘의 기분</h2><span id="home-who" class="social-dialog-note"></span><input type="hidden" id="social-person" value="rabbit"></div>
   <div id="social-mood-cards" class="social-mood-grid"></div>
-  <form id="social-mood-form" class="social-mood-form" hidden><fieldset class="social-emoji-picker"><legend>지금 내 기분을 골라요</legend><input type="hidden" id="social-emoji" value="🥰"><div id="social-emoji-options" role="group" aria-label="기분 고르기"></div></fieldset><button id="social-mood-save" type="submit" class="home-primary">이 기분으로</button></form>
+  <form id="social-mood-form" class="social-mood-form" hidden>
+    <fieldset class="social-emoji-picker"><legend>지금 내 마음은</legend>
+      <input type="hidden" id="social-emoji" value="love">
+      <div id="social-mood-categories" role="group" aria-label="이모티콘 종류">
+        <button type="button" data-mood-category="all" aria-pressed="true">전체</button>
+        <button type="button" data-mood-category="affection" aria-pressed="false">애정</button>
+        <button type="button" data-mood-category="feeling" aria-pressed="false">기분</button>
+        <button type="button" data-mood-category="daily" aria-pressed="false">일상</button>
+      </div>
+      <div id="social-emoji-options" role="group" aria-label="기분 고르기"></div>
+    </fieldset>
+    <div class="social-mood-actions"><button id="social-mood-cancel" type="button">닫기</button><button id="social-mood-save" type="submit" class="home-primary">사랑해 · 저장</button></div>
+  </form>
   <p id="social-status" class="home-sync" role="status">기분을 불러오는 중…</p>
 </section>
 
@@ -5316,7 +5353,29 @@ window.CoupleAuth=Object.freeze({
   const preview = document.getElementById('app-calendar').dataset.preview === 'true';
   const prefix = preview ? 'couple-social-preview-v1' : 'couple-social-v1';
   const names = { rabbit: '이토끼', sweet: '구마구마' };
-  const emotions = {'🥰':'행복해','🥱':'피곤해','🥺':'보고 싶어','😊':'기분 좋아','😌':'여유로워','😢':'속상해','💪':'힘내는 중'};
+  const moodCatalog = [
+    ['love','사랑해','affection','🥰'],['miss','보고 싶어','affection','🥺'],
+    ['hug','안아줘','affection','🥺'],['thanks','고마워','affection','🥰'],
+    ['happy','행복해','feeling','🥰'],['excited','신나','feeling','😊'],
+    ['cheer','응원해','affection','💪'],['sulk','삐졌어','feeling','😢'],
+    ['sad','속상해','feeling','😢'],['sorry','미안해','affection','🥺'],
+    ['sleepy','졸려','daily','🥱'],['tired','피곤해','daily','🥱'],
+    ['hungry','배고파','daily','😊'],['focus','집중 중','daily','💪'],
+    ['rest','쉬는 중','daily','😌'],['sick','아파','daily','😢']
+  ].map(([id,label,category,emoji],index)=>({id,label,category,emoji,index}));
+  const moodById = new Map(moodCatalog.map(m=>[m.id,m]));
+  const legacyMoods = {'🥰':'happy','🥱':'tired','🥺':'miss','😊':'happy','😌':'rest','😢':'sad','💪':'cheer'};
+  const moodSheets = {rabbit:'assets/mood-rabbit-v1.webp',sweet:'assets/mood-sweet-v1.webp'};
+  const rabbitFrames = [[12,8,298,326],[330,25,296,309],[642,24,301,310],[951,27,296,304],[24,351,287,299],[328,337,296,316],[638,336,299,316],[951,328,298,318],[12,677,300,250],[332,663,292,259],[632,660,307,262],[947,697,300,226],[20,928,293,311],[335,932,292,307],[637,927,299,312],[943,932,304,307]];
+  let moodCategory = 'all';
+  function moodFor(value) {return moodById.get(value)||moodById.get(legacyMoods[value]);}
+  function moodArt(owner,id) {
+    const index=moodById.get(id)?.index??4, column=index%4, row=Math.floor(index/4);
+    // The hand-painted sheets have slightly different row spacing; keep each pose whole.
+    const edges=[0,314,628,926,1254];
+    const frame=owner==='rabbit'?rabbitFrames[index]:[column*313.5+4,edges[row]+4,305.5,edges[row+1]-edges[row]-8];
+    return `<svg class="social-mood-art" data-character="${owner}" viewBox="${frame.join(' ')}" aria-hidden="true" focusable="false"><image href="${moodSheets[owner]}" width="1254" height="1254"/></svg>`;
+  }
   const icons = { rabbit: 'assets/rabbit-daily-icon.webp', sweet: 'assets/sweet-daily-icon.webp' };
   const heroAssets = {night:'assets/rabbit-night.webp',trip:'assets/travel-header-mascot.webp',chocolate:'assets/duo-chocolate.webp',santa:'assets/duo-santa.webp',pepero:'assets/duo-pepero.webp',cake:'assets/duo-cake.webp',rose:'assets/duo-rose.webp',kiss:'assets/duo-kiss.webp',wine:'assets/duo-wine.webp',hug:'assets/duo-hug.webp',pork:'assets/duo-pork.webp',rabbitbirthday:'assets/duo-rabbitbirthday.webp',sweetbirthday:'assets/duo-sweetbirthday.webp',newyear:'assets/duo-newyear.webp',yearend:'assets/duo-yearend.webp',hanbok:'assets/duo-hanbok.webp',chuseok:'assets/duo-chuseok.webp',national:'assets/duo-national.webp',children:'assets/duo-children.webp',memorial:'assets/duo-memorial.webp',lotus:'assets/duo-lotus.webp',hangul:'assets/duo-hangul.webp',silver:'assets/duo-silver.webp',green:'assets/duo-green.webp',photo:'assets/duo-photo.webp',movie:'assets/duo-movie.webp',halloween:'assets/duo-halloween.webp',fools:'assets/duo-fools.webp',tree:'assets/duo-tree.webp',parents:'assets/duo-parents.webp',black:'assets/duo-black.webp',teacher:'assets/duo-teacher.webp',armed:'assets/duo-armed.webp',couple:'assets/duo-couple.webp',spring:'assets/duo-spring.webp',summer:'assets/duo-summer.webp',autumn:'assets/duo-autumn.webp',winter:'assets/duo-winter.webp'};
   const defaultHero = $('home-rabbit-art').src;
@@ -5380,7 +5439,8 @@ window.CoupleAuth=Object.freeze({
     const result = {};
     for (const owner of Object.keys(names)) {
       const m = value?.[owner]; if (!m || typeof m.text !== 'string' || !m.text.trim() || typeof m.version !== 'string') continue;
-      result[owner] = {text:m.text.slice(0,60),emoji:['🥰','🥱','🥺','😊','😌','😢','💪'].includes(m.emoji)?m.emoji:'😊',version:m.version,updatedAt:Number(m.updatedAt)||0,reactions:m.reactions && typeof m.reactions==='object'?m.reactions:{}};
+      const mood=moodFor(m.moodId)||moodFor(m.emoji)||moodById.get('happy');
+      result[owner] = {text:moodById.has(m.moodId)?mood.label:m.text.slice(0,60),moodId:mood.id,emoji:legacyMoods[m.emoji]?m.emoji:mood.emoji,version:m.version,updatedAt:Number(m.updatedAt)||0,reactions:m.reactions && typeof m.reactions==='object'?m.reactions:{}};
     }
     return result;
   }
@@ -5389,19 +5449,19 @@ window.CoupleAuth=Object.freeze({
     $('social-mood-cards').innerHTML = Object.keys(names).map(owner => {
       const m = moods[owner], partner = owner === 'rabbit' ? 'sweet' : 'rabbit';
       const loved = !!m && m.reactions?.[partner] === m.version;
-      return `<article class="social-mood-card"><header><img src="${icons[owner]}" alt=""><span>${names[owner]}의 기분</span></header><p>${m ? `<span class="social-big-emoji">${m.emoji}</span><span class="social-emotion-label">${emotions[m.emoji]}</span>` : ready ? '아직 기분을 고르지 않았어요.' : '불러오는 중…'}</p><footer>${owner === person ? `<button type="button" class="mood-edit" data-mood-edit aria-expanded="${!$('social-mood-form').hidden}" ${busy?'disabled':''}>기분 바꾸기</button>` : ''}<button type="button" class="social-heart" data-love="${owner}" aria-label="${names[owner]}의 기분에 하트 ${loved ? '취소' : '보내기'}" aria-pressed="${loved}" ${owner===person||!m||!ready||!connected||busy?'disabled':''}>${loved?'♥':'♡'} ${loved?'1':'0'}</button></footer></article>`;
+      return `<article class="social-mood-card"><header><img src="${icons[owner]}" alt=""><span>${names[owner]}의 기분</span></header><p>${m ? `${moodArt(owner,m.moodId)}<span class="social-emotion-label">${esc(m.text)}</span>` : ready ? '아직 기분을 고르지 않았어요.' : '불러오는 중…'}</p><footer>${owner === person ? `<button type="button" class="mood-edit" data-mood-edit aria-controls="social-mood-form" aria-expanded="${!$('social-mood-form').hidden}" ${busy?'disabled':''}>기분 바꾸기</button>` : ''}<button type="button" class="social-heart" data-love="${owner}" aria-label="${names[owner]}의 기분에 하트 ${loved ? '취소' : '보내기'}" aria-pressed="${loved}" ${owner===person||!m||!ready||!connected||busy?'disabled':''}>${loved?'♥':'♡'} ${loved?'1':'0'}</button></footer></article>`;
     }).join(''); status();
   }
   function connectMoods() {
     const nextDate = clock().date; if (nextDate===date && ready) return;
     if (ref && valueHandler) ref.off('value', valueHandler);
     clearTimeout(timer); date=nextDate; ready=false; moods={};
-    if (preview) { moods=normalized(read('moods:' + date, {})); ready=true; chooseEmotion(moods[person]?.emoji||'🥰'); renderMoods(); return; }
+    if (preview) { moods=normalized(read('moods:' + date, {})); ready=true; chooseEmotion(moods[person]?.moodId||'love'); renderMoods(); return; }
     try {
       db = window.firebase.app().database(); ref=db.ref('couple_home_v1/moods/' + date);
       connectPreferences();
       if (!connectionRef) { connectionRef=db.ref('.info/connected'); connectionHandler=s=>{connected=s.val()===true;renderMoods();}; connectionRef.on('value',connectionHandler); }
-      valueHandler=s=>{const first=!ready;moods=normalized(s.val());ready=true;if(first)chooseEmotion(moods[person]?.emoji||'🥰');clearTimeout(timer);renderMoods();};
+      valueHandler=s=>{const first=!ready;moods=normalized(s.val());ready=true;if(first)chooseEmotion(moods[person]?.moodId||'love');clearTimeout(timer);renderMoods();};
       ref.on('value',valueHandler,()=>{ready=false;renderMoods();status('기분을 공유하지 못했어요. 연결 권한과 인터넷을 확인해 주세요.');});
       timer=setTimeout(()=>{if(!ready)status('기분 연결이 지연되고 있어요. 입력한 내용은 그대로예요.');},10000);
     } catch { status('공유 연결을 확인해 주세요. 입력한 내용은 그대로예요.'); }
@@ -5414,16 +5474,30 @@ window.CoupleAuth=Object.freeze({
       else { const r=await ref.child(owner).transaction(update,undefined,false);if(!r.committed)throw Error('상대가 기분을 바꿨어요. 새 기분을 확인하고 다시 눌러 주세요.'); }
     } finally {busy=false;renderMoods();}
   }
-  $('social-emoji-options').innerHTML=Object.entries(emotions).map(([emoji,label])=>`<button type="button" data-emoji="${emoji}" aria-label="${label}" aria-pressed="${emoji==='🥰'}"><span>${emoji}</span><small>${label}</small></button>`).join('');
-  function chooseEmotion(emoji) {$('social-emoji').value=emoji;document.querySelectorAll('[data-emoji]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.emoji===emoji)));}
-  $('social-emoji-options').addEventListener('click',e=>{const emoji=e.target.closest('[data-emoji]')?.dataset.emoji;if(!emoji||busy)return;chooseEmotion(emoji);});
+  function renderMoodPicker() {
+    $('social-emoji-options').innerHTML=moodCatalog.filter(m=>moodCategory==='all'||m.category===moodCategory).map(m=>`<button type="button" data-mood="${m.id}" aria-label="${m.label}" aria-pressed="${m.id===$('social-emoji').value}">${moodArt(person,m.id)}<small>${m.label}</small></button>`).join('');
+    document.querySelectorAll('[data-mood-category]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.moodCategory===moodCategory)));
+  }
+  function chooseEmotion(value) {
+    const mood=moodFor(value);if(!mood)return;
+    $('social-emoji').value=mood.id;
+    document.querySelectorAll('[data-mood]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mood===mood.id)));
+    $('social-mood-save').textContent=mood.label+' · 저장';
+  }
+  renderMoodPicker();
+  $('social-mood-categories').addEventListener('click',e=>{
+    const category=e.target.closest('[data-mood-category]')?.dataset.moodCategory;
+    if(!['all','affection','feeling','daily'].includes(category)||busy)return;moodCategory=category;renderMoodPicker();
+  });
+  $('social-emoji-options').addEventListener('click',e=>{const id=e.target.closest('[data-mood]')?.dataset.mood;if(!id||busy)return;chooseEmotion(id);});
+  $('social-mood-cancel').addEventListener('click',()=>{if(busy)return;$('social-mood-form').hidden=true;renderMoods();document.querySelector('[data-mood-edit]')?.focus({preventScroll:true});});
   $('social-mood-form').addEventListener('submit',async e=>{
-    e.preventDefault();if(busy)return;if(clock().date!==date){connectMoods();status('날짜가 바뀌었어요. 오늘의 기분을 다시 골라 주세요.');return;}const emoji=$('social-emoji').value;const text=emotions[emoji];if(!text)return;
-    const m={text:text.slice(0,60),emoji:$('social-emoji').value,version:crypto.randomUUID(),updatedAt:Date.now(),reactions:{}};
+    e.preventDefault();if(busy)return;if(clock().date!==date){connectMoods();status('날짜가 바뀌었어요. 오늘의 기분을 다시 골라 주세요.');return;}const mood=moodFor($('social-emoji').value);if(!mood)return;
+    const m={text:mood.label,moodId:mood.id,emoji:mood.emoji,version:crypto.randomUUID(),updatedAt:Date.now(),reactions:{}};
     try { await mutate(person,()=>m);$('social-mood-form').hidden=true;renderMoods();status('오늘의 기분을 골랐어요.'); }catch(e){status(e.message||'저장하지 못했어요. 입력한 내용은 그대로예요.');}
   });
   $('social-mood-cards').addEventListener('click',async e=>{
-    if(e.target.closest('[data-mood-edit]')){if(busy)return;$('social-mood-form').hidden=!$('social-mood-form').hidden;renderMoods();return;}
+    if(e.target.closest('[data-mood-edit]')){if(busy)return;const form=$('social-mood-form');form.hidden=!form.hidden;if(!form.hidden){chooseEmotion(moods[person]?.moodId||'love');moodCategory='all';renderMoodPicker();}renderMoods();return;}
     const owner=e.target.closest('[data-love]')?.dataset.love;if(!owner||owner===person||busy||!moods[owner])return;if(clock().date!==date){connectMoods();return;}
     const version=moods[owner].version;
     try {await mutate(owner,current=>{if(!current||current.version!==version)return undefined;const reactions={...current.reactions};if(reactions[person]===version)delete reactions[person];else reactions[person]=version;return {...current,reactions};});}catch(e){status(e.message||'하트를 보내지 못했어요. 다시 눌러 주세요.');}
@@ -5529,7 +5603,7 @@ window.CoupleAuth=Object.freeze({
     if(data.owner===person)renderInbox();
   });
   function renderSettings() {const s=settings();document.querySelectorAll('[data-notify]').forEach(el=>{el.checked=!!s[el.dataset.notify];});$('social-notice-days').value=String(s.days);notificationStatus();}
-  $('social-person').addEventListener('change',()=>{person=$('social-person').value;try{persist('person',person);}catch{}renderPerson();chooseEmotion(moods[person]?.emoji||'🥰');renderMoods();renderSettings();scanNotifications();});
+  $('social-person').addEventListener('change',()=>{person=$('social-person').value;try{persist('person',person);}catch{}renderPerson();chooseEmotion(moods[person]?.moodId||'love');moodCategory='all';renderMoodPicker();$('social-mood-form').hidden=true;renderMoods();renderSettings();scanNotifications();});
   $('social-settings').addEventListener('change',async()=>{const owner=person,s={};document.querySelectorAll('[data-notify]').forEach(el=>s[el.dataset.notify]=el.checked);s.days=Number($('social-notice-days').value);try{if(!preview){if(!preferencesReady||!connected)throw Error('알림 설정 연결을 확인해 주세요.');await preferencesRef.child(owner).set(s);}persist('settings:'+owner,s);scanNotifications();}catch{renderSettings();notificationStatus('알림 설정을 저장하지 못했어요. 연결을 확인하고 다시 선택해 주세요.');}});
   bell.addEventListener('click',()=>{scanNotifications();renderSettings();$('social-notifications').showModal();void window.CouplePush?.refreshInbox();});
   $('social-close').addEventListener('click',()=>{$('social-notifications').close();bell.focus();});
