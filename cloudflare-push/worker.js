@@ -4,7 +4,7 @@ import {cleanCalendarYear} from './calendar-cleanup.js';
 import {chatRoute,scheduledChatCleanup,deliverChat,recordAppCards} from './chat.js';
 import {authRoute,cleanAuth,session} from './auth.js';
 import {recordNotification,notificationBadge,notificationsRoute,signalNotifications,cleanNotifications} from './notifications.js';
-import webpush from 'web-push';
+import {buildPushRequest} from './web-push.js';
 import specialDays from './special-days.json' with {type:'json'};
 export const DELIVERY_RETENTION_MS = 7*86400000;
 export const notificationCutoff = (started, now=Date.now()) => Math.max(started, now-DELIVERY_RETENTION_MS);
@@ -57,29 +57,57 @@ export function notificationTitle(screen,key,body=''){
   if(screen==='calendar')return key.startsWith('hour-')?'⏰ 1시간 전 알림':key.startsWith('new-')?'🗓 새 일정':body.split('\n')[0].includes('기념일')?'💝 기념일 알림':'🗓 오늘의 일정';
   return '🐰🍠 앱 알림 연결';
 }
-async function send(env,owner,key,body,screen,deviceId=null){
+export async function deliveryContext(env){
+  const [devices,settled]=await Promise.all([
+    sql(env,'SELECT id,owner,subscription FROM devices WHERE subscription IS NOT NULL').all(),
+    sql(env,"SELECT id FROM deliveries WHERE state IN ('sent','dispatching','uncertain')").all()
+  ]);
+  return {devices:devices.results,settled:new Set(settled.results.map(row=>row.id))};
+}
+export async function send(env,owner,key,body,screen,deviceId=null,context=null){
+  const devices=context?context.devices.filter(d=>d.owner===owner):
+    (await sql(env,'SELECT id,subscription FROM devices WHERE owner=? AND subscription IS NOT NULL',owner).all()).results;
+  const targets=await Promise.all(devices.filter(d=>!deviceId||d.id===deviceId).map(async d=>({...d,deliveryId:await hash(d.id+'|'+key)})));
+  // A scan loads completed deliveries once, instead of rereading and attempting
+  // writes for every notification from the past week on every minute's cron.
+  if(targets.length&&context&&targets.every(d=>context.settled.has(d.deliveryId)))return;
   const recorded=await recordNotification(env,owner,key,notificationTitle(screen,key,body),body,screen);
   const notice=recorded.notice||await sql(env,'SELECT seq,created_at,read_at FROM notification_inbox WHERE owner=? AND tag=?',owner,key).first();
   // A retry or a second registered device must not resurrect an already read item.
   if(notice.read_at)return;
-  const devices=(await sql(env,'SELECT id,subscription FROM devices WHERE owner=? AND subscription IS NOT NULL',owner).all()).results;
-  for(const d of devices){
-    if(deviceId&&d.id!==deviceId)continue;
-    const id=await hash(d.id+'|'+key),now=Date.now();
-    const claim=await sql(env,"INSERT INTO deliveries(id,state,lease_until,created_at) VALUES(?,'sending',?,?) ON CONFLICT(id) DO UPDATE SET state='sending',lease_until=excluded.lease_until WHERE deliveries.state!='sent' AND deliveries.lease_until<?",id,now+120000,now,now).run();
+  let failure=null,badge;
+  for(const d of targets){
+    const id=d.deliveryId,now=Date.now(),lease=now+120000;
+    if(context?.settled.has(id))continue;
+    const claim=await sql(env,"INSERT INTO deliveries(id,state,lease_until,created_at) VALUES(?,'sending',?,?) ON CONFLICT(id) DO UPDATE SET state='sending',lease_until=excluded.lease_until WHERE deliveries.state IN ('sending','failed') AND deliveries.lease_until<?",id,lease,now,now).run();
     if(!claim.meta.changes)continue;
     let stage='prepare';
     try{
-      const badge=await notificationBadge(env,owner);
-      const req=webpush.generateRequestDetails(JSON.parse(d.subscription),JSON.stringify({title:notificationTitle(screen,key,body),body,screen,tag:key,owner,seq:notice.seq,at:notice.created_at,badge}),{TTL:86400,vapidDetails:{subject:env.APP_URL,publicKey:env.VAPID_PUBLIC_KEY,privateKey:env.VAPID_PRIVATE_KEY}});
+      badge??=await notificationBadge(env,owner);
+      const req=await buildPushRequest(env,JSON.parse(d.subscription),JSON.stringify({title:notificationTitle(screen,key,body),body,screen,tag:key,owner,seq:notice.seq,at:notice.created_at,badge}),id);
+      // Persist the external side-effect boundary BEFORE contacting the provider.
+      // If the Worker is killed after this point, acceptance is unknown. An
+      // expired lease must never turn that ambiguity into a repeated push.
+      const dispatch=await sql(env,"UPDATE deliveries SET state='dispatching' WHERE id=? AND state='sending' AND lease_until=? AND EXISTS (SELECT 1 FROM notification_inbox WHERE owner=? AND tag=? AND read_at IS NULL)",id,lease,owner,key).run();
+      if(!dispatch.meta.changes)continue;
       stage='transport';
       const res=await fetch(req.endpoint,{method:'POST',headers:req.headers,body:req.body,redirect:'manual',signal:AbortSignal.timeout(15000)});
-      if(res.status===404||res.status===410){await sql(env,'UPDATE devices SET subscription=NULL WHERE id=?',d.id).run();}
-      else if(!res.ok){const detail=await res.text();let reason='';try{reason=JSON.parse(detail).reason||'';}catch{}stage='provider-'+res.status+'-'+(/^[A-Za-z_]{1,60}$/.test(reason)?reason:'rejected');throw Error('Push provider rejected request');}
-      await sql(env,"UPDATE deliveries SET state='sent',lease_until=0,sent_at=? WHERE id=?",now,id).run();
-    }catch(error){const detail=String(error?.message||'').replace(/https?:\/\/\S+/g,'[URL]').replace(/[A-Za-z0-9_-]{32,}/g,'[REDACTED]').slice(0,160);const kind=stage+'-'+(error?.name||'Error')+': '+detail;await sql(env,"UPDATE deliveries SET state='failed',lease_until=0,last_error=? WHERE id=?",kind,id).run();console.error('Push failed:',kind);throw Error('Push delivery failed');}
+      if(res.status===404||res.status===410){stage='commit';await sql(env,'UPDATE devices SET subscription=NULL WHERE id=?',d.id).run();}
+      else if(!res.ok){stage='provider-'+res.status;throw Error('Push provider rejected request');}
+      stage='commit';
+      await sql(env,"UPDATE deliveries SET state='sent',lease_until=0,sent_at=?,last_error=NULL WHERE id=? AND state='dispatching' AND lease_until=?",Date.now(),id,lease).run();
+      context?.settled.add(id);
+    }catch(error){
+      const uncertain=stage==='transport'||stage==='commit';
+      const detail=String(error?.message||'').replace(/https?:\/\/\S+/g,'[URL]').replace(/[A-Za-z0-9_-]{32,}/g,'[REDACTED]').slice(0,160);
+      const kind=stage+'-'+(error?.name||'Error')+': '+detail;
+      try{await sql(env,"UPDATE deliveries SET state=?,lease_until=?,last_error=? WHERE id=? AND lease_until=? AND state IN ('sending','dispatching')",uncertain?'uncertain':'failed',uncertain?0:Date.now()+60000,kind,id,lease).run();}catch{/* A persisted dispatching row is also non-retryable. */}
+      if(uncertain)context?.settled.add(id);
+      console.error('Push failed:',kind);failure=Error('Push delivery failed');
+    }
   }
   if(recorded.meta.changes)await signalNotifications(env,owner);
+  if(failure)throw failure;
 }
 async function scan(env){
   // No tokens or message bodies are logged.
@@ -87,37 +115,44 @@ async function scan(env){
   const baseline=await sql(env,"SELECT value FROM meta WHERE id='startedAt'").first();
   if(!baseline){await sql(env,"INSERT OR IGNORE INTO meta(id,value) VALUES('startedAt',?)",String(Date.now())).run();return;}
   const started=notificationCutoff(Number(baseline.value)),names={rabbit:'이토끼님',sweet:'구마구마님'};
+  const context=await deliveryContext(env);
+  let failure=null;
+  const notify=async(owner,key,body,screen)=>{try{await send(env,owner,key,body,screen,null,context);}catch(error){failure=error;}};
   for(const [id,e] of Object.entries(calendar||{}))if(e&&e.createdAt>=started&&PEOPLE.includes(e.createdBy)){
     const owner=e.createdBy==='rabbit'?'sweet':'rabbit';
-    if(preferences?.[owner]?.newEvents!==false)await send(env,owner,'new-'+id,names[e.createdBy]+'이 새 일정을 남겼어요.\n'+String(e.title).slice(0,80),'calendar');
+    if(preferences?.[owner]?.newEvents!==false)await notify(owner,'new-'+id,names[e.createdBy]+'이 새 일정을 남겼어요.\n'+String(e.title).slice(0,80),'calendar');
   }
   for(const [type,data,applicant,approver] of [['leave',leave,'rabbit','sweet'],['smoke',smoke,'sweet','rabbit']])for(const r of Object.values(data?.requests||{})){
     if(!r?.id)continue;const label=type==='leave'?'유흥연차':'흡연 결재';
-    if(Date.parse(r.submittedAt)>=started)await send(env,approver,type+'-request-'+r.id,names[applicant]+'이 '+label+'를 신청했어요.',type);
-    if(['approved','rejected'].includes(r.status)&&Date.parse(r.decidedAt)>=started)await send(env,applicant,type+'-'+r.status+'-'+r.id+'-'+r.decidedAt,names[approver]+'이 '+label+'를 '+(r.status==='approved'?'승인':'반려')+'했어요.',type);
+    if(Date.parse(r.submittedAt)>=started)await notify(approver,type+'-request-'+r.id,names[applicant]+'이 '+label+'를 신청했어요.',type);
+    if(['approved','rejected'].includes(r.status)&&Date.parse(r.decidedAt)>=started)await notify(applicant,type+'-'+r.status+'-'+r.id+'-'+r.decidedAt,names[approver]+'이 '+label+'를 '+(r.status==='approved'?'승인':'반려')+'했어요.',type);
   }
   const now=new Date(),today=dateKey(now),hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Seoul',hour:'2-digit',hourCycle:'h23'}).format(now));
   if(hour>=9&&hour<12)for(const e of reminders(calendar,today))for(const owner of reminderRecipients(e)){
     if(preferences?.[owner]?.[e.kind]===false)continue;
-    await send(env,owner,'reminder-'+e.id+'-'+e.date+'-'+today,(e.date===today?'오늘':'내일')+'의 '+(e.kind==='anniversary'?'기념일':'일정')+'\n'+(names[e.owner]?names[e.owner]+' · ':'함께 · ')+e.title+(e.time?' · '+e.time:''),'calendar');
+    await notify(owner,'reminder-'+e.id+'-'+e.date+'-'+today,(e.date===today?'오늘':'내일')+'의 '+(e.kind==='anniversary'?'기념일':'일정')+'\n'+(names[e.owner]?names[e.owner]+' · ':'함께 · ')+e.title+(e.time?' · '+e.time:''),'calendar');
   }
   for(const e of hourlyReminders(calendar,now))for(const owner of reminderRecipients(e)){
     if(preferences?.[owner]?.[e.kind]===false)continue;
-    await send(env,owner,'hour-'+e.id+'-'+e.date+'-'+e.time,'1시간 뒤 일정이 있어요.\n'+(names[e.owner]?names[e.owner]+' · ':'함께 · ')+e.title+' · '+e.time,'calendar');
+    await notify(owner,'hour-'+e.id+'-'+e.date+'-'+e.time,'1시간 뒤 일정이 있어요.\n'+(names[e.owner]?names[e.owner]+' · ':'함께 · ')+e.title+' · '+e.time,'calendar');
   }
   await recordAppCards(env,calendar,leave,smoke);
-  await cleanAuth(env);
-  await sql(env,'DELETE FROM pairing_attempts WHERE expires<?',Date.now()).run();
-  await sql(env,'DELETE FROM deliveries WHERE sent_at<?',Date.now()-DELIVERY_RETENTION_MS).run();
+  if(failure)throw failure;
 }
 export async function cleanMaintenance(env){await cleanAuth(env);await cleanNotifications(env);await sql(env,'DELETE FROM pairing_attempts WHERE expires<?',Date.now()).run();await sql(env,'DELETE FROM deliveries WHERE sent_at<? OR (sent_at IS NULL AND created_at<?)',Date.now()-DELIVERY_RETENTION_MS,Date.now()-DELIVERY_RETENTION_MS).run();}
+export async function scheduledMaintenance(env){
+  const now=Date.now();
+  const claim=await sql(env,"INSERT INTO meta(id,value) VALUES('maintenanceAt',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value WHERE CAST(meta.value AS INTEGER)<?",String(now),now-3600000).run();
+  if(!claim.meta.changes)return;
+  try{await cleanMaintenance(env);}catch(error){await sql(env,"UPDATE meta SET value='0' WHERE id='maintenanceAt'").run();throw error;}
+}
 export async function sync(env,immediate=false){
   // Delivery claims prevent duplicates even when an immediate scan overlaps cron.
   if(immediate){await scan(env);return;}
   const now=Date.now();
   const lock=await sql(env,"INSERT INTO meta(id,value) VALUES('syncLease',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value WHERE CAST(meta.value AS INTEGER)<?",String(now+60000),now).run();
   if(!lock.meta.changes)return;
-  try{await scan(env);}finally{await sql(env,"UPDATE meta SET value='0' WHERE id='syncLease'").run();}
+  try{await scan(env);}finally{await sql(env,"UPDATE meta SET value='0' WHERE id='syncLease' AND value=?",String(now+60000)).run();}
 }
 export default {
   async fetch(request,env,ctx){
@@ -154,5 +189,8 @@ export default {
     }catch{response=json({error:'연결하지 못했어요. 잠시 후 다시 시도해 주세요.'},500);}
     return new Response(response.body,{status:response.status,headers:{...Object.fromEntries(response.headers),...headers}});
   },
-  async scheduled(event,env,ctx){ctx.waitUntil(Promise.allSettled([sync(env),scheduledChatCleanup(env),deliverChat(env,send),cleanCalendarYear(env),cleanAppRetention(env),cleanMaintenance(env)]));}
+  async scheduled(event,env,ctx){ctx.waitUntil(Promise.allSettled([sync(env),scheduledChatCleanup(env),deliverChat(env,send),cleanCalendarYear(env),cleanAppRetention(env),scheduledMaintenance(env)]).then(results=>{
+    const tasks=['notifications','chat cleanup','chat delivery','calendar cleanup','app cleanup','maintenance'];
+    results.forEach((result,i)=>{if(result.status==='rejected')console.error('Scheduled task failed:',tasks[i]);});
+  }));}
 };

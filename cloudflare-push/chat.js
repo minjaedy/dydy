@@ -66,9 +66,17 @@ export async function chatRoute(request,env,current,ctx,send){
 }
 export async function recordAppCards(env,calendar,leave,smoke){
  const start=await sql(env,"SELECT value FROM meta WHERE id='chatStartedAt'").first();if(!start)return;const cutoff=Math.max(Number(start.value),Date.now()-CHAT_RETENTION_MS);
- const put=async(id,owner,kind,payload,at)=>{const p=JSON.stringify(payload);await sql(env,`INSERT INTO chat_messages(id,owner,kind,payload,created_at,notified) VALUES(?,?,?,?,?,1) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload WHERE chat_messages.payload!=excluded.payload AND COALESCE(json_extract(chat_messages.payload,'$.deleted'),0)!=1`,id,owner,kind,p,at).run()};
- for(const [id,e] of Object.entries(calendar||{}))if(e?.createdAt>=cutoff&&['rabbit','sweet'].includes(e.createdBy))await put('event-'+id,e.createdBy,'calendar',{title:String(e.title).slice(0,120),detail:e.date+(e.time?' · '+e.time:'')+'\n'+(e.owner==='rabbit'?'이토끼':e.owner==='sweet'?'구마구마':'함께')+'의 일정',ref:id,date:e.date},e.createdAt);
- for(const [kind,data,owner] of [['leave',leave,'rabbit'],['smoke',smoke,'sweet']])for(const r of Object.values(data?.requests||{})){const at=Date.parse(r?.submittedAt);if(!r?.id||!(at>=cutoff))continue;await put(kind+'-'+r.id,owner,kind,{title:kind==='leave'?'유흥연차 신청':'흡연결재 신청',detail:[r.date,r.reason,r.minutes?String(r.minutes)+'분':''].filter(x=>typeof x==='string').join(' · ').slice(0,600),ref:r.id,status:r.status},at)}
+ const cards=[];
+ const put=(id,owner,kind,payload,at)=>cards.push([id,owner,kind,JSON.stringify(payload),at]);
+ for(const [id,e] of Object.entries(calendar||{}))if(e?.createdAt>=cutoff&&['rabbit','sweet'].includes(e.createdBy))put('event-'+id,e.createdBy,'calendar',{title:String(e.title).slice(0,120),detail:e.date+(e.time?' · '+e.time:'')+'\n'+(e.owner==='rabbit'?'이토끼':e.owner==='sweet'?'구마구마':'함께')+'의 일정',ref:id,date:e.date},e.createdAt);
+ for(const [kind,data,owner] of [['leave',leave,'rabbit'],['smoke',smoke,'sweet']])for(const r of Object.values(data?.requests||{})){const at=Date.parse(r?.submittedAt);if(!r?.id||!(at>=cutoff))continue;put(kind+'-'+r.id,owner,kind,{title:kind==='leave'?'유흥연차 신청':'흡연결재 신청',detail:[r.date,r.reason,r.minutes?String(r.minutes)+'분':''].filter(x=>typeof x==='string').join(' · ').slice(0,600),ref:r.id,status:r.status},at)}
+ cards.sort((a,b)=>a[0].localeCompare(b[0]));
+ const revision=Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(cards)))).toString('hex');
+ const previous=await sql(env,"SELECT value FROM meta WHERE id='appCardsRevision'").first();
+ if(previous?.value===revision)return;
+ for(const card of cards)await sql(env,`INSERT INTO chat_messages(id,owner,kind,payload,created_at,notified) VALUES(?,?,?,?,?,1) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload WHERE chat_messages.payload!=excluded.payload AND COALESCE(json_extract(chat_messages.payload,'$.deleted'),0)!=1`,...card).run();
+ // Save only after all writes; an interrupted run can safely finish next time.
+ await sql(env,"INSERT INTO meta(id,value) VALUES('appCardsRevision',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value",revision).run();
 }
 
 export async function scheduledChatCleanup(env){const now=Date.now();const claim=await sql(env,"INSERT INTO meta(id,value) VALUES('chatCleanupAt',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value WHERE CAST(meta.value AS INTEGER)<?",String(now),now-3600000).run();if(!claim.meta.changes)return;try{await cleanChat(env)}catch(e){await sql(env,"UPDATE meta SET value='0' WHERE id='chatCleanupAt'").run();throw e}}

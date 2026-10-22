@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {DatabaseSync} from 'node:sqlite';import fs from 'node:fs';import {chatRoute,validateMessage,cleanChat,deliverChat,CHAT_RETENTION_MS,recordAppCards} from './chat.js';import worker,{cleanMaintenance} from './worker.js';
+import test from 'node:test';import assert from 'node:assert/strict';import {DatabaseSync} from 'node:sqlite';import fs from 'node:fs';import {chatRoute,validateMessage,cleanChat,deliverChat,CHAT_RETENTION_MS,recordAppCards} from './chat.js';import worker,{cleanMaintenance,scheduledMaintenance} from './worker.js';
 function env(){const db=new DatabaseSync(':memory:');db.exec(fs.readFileSync(new URL('./schema.sql',import.meta.url),'utf8'));const prepare=q=>({bind(...a){const s=db.prepare(q);return{first:async()=>s.get(...a)||null,all:async()=>({results:s.all(...a)}),run:async()=>({meta:s.run(...a)})}}});return{db,DB:{prepare,batch:async list=>{db.exec('BEGIN');try{const r=[];for(const s of list)r.push(await s.run());db.exec('COMMIT');return r}catch(e){db.exec('ROLLBACK');throw e}}}}}
 const waits=[],ctx={waitUntil(p){waits.push(p)}};const call=(e,path,body,owner='rabbit',send=async()=>{})=>chatRoute(new Request('https://push.invalid/chat/'+path,{method:body?'POST':'GET',...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})}),e,{owner,token_hash:owner+'-session'},ctx,send);
 test('identity, idempotency, unread, receipts, validation and private photo storage',async()=>{const e=env(),id=crypto.randomUUID();let pushes=0;assert.equal((await call(e,'messages',{id,owner:'sweet',kind:'text',payload:{text:'hello'}},'rabbit',async()=>pushes++)).status,201);await Promise.all(waits.splice(0));assert.equal(pushes,1);assert.equal((await call(e,'messages',{id,kind:'text',payload:{text:'retry'}})).status,200);assert.equal((await call(e,'messages',{id,kind:'text',payload:{text:'collision'}},'sweet')).status,409);let r=await(await call(e,'messages',null,'sweet')).json();assert.equal(r.messages[0].owner,'rabbit');assert.equal(r.unread,1);await call(e,'read',{seq:1},'sweet');assert.equal((await(await call(e,'messages')).json()).readSeq,1);for(const [kind,payload] of [['sticker',{index:8}],['text',{text:'x'.repeat(1001)}],['photo',{data:'data:image/jpeg;base64,YWJjZA=='}],['reward',{}]])assert.throws(()=>validateMessage({id:crypto.randomUUID(),kind,payload}));const photo=crypto.randomUUID();assert.equal((await call(e,'messages',{id:photo,kind:'photo',payload:{data:'data:image/jpeg;base64,/9j/2Q=='}})).status,201);await Promise.all(waits.splice(0));r=await(await call(e,'messages')).json();assert(!JSON.stringify(r).includes('/9j/'));assert.equal((await call(e,'photo/'+photo)).status,200);e.db.close()});
@@ -10,3 +10,22 @@ test('bulk saved deletion clears both owners photos and hearts, scrubs quotes, p
 test('saved message cap blocks new pins while allowing existing pins and unpinning',async()=>{const e=env();const put=e.db.prepare('INSERT INTO chat_messages(id,owner,kind,payload,created_at,pinned) VALUES(?,?,?,?,?,?)');for(let i=0;i<1000;i++)put.run('pin-'+i,'rabbit','text','{"text":"saved"}',Date.now(),1);put.run('new-pin','sweet','text','{"text":"new"}',Date.now(),0);assert.equal((await call(e,'pin',{id:'new-pin',pinned:true},'sweet')).status,409);assert.equal((await call(e,'pin',{id:'pin-0',pinned:true})).status,200);assert.equal((await call(e,'pin',{id:'pin-0',pinned:false})).status,200);assert.equal((await call(e,'pin',{id:'new-pin',pinned:true},'sweet')).status,200);assert.equal(e.db.prepare('SELECT COUNT(*) n FROM chat_messages WHERE pinned=1').get().n,1000);e.db.close()});
 
 test('maintenance deletes old failed and successful push records, keeps recent failures and device registrations',async()=>{const e=env(),now=Date.now();for(const [id,state,sent,created] of [['failed-old','failed',null,now-8*86400000],['failed-recent','failed',null,now-86400000],['sent-old','sent',now-8*86400000,now-8*86400000]])e.db.prepare('INSERT INTO deliveries(id,state,sent_at,created_at) VALUES(?,?,?,?)').run(id,state,sent,created);e.db.prepare('INSERT INTO devices(id,owner,token_hash,created_at) VALUES(?,?,?,?)').run('keep-device','rabbit','hash',1);await cleanMaintenance(e);assert.deepEqual(e.db.prepare('SELECT id FROM deliveries').all().map(x=>x.id),['failed-recent']);assert.equal(e.db.prepare('SELECT COUNT(*) n FROM devices').get().n,1);e.db.close()});
+test('unchanged app cards do not write every cron; changed content still syncs',async()=>{
+ const e=env();e.db.prepare('INSERT INTO meta VALUES(?,?)').run('chatStartedAt',String(Date.now()-1000));
+ const calendar={one:{title:'일정',date:'2026-10-22',createdAt:Date.now(),createdBy:'rabbit'}};
+ await recordAppCards(e,calendar,{},{});
+ const before=e.db.prepare('SELECT total_changes() AS n').get().n;
+ await recordAppCards(e,calendar,{},{});
+ assert.equal(e.db.prepare('SELECT total_changes() AS n').get().n,before);
+ calendar.one.title='수정한 일정';await recordAppCards(e,calendar,{},{});
+ assert.equal(JSON.parse(e.db.prepare('SELECT payload FROM chat_messages').get().payload).title,'수정한 일정');
+ e.db.close();
+});
+test('maintenance runs hourly and retains seven-day expiry for ambiguous deliveries',async()=>{
+ const e=env();await scheduledMaintenance(e);
+ e.db.prepare('INSERT INTO deliveries(id,state,created_at) VALUES(?,?,?)').run('old-uncertain','uncertain',Date.now()-8*86400000);
+ await scheduledMaintenance(e);assert.equal(e.db.prepare('SELECT COUNT(*) n FROM deliveries').get().n,1);
+ e.db.exec("UPDATE meta SET value='0' WHERE id='maintenanceAt'");
+ await scheduledMaintenance(e);assert.equal(e.db.prepare('SELECT COUNT(*) n FROM deliveries').get().n,0);
+ e.db.close();
+});
