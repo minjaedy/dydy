@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261102-travel-times-86">
+<meta name="app-version" content="20261112-travel-route-87">
 <title>구마를 안은 행복한 토끼</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/x-icon" href="./assets/couple-icon-v3.ico">
@@ -1621,6 +1621,19 @@ html[data-theme=dark] .tp .tp-total.over strong,html[data-theme=dark] .tp #tp-st
 html[data-theme=dark] .tp .tp-stop-time{background:#322c3b;color:var(--tp-accent);border-color:var(--tp-line)}
 html[data-theme=dark] .tp .tp-time-warning{color:#e0b086}
 @media(max-width:380px){.tp .tp-dialog .tp-form-grid{grid-template-columns:minmax(0,1fr)}.tp .tp-dialog .tp-form-grid>.tp-wide{grid-column:1/-1}}
+.tp-route-edit { margin-top: 12px; border-top: 1px solid var(--tp-line); padding-top: 9px; }
+.tp-route-edit summary { width: fit-content; padding: 8px 0; cursor: pointer; color: var(--tp-accent); font-size: 13px; }
+.tp-route-member { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--tp-line); }
+.tp-route-member span { overflow-wrap: anywhere; font-size: 13px; }
+.tp-route-member button, .tp #tp-route-clear, .tp #tp-trip-delete { min-height: 34px; flex-shrink: 0; background: transparent; color: var(--tp-accent); }
+.tp #tp-route-clear { margin-top: 8px; }
+.tp .tp-route-link { text-decoration: none; color: var(--tp-accent); }
+.tp #tp-map[hidden] { display: none !important; }
+.tp #tp-trip-delete-dialog { padding: 23px; }
+.tp #tp-trip-delete-dialog p { line-height: 1.7; }
+.tp-delete-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.tp #tp-trip-delete-yes { background: var(--tp-accent); color: white; }
+.tp [id$="-location"]:empty { display: none; }
 </style>
 <!-- couple-calendar-travel-styles:end -->
 <!-- couple-calendar-install-styles:start -->
@@ -1980,10 +1993,10 @@ body[data-site-mode=chat] #chat-feed{scroll-behavior:auto}.chat-action-dialog{an
  <main class="tp-wrap">
   <header class="tp-heading"><div><p class="tp-eyebrow">OUR NEXT ADVENTURE</p><h1>우리의 다음 여행 <span>✈</span></h1><p>가고 싶은 곳을 모아, 우리만의 하루로.</p></div><button type="button" data-open-app="home" class="tp-quiet">⌂ 홈</button></header>
   <section class="tp-hero" aria-label="우리 여행 요약"><div class="tp-hero-copy"><span class="tp-hero-tag">🐰 토끼랑 🍠 구마랑</span><h2 id="tp-hero-title"></h2><p id="tp-hero-date"></p><span id="tp-trip-dday" class="tp-trip-dday"></span><div id="tp-hero-stats" class="tp-hero-stats"></div></div><div class="tp-hero-art"><span class="tp-spark tp-spark-one">✦</span><img decoding="async" loading="lazy" src="assets/travel-header-mascot.webp" alt="여행 모자를 쓰고 구마를 안은 행복한 토끼" width="240" height="240"><span class="tp-spark tp-spark-two">♡</span><span class="tp-hero-caption">우리의 작은 모험</span></div></section>
-  <div class="tp-toolbar"><label>여행 선택<select id="tp-trips"></select></label><button id="tp-new" type="button">＋ 새 여행</button><span id="tp-save" role="status">이 기기에 저장돼요</span></div>
-  <section class="tp-card tp-map-card" aria-label="방문 순서 지도"><div class="tp-section-head"><div><h2>우리의 이동 동선</h2><p id="tp-route-caption">체크리스트 순서대로 이어져요</p></div><button id="tp-origin-pin" type="button" class="tp-quiet">⌖ 출발지 위치</button></div><div id="tp-map"></div><div id="tp-map-message" role="status">번호와 점선은 방문 순서예요. 실제 도로 경로·교통 상황은 네이버 지도에서 확인해요.</div><div id="tp-route" class="tp-route"></div></section>
+  <div class="tp-toolbar"><label>여행 선택<select id="tp-trips"></select></label><button id="tp-new" type="button">＋ 새 여행</button><button type="button" id="tp-trip-delete" class="tp-quiet">여행 삭제</button><span id="tp-save" role="status">이 기기에 저장돼요</span></div>
+  <section class="tp-card tp-map-card" aria-label="방문 순서 지도"><div class="tp-section-head"><div><h2>우리의 이동 동선</h2><p id="tp-route-caption">체크리스트 순서대로 이어져요</p></div></div><div id="tp-days" class="tp-days" aria-label="지도와 체크리스트 날짜 선택"></div><div id="tp-map"></div><div id="tp-map-message" role="status">번호와 점선은 방문 순서예요. 실제 도로 경로·교통 상황은 네이버 지도에서 확인해요.</div><div id="tp-route" class="tp-route"></div><details class="tp-route-edit"><summary>동선 편집</summary><div id="tp-route-members"></div><button id="tp-route-clear" class="tp-quiet" type="button">이날 동선 비우기</button></details></section>
   <nav class="tp-tabs" aria-label="플래너 메뉴"><button type="button" data-tp-tab="plan" aria-pressed="true">☑ 여행 체크리스트</button><button type="button" data-tp-tab="money" aria-pressed="false">₩ 예산 · 정산</button></nav>
-  <section id="tp-plan"><div class="tp-section-head"><div><h2>하루를 차곡차곡</h2><p id="tp-progress"></p></div><button id="tp-add" type="button" class="tp-primary">＋ 장소 추가</button></div><div id="tp-current" class="tp-current" role="status"></div><div id="tp-days" class="tp-days"></div><div id="tp-stops"></div><div id="tp-day-finish" class="tp-day-finish" role="status" hidden><img decoding="async" loading="lazy" src="assets/travel-header-mascot.webp" alt="인사하는 토끼와 구마"><span>오늘도 잘 놀았다 ♥<small>오늘 계획을 모두 다녀왔어요!</small></span></div><p class="tp-footnote">시간을 누르면 방문 시간을 직접 정할 수 있어요. 비워두면 출발·이동·머무는 시간에 맞춰 자동 계산해요.</p></section>
+  <section id="tp-plan"><div class="tp-section-head"><div><h2>하루를 차곡차곡</h2><p id="tp-progress"></p></div><button id="tp-add" type="button" class="tp-primary">＋ 장소 추가</button></div><div id="tp-current" class="tp-current" role="status"></div><div id="tp-stops"></div><div id="tp-day-finish" class="tp-day-finish" role="status" hidden><img decoding="async" loading="lazy" src="assets/travel-header-mascot.webp" alt="인사하는 토끼와 구마"><span>오늘도 잘 놀았다 ♥<small>오늘 계획을 모두 다녀왔어요!</small></span></div><p class="tp-footnote">시간을 누르면 방문 시간을 직접 정할 수 있어요. 비워두면 출발·이동·머무는 시간에 맞춰 자동 계산해요.</p></section>
   <section id="tp-money" hidden><div id="tp-totals" class="tp-totals"></div><div class="tp-money-grid"><section class="tp-card"><h2>계획에 맞춘 예상 예산</h2><p>장소별로 직접 입력한 비용을 합산해요. 1인당 비용은 두 배로 계산해요.</p><div id="tp-budget"></div></section><section class="tp-card"><h2>둘이 나눌 금액</h2><label>토끼 부담 비율 <span id="tp-ratio-label"></span><input id="tp-ratio" type="range" min="0" max="100" step="1"></label><div id="tp-settlement"></div><p class="tp-footnote">함께 쓴 비용만 비율로 나눠요. 개인 비용은 각자 부담하고 실제 결제자에게 정산해요.</p></section></div><section class="tp-card"><div class="tp-section-head"><div><h2>실제로 쓴 돈</h2><p>예상 비용과 따로 기록해요.</p></div><button id="tp-expense-add" type="button" class="tp-primary">＋ 지출 추가</button></div><div id="tp-expenses"></div></section></section>
   <section class="tp-card" aria-label="여행 준비물"><div class="tp-section-head"><div><h2>함께 챙기는 준비물</h2><p id="tp-pack-progress"></p></div></div><form id="tp-pack-form" class="tp-pack-form"><input name="title" aria-label="준비물 이름" placeholder="충전기, 숙소 예약, 여행 티켓…" maxlength="80" required><select name="owner" aria-label="준비물 담당"><option value="together">♥ 함께</option><option value="rabbit">🐰 토끼 담당</option><option value="sweet">🍠 구마 담당</option></select><button type="submit" class="tp-primary">＋ 추가</button></form><div id="tp-pack-list"></div></section>
   <details id="tp-settings-toggle" class="tp-settings-toggle"><summary><span><span aria-hidden="true">⚙</span> 여행 정보 수정<small id="tp-settings-summary"></small></span><span class="tp-toggle-chevron" aria-hidden="true">⌄</span></summary>
@@ -1991,14 +2004,15 @@ body[data-site-mode=chat] #chat-feed{scroll-behavior:auto}.chat-action-dialog{an
    <label class="tp-wide">여행 이름<input name="title" required maxlength="60" placeholder="우리의 제주 여행"></label>
    <label>떠나는 날<input name="start" type="date" required></label><label>돌아오는 날<input name="end" type="date" required></label>
    <label>출발지<input name="origin" required maxlength="80" placeholder="집, 공항, 기차역"></label><label>출발 시간<input name="time" type="time" required></label>
-   <label class="tp-wide">출발지 네이버 지도 링크<input name="link" type="url" placeholder="https://naver.me/…"></label>
+   <label class="tp-wide">출발지 네이버 지도 링크<input name="link" type="url" placeholder="https://naver.me/…"><small id="tp-origin-location" role="status"></small></label>
    <label>여행 예산 상한 (원)<input name="limit" type="number" min="0" max="999999999" step="1"></label><button class="tp-primary" type="submit">여행 정보 저장</button>
   </form>
   </details>
 
   <p id="tp-sync-note" class="tp-footnote">여행 공유 연결을 확인하고 있어요.</p>
  </main>
- <dialog id="tp-stop-dialog" class="tp-dialog"><form id="tp-stop-form"><div class="tp-section-head"><h2 id="tp-stop-heading">가고 싶은 곳 추가</h2><button type="button" data-tp-close="tp-stop-dialog" aria-label="닫기">✕</button></div><input name="id" type="hidden"><label>장소 이름<input name="name" required maxlength="80" placeholder="예: 바다 보이는 카페"></label><label>네이버 지도 링크<input name="link" type="url" placeholder="https://naver.me/…"><small>공유 링크를 붙여 넣어요. 지도 위치는 저장 후 ⌖ 버튼으로 지정할 수 있어요.</small></label><div class="tp-form-grid"><label>방문 날짜<input name="date" type="date" required></label><label>방문 시간 (선택)<input name="time" type="time" step="60" aria-describedby="tp-time-help"></label><div class="tp-time-help" id="tp-time-help"><span>비워두면 이전 일정에 맞춰 자동 계산해요.</span><button type="button" id="tp-time-auto">시간 비우기</button></div><label class="tp-wide">분류<select name="category"><option>맛집</option><option>카페</option><option>관광</option><option>숙소</option><option>교통</option><option>기타</option></select></label><label>이전 장소에서 이동 (분)<input name="travel" type="number" min="0" max="1440" required></label><label>머무는 시간 (분)<input name="stay" type="number" min="0" max="1440" required></label><label>예상 비용 (원)<input name="cost" type="number" min="0" max="999999999" required></label><label>비용 기준<select name="basis"><option value="total">둘이 합친 금액</option><option value="person">1인당 금액 × 2</option></select></label></div><label>메모<textarea name="note" rows="2" maxlength="500" placeholder="예약 시간, 꼭 먹을 메뉴…"></textarea></label><p id="tp-stop-error" role="alert"></p><button class="tp-primary tp-full" type="submit">체크리스트에 저장</button></form></dialog>
+ <dialog id="tp-stop-dialog" class="tp-dialog"><form id="tp-stop-form"><div class="tp-section-head"><h2 id="tp-stop-heading">가고 싶은 곳 추가</h2><button type="button" data-tp-close="tp-stop-dialog" aria-label="닫기">✕</button></div><input name="id" type="hidden"><label>장소 이름<input name="name" required maxlength="80" placeholder="예: 바다 보이는 카페"></label><label>네이버 지도 링크<input name="link" type="url" placeholder="https://naver.me/…"><small>네이버 지도에서 공유한 링크를 넣으면 위치를 찾아요.</small><small id="tp-stop-location" role="status"></small></label><div class="tp-form-grid"><label>방문 날짜<input name="date" type="date" required></label><label>방문 시간 (선택)<input name="time" type="time" step="60" aria-describedby="tp-time-help"></label><div class="tp-time-help" id="tp-time-help"><span>비워두면 이전 일정에 맞춰 자동 계산해요.</span><button type="button" id="tp-time-auto">시간 비우기</button></div><label class="tp-wide">분류<select name="category"><option>맛집</option><option>카페</option><option>관광</option><option>숙소</option><option>교통</option><option>기타</option></select></label><label>이전 장소에서 이동 (분)<input name="travel" type="number" min="0" max="1440" required></label><label>머무는 시간 (분)<input name="stay" type="number" min="0" max="1440" required></label><label>예상 비용 (원)<input name="cost" type="number" min="0" max="999999999" required></label><label>비용 기준<select name="basis"><option value="total">둘이 합친 금액</option><option value="person">1인당 금액 × 2</option></select></label></div><label>메모<textarea name="note" rows="2" maxlength="500" placeholder="예약 시간, 꼭 먹을 메뉴…"></textarea></label><p id="tp-stop-error" role="alert"></p><button class="tp-primary tp-full" type="submit">체크리스트에 저장</button></form></dialog>
+ <dialog id="tp-trip-delete-dialog" class="tp-dialog" aria-labelledby="tp-delete-name"><h2 id="tp-delete-name"></h2><p>이 여행의 체크리스트·동선·준비물·정산 내역이 함께 삭제돼요.</p><p id="tp-delete-error" role="alert"></p><div class="tp-delete-actions"><button type="button" data-tp-close="tp-trip-delete-dialog">취소</button><button type="button" id="tp-trip-delete-yes">여행 삭제하기</button></div></dialog>
  <dialog id="tp-expense-dialog" class="tp-dialog"><form id="tp-expense-form"><div class="tp-section-head"><h2>지출 기록</h2><button type="button" data-tp-close="tp-expense-dialog" aria-label="닫기">✕</button></div><label>내용<input name="title" required maxlength="80" placeholder="예: 저녁 식사"></label><div class="tp-form-grid"><label>금액 (원)<input name="amount" type="number" required min="1" max="999999999"></label><label>날짜<input name="date" type="date" required></label><label>결제한 사람<select name="payer"><option value="rabbit">🐰 이토끼</option><option value="sweet">🍠 구마구마</option></select></label><label>누가 쓴 돈인가요?<select name="scope"><option value="shared">둘이 함께</option><option value="rabbit">토끼 개인</option><option value="sweet">구마 개인</option></select></label></div><button class="tp-primary tp-full" type="submit">지출 저장</button></form></dialog>
 </section>
 
@@ -4792,7 +4806,7 @@ renderApplicant();
   function dayNumber(key) { const d = parseDate(key); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000; }
   function dday(key) { const n = dayNumber(key) - dayNumber(dateKey(new Date())); return n === 0 ? 'D-day' : n > 0 ? `D-${n}` : `D+${-n}`; }
   function shortDate(key) { const d = parseDate(key); return `${d.getMonth() + 1}.${d.getDate()} (${weekdays[d.getDay()][0]})`; }
-  function eventDday(e, date) { return e.automatic && /^\d+주년$/.test(e.title) && date === dateKey(new Date()) ? e.title : dday(date); }
+  function eventDday(e, date) { if(e.tripId&&date>e.date&&date<=e.endDate)return '여행 중';return e.automatic && /^\d+주년$/.test(e.title) && date === dateKey(new Date()) ? e.title : dday(date); }
   function normalize(raw) {
     const result = {};
     if (!raw || typeof raw !== 'object') return result;
@@ -4810,6 +4824,7 @@ renderApplicant();
     return key >= e.date && parseDate(key) ? key : null;
   }
   function nextOccurrence(e, from) {
+    if(e.tripId)return e.endDate<from?null:(e.date<from?from:e.date);
     if (!e.yearly) return e.date >= from ? e.date : null;
     for (let year = Math.max(Number(from.slice(0, 4)), Number(e.date.slice(0, 4))); year <= 2199; year++) {
       const key = occurrence(e, year);
@@ -4936,14 +4951,21 @@ renderApplicant();
     }
     return result.concat(holidayData[year] || []);
   }
+  function plannerEvents() {
+    return (window.CoupleTravel?.getCalendarTrips?.() || [])
+      .filter(t=>parseDate(t.start)&&parseDate(t.end)&&t.start<=t.end&&/^[\w-]{1,120}$/.test(t.id))
+      .map(t=>({id:'planner-'+t.id,tripId:t.id,title:t.title,date:t.start,endDate:t.end,
+        time:t.time||'',place:t.origin||'',kind:'trip',owner:'together',yearly:false}));
+  }
   function mergedEvents(years) {
     const saved = Object.values(events);
     const titleKey = title => title.replace(/[♥♡🎂\s]/gu, '').replace(/^우리의?/, '').replace(/^토끼생일$/, '이토끼생일').replace(/^(구마|고구마)생일$/, '구마구마생일');
-    return saved.concat([...new Set(years)].flatMap(automaticDates).filter(auto => !saved.some(e => occurrence(e, Number(auto.date.slice(0, 4))) === auto.date && titleKey(e.title) === titleKey(auto.title))));
+    return saved.concat(plannerEvents(),[...new Set(years)].flatMap(automaticDates).filter(auto => !saved.some(e => occurrence(e, Number(auto.date.slice(0, 4))) === auto.date && titleKey(e.title) === titleKey(auto.title))));
   }
   function matching(e) { return e.holiday || filter === 'all' || e.owner === filter; }
   function forDay(key, all = false) {
-    return mergedEvents([Number(key.slice(0, 4))]).filter(e => (all || matching(e)) && (e.yearly ? occurrence(e, Number(key.slice(0, 4))) === key : e.date === key))
+    return mergedEvents([Number(key.slice(0, 4))]).filter(e => (all || matching(e)) && (e.tripId ? e.date<=key&&key<=e.endDate : e.yearly ? occurrence(e, Number(key.slice(0, 4))) === key : e.date === key))
+      .map(e=>e.tripId&&key!==e.date?{...e,time:'',place:''}:e)
       .sort((a, b) => a.time.localeCompare(b.time) || a.title.localeCompare(b.title, 'ko'));
   }
   function upcoming(owner = null, all = false) {
@@ -4981,14 +5003,14 @@ renderApplicant();
       const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i, 12);
       const key = dateKey(d), list = forDay(key), valid = !!parseDate(key);
       const detail = list.map(e => `${owners[e.owner]} ${e.title}`).join(', ');
-      grid += `<button type="button" class="cc-date${d.getMonth() !== month.getMonth() ? ' cc-outside' : ''}${list.some(e => e.holiday) ? ' cc-holiday' : ''}" data-cc-date="${key}" aria-pressed="${key === selected}"${key === today ? ' aria-current="date"' : ''}${valid ? '' : ' disabled'} aria-label="${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${weekdays[d.getDay()]}${list.length ? ', ' + esc(detail) : ', 일정 없음'}"><span class="cc-date-number">${d.getDate()}</span><span class="cc-date-caption">${esc(list.find(e => e.holiday)?.title || list.find(e => e.automatic)?.title || "")}</span><span class="cc-date-dots" aria-hidden="true">${list.slice(0, 3).map(e => `<i class="cc-dot" data-owner="${e.owner}"></i>`).join('')}${list.length > 3 ? `<span class="cc-date-more">+${list.length - 3}</span>` : ''}</span></button>`;
+      grid += `<button type="button" class="cc-date${d.getMonth() !== month.getMonth() ? ' cc-outside' : ''}${list.some(e => e.holiday) ? ' cc-holiday' : ''}" data-cc-date="${key}" aria-pressed="${key === selected}"${key === today ? ' aria-current="date"' : ''}${valid ? '' : ' disabled'} aria-label="${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 ${weekdays[d.getDay()]}${list.length ? ', ' + esc(detail) : ', 일정 없음'}"><span class="cc-date-number">${d.getDate()}</span><span class="cc-date-caption">${esc(list.find(e => e.holiday)?.title || list.find(e => e.automatic)?.title || list.find(e=>e.tripId)?.title || "")}</span><span class="cc-date-dots" aria-hidden="true">${list.slice(0, 3).map(e => `<i class="cc-dot" data-owner="${e.owner}"></i>`).join('')}${list.length > 3 ? `<span class="cc-date-more">+${list.length - 3}</span>` : ''}</span></button>`;
     }
     $('cc-grid').innerHTML = grid;
     const d = parseDate(selected), list = forDay(selected);
     $('cc-day-title').textContent = `${d.getMonth() + 1}월 ${d.getDate()}일`;
     $('cc-day-weekday').textContent = `${weekdays[d.getDay()]} · ${dday(selected)}`;
     $('cc-day-count').textContent = `${list.length}개의 일정`;
-    $('cc-day-events').innerHTML = list.length ? list.map(e => `<${e.automatic ? "article" : "button"} ${e.automatic ? "" : 'type="button"'} class="cc-event" data-owner="${e.owner}" ${e.automatic ? 'data-cc-automatic="true"' : `data-cc-edit="${e.id}"`} aria-label="${esc(e.title)} 일정 보기"><span class="cc-event-title">${esc(e.title)}</span><span class="cc-event-meta">${owners[e.owner]} · ${e.holiday ? "공휴일" : kinds[e.kind]}${e.automatic ? " · 자동" : ""} · ${e.time || '하루 종일'}${e.yearly ? ' · 매년' : ''}</span>${e.place ? `<span class="cc-event-meta">⌖ ${esc(e.place)}</span>` : ''}</${e.automatic ? 'article' : 'button'}>`).join('') : `<p class="cc-empty"><span>♡</span>${filter === 'all' ? '아직 비어 있는 하루예요.<br>우리의 약속으로 채워볼까요?' : `${owners[filter]}의 일정이 없는 날이에요.<br>다른 이름을 눌러 일정도 확인해 보세요.`}</p>`;
+    $('cc-day-events').innerHTML = list.length ? list.map(e => e.tripId ? `<button type="button" class="cc-event" data-owner="together" data-cc-trip="${esc(e.tripId)}"><span class="cc-event-title">✈ ${esc(e.title)}</span><span class="cc-event-meta">♥ 함께 · ${esc(e.date)} ~ ${esc(e.endDate)} · 여행 플래너 열기 ↗</span></button>` : `<${e.automatic ? "article" : "button"} ${e.automatic ? "" : 'type="button"'} class="cc-event" data-owner="${e.owner}" ${e.automatic ? 'data-cc-automatic="true"' : `data-cc-edit="${e.id}"`} aria-label="${esc(e.title)} 일정 보기"><span class="cc-event-title">${esc(e.title)}</span><span class="cc-event-meta">${owners[e.owner]} · ${e.holiday ? "공휴일" : kinds[e.kind]}${e.automatic ? " · 자동" : ""} · ${e.time || '하루 종일'}${e.yearly ? ' · 매년' : ''}</span>${e.place ? `<span class="cc-event-meta">⌖ ${esc(e.place)}</span>` : ''}</${e.automatic ? 'article' : 'button'}>`).join('') : `<p class="cc-empty"><span>♡</span>${filter === 'all' ? '아직 비어 있는 하루예요.<br>우리의 약속으로 채워볼까요?' : `${owners[filter]}의 일정이 없는 날이에요.<br>다른 이름을 눌러 일정도 확인해 보세요.`}</p>`;
     const next = upcoming().slice(0, 4);
     $('cc-upcoming-events').innerHTML = next.length ? next.map(({ event: e, date }) => `<button type="button" class="cc-next-event" data-cc-jump="${date}" data-cc-event="${e.id}"><span class="cc-dot" data-owner="${e.owner}" aria-hidden="true"></span><span class="cc-next-copy"><strong>${esc(e.title)}</strong><small>${owners[e.owner]} · ${shortDate(date)}${e.time ? ' ' + e.time : ''}</small></span><span class="cc-dday">${eventDday(e, date)}</span></button>`).join('') : '<p class="cc-empty">기대되는 다음 약속을 남겨보세요.</p>';
     $('cc-person-overview').innerHTML = ['rabbit', 'sweet'].map(owner => {
@@ -5092,6 +5114,7 @@ renderApplicant();
     }
     if (b.dataset.ccDate) chooseDate(b.dataset.ccDate, true);
     if (b.dataset.ccFilter) { filter = b.dataset.ccFilter; render(); }
+    if(b.dataset.ccTrip){window.SiteNav?.open('travel');window.CoupleTravel?.openTrip(b.dataset.ccTrip,selected);return;}
     if (b.dataset.ccEdit) openEditor(b.dataset.ccEdit);
     if (b.dataset.ccJump) { chooseDate(b.dataset.ccJump); openEditor(b.dataset.ccEvent); }
     if (b.dataset.person) { filter = b.dataset.person; chooseDate(b.dataset.nextDate || selected); }
@@ -5145,6 +5168,7 @@ renderApplicant();
     if (!preview || event.key !== previewKey) return;
     try { events = normalize(JSON.parse(event.newValue || '{}')); render(); } catch { /* Keep last valid state. */ }
   });
+  window.addEventListener('couple-travel-change',render);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
   setInterval(() => { if (!document.hidden && (root.style.display !== 'none' || document.body.dataset.siteMode === 'home')) render(); }, 60000);
   window.CoupleCalendar = Object.freeze({
@@ -5175,7 +5199,6 @@ renderApplicant();
   });
   render(); connect();
 })();
-
 </script>
 <!-- couple-calendar-script:end -->
 <!-- couple-calendar-home-script:start -->
@@ -5352,6 +5375,15 @@ window.CoupleAuth=Object.freeze({
  },
  getPerson(){return verified&&verified.expires>Date.now()?verified.owner:null;},
  async notificationRequest(path,data={}){if(!verified?.token||verified.expires<=Date.now())throw Error('사용자를 다시 선택해 인증해 주세요.');const r=await fetch(server+'/notifications/'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+verified.token},body:JSON.stringify(data),signal:AbortSignal.timeout(15000)});const result=await r.json();if(!r.ok)throw Error(result.error||'알림을 연결하지 못했어요.');return result;},
+ async travelLocation(link){
+   if(!verified?.token || verified.expires<=Date.now())throw Error('사용자를 다시 선택해 인증해 주세요.');
+   const response=await fetch(server+'/travel/location',{
+     method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+verified.token},
+     body:JSON.stringify({link}),signal:AbortSignal.timeout(10000)
+   });
+   if(!response.ok)throw Error('장소 위치를 확인하지 못했어요.');
+   return response.json();
+ },
  async chatRequest(path,options={}){if(!verified?.token||verified.expires<=Date.now())throw Error('사용자를 다시 선택해 인증해 주세요.');const r=await fetch(server+'/chat/'+path,{...options,headers:{'Content-Type':'application/json',Authorization:'Bearer '+verified.token},signal:AbortSignal.timeout(20000)});const data=await r.json();if(!r.ok)throw Error(data.error||'대화를 연결하지 못했어요.');return data;},
  isPerson(selected){return !!verified&&verified.expires>Date.now()&&verified.owner===selected;},
  isAdmin(app){return !!verified&&verified.expires>Date.now()&&verified.owner===(app==='leave'?'sweet':'rabbit');},
@@ -5826,7 +5858,7 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step,collapse}
  'use strict';
  const root=document.getElementById('app-travel');if(!root)return;
  const $=id=>document.getElementById(id), preview=root.dataset.preview==='true'||document.getElementById('app-calendar')?.dataset.preview==='true',key='couple-travel-preview-v1';
- let sharedRef=null,syncReady=preview,syncConnected=preview,saveBusy=false,editRevision=null;const knownRevisions=new Map();
+ let sharedRef=null,syncReady=preview,syncConnected=preview,saveBusy=false,editRevision=null,editTripId=null;const knownRevisions=new Map();
  const names={rabbit:'이토끼',sweet:'구마구마'}, icons={'맛집':'🍜','카페':'☕','관광':'🌿','숙소':'🛏','교통':'🚆','기타':'📍'};
  const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const money=x=>Math.round(x).toLocaleString('ko-KR')+'원';const uid=()=>crypto.randomUUID();
@@ -5834,33 +5866,198 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step,collapse}
  function totals(t){const planned=t.stops.reduce((a,s)=>a+amount(s,t.rates),0),actual=t.expenses.reduce((a,e)=>a+Number(e.amount),0);let paidRabbit=0,owedRabbit=0;
   t.expenses.forEach(e=>{if(e.payer==='rabbit')paidRabbit+=Number(e.amount);owedRabbit+=e.scope==='rabbit'?Number(e.amount):e.scope==='shared'?Math.round(Number(e.amount)*t.ratio/100):0;});
   return {planned,actual,balance:paidRabbit-owedRabbit,paidRabbit,owedRabbit,remaining:Number(t.limit)-planned};}
- function safeLink(value){if(!value)return '';try{const u=new URL(value);return u.protocol==='https:'&&['naver.me','map.naver.com','maps.naver.com','m.place.naver.com','pcmap.place.naver.com'].includes(u.hostname)?u.href:null;}catch{return null;}}
- function coordinates(link){try{const u=new URL(link),lat=Number(u.searchParams.get('lat')),lng=Number(u.searchParams.get('lng')||u.searchParams.get('lon'));if(u.searchParams.has('lat')&&lat>=-90&&lat<=90&&lng>=-180&&lng<=180)return[lat,lng];const c=u.searchParams.get('c')?.split(',').map(Number);if(c&&Math.abs(c[0])<=180&&Math.abs(c[1])<=90)return[c[1],c[0]];}catch{}return null;}
- const newTrip=()=>({id:uid(),createdAt:new Date().toISOString(),title:'새로운 우리 여행',start:'2026-10-17',end:'2026-10-17',origin:'출발지',time:'09:00',link:'',limit:200000,ratio:50,originCoords:null,stops:[],expenses:[]});
- function sample(){const t=newTrip();Object.assign(t,{title:'가을 서울 데이트',end:'2026-10-18',origin:'서울역',originCoords:[37.5547,126.9707],link:'https://map.naver.com/p/search/서울역',limit:250000});
+ const mapHosts=new Set(['naver.me','map.naver.com','maps.naver.com','m.map.naver.com','place.naver.com','m.place.naver.com','pcmap.place.naver.com']);
+ function safeLink(value){
+  if(!value)return '';
+  try{
+   const u=new URL(value);
+   return u.href.length<=2048&&u.protocol==='https:'&&!u.username&&!u.password&&!u.port&&mapHosts.has(u.hostname)?u.href:null;
+  }catch{return null;}
+ }
+ function pair(lat,lng){
+  if([lat,lng].some(v=>v==null||String(v).trim()===''))return null;
+  const y=Number(lat),x=Number(lng);
+  return Number.isFinite(y)&&Number.isFinite(x)&&Math.abs(y)<=90&&Math.abs(x)<=180?[y,x]:null;
+ }
+ function linkLocation(link,role='stop'){
+  const empty={coords:null,name:''},valid=safeLink(link);
+  if(!valid)return empty;
+  const u=new URL(valid),q=u.searchParams;
+  if(/\/directions\//.test(u.pathname)){
+   const segments=u.pathname.split('/directions/')[1].split('/');
+   const segment=segments[role==='origin'?0:1];
+   if(!segment)return empty;
+   let fields;
+   try{fields=decodeURIComponent(segment).split(',');}catch{return empty;}
+   const [east,north,name='']=fields;
+   if(!east?.trim()||!north?.trim())return empty;
+   let coords=pair(north,east);
+   // Naver web directions also encode endpoints in Web Mercator metres.
+   const x=Number(east),y=Number(north),radius=6378137;
+   if(!coords&&x>=13000000&&x<=15000000&&y>=3600000&&y<=5700000){
+    coords=pair(Math.atan(Math.sinh(y/radius))*180/Math.PI,x/radius*180/Math.PI);
+   }
+   return {coords,name:name.slice(0,80)};
+  }
+  const routePoint=role==='origin'?pair(q.get('slat'),q.get('slng')):pair(q.get('dlat')||q.get('elat'),q.get('dlng')||q.get('elng'));
+  if(routePoint)return {coords:routePoint,name:(q.get(role==='origin'?'sname':'dname')||'').slice(0,80)};
+  const coords=pair(q.get('lat'),q.get('lng')||q.get('lon'))||pair(q.get('y'),q.get('x'));
+  // "c" is the camera position, which can differ from the selected place.
+  return {coords,name:(q.get('pinTitle')||q.get('title')||q.get('name')||'').slice(0,80)};
+ }
+ const coordinates=(link,role)=>linkLocation(link,role).coords;
+ const locationReads=new Map();
+ async function readLocation(link,role){
+  const local=linkLocation(link,role);
+  if(local.coords||!safeLink(link)||preview||!window.CoupleAuth?.travelLocation)return local;
+  if(new URL(link).hostname!=='naver.me')return local;
+  const cached=locationReads.get(link);
+  if(!cached||cached.expires<Date.now()){
+   const entry={expires:Date.now()+60000};
+   entry.promise=Promise.resolve().then(()=>window.CoupleAuth.travelLocation(link)).catch(()=>null);
+   if(locationReads.size>=120)locationReads.delete(locationReads.keys().next().value);
+   locationReads.set(link,entry);
+  }
+  const result=await locationReads.get(link).promise;
+  if(!result)return local;
+  const expanded=linkLocation(result.link,role);
+  return {coords:expanded.coords||(Array.isArray(result.coords)?pair(...result.coords):null),name:expanded.name||result.name||local.name};
+ }
+ const newTrip=()=>({id:uid(),draft:true,createdAt:new Date().toISOString(),title:'새로운 우리 여행',start:dayKey(),end:dayKey(),origin:'출발지',time:'09:00',link:'',limit:200000,ratio:50,originCoords:null,stops:[],expenses:[]});
+ function sample(){const t=newTrip();delete t.draft;Object.assign(t,{start:'2026-10-17',title:'가을 서울 데이트',end:'2026-10-18',origin:'서울역',originCoords:[37.5547,126.9707],link:'https://map.naver.com/p/search/서울역',limit:250000});
   t.stops=[['남산서울타워','관광',35,90,42000,'total',[37.5512,126.9882]],['명동에서 점심','맛집',25,60,22000,'person',[37.5636,126.9869]],['서울숲 산책','관광',35,90,0,'total',[37.5445,127.0374]],['숲 근처 카페','카페',10,60,16000,'total',[37.546,127.043]]].map(([name,category,travel,stay,cost,basis,coords])=>({id:uid(),name,category,travel,stay,cost,basis,coords,date:t.start,done:false,link:'https://map.naver.com/p/search/'+encodeURIComponent(name),note:''}));
   t.stops.push({id:uid(),name:'브런치 먹고 돌아오기',category:'맛집',travel:30,stay:75,cost:18000,basis:'person',coords:[37.545,127.044],date:t.end,done:false,link:'',note:'둘째 날은 느긋하게 시작하기'});
   t.expenses=[{id:uid(),title:'점심 식사',amount:44000,date:t.start,payer:'rabbit',scope:'shared'},{id:uid(),title:'카페',amount:16000,date:t.start,payer:'sweet',scope:'shared'}];return t;}
  let state;try{state=JSON.parse(localStorage.getItem(key));}catch{}
- if(!preview||!state||!Array.isArray(state.trips)||!state.trips.length)state={trips:[preview?sample():newTrip()],active:null};
+ if(!preview||!state||!Array.isArray(state.trips))state={trips:[preview?sample():newTrip()],active:null};
+ if(!state.trips.length)state.trips=[newTrip()];
  if(!state.trips.some(t=>t.id===state.active))state.active=state.trips[0].id;
  const previousRates={'맛집':36000,'카페':14000,'관광':20000,'숙소':120000,'교통':10000,'기타':0};
  for(const t of state.trips)for(const s of t.stops){if(s.costMode==='auto'){s.cost=Number(t.rates?.[s.category]??previousRates[s.category]??0);s.basis='total';}delete s.costMode;}
  let entranceId=null,dayChanged=false,heartId=null;
- let day='',tab='plan',map=null,layer=null,picking=null,mapPromise=null;
+ let day='',tab='plan',map=null,layer=null,mapPromise=null;
  const routeMarkers=new Map();
- const dayKey=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
- function tripToday(date=dayKey()){return state.trips.find(t=>t.start<=date&&t.end>=date)||null;}
+ function dayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+ let calendarTrips=[];
+ function publishTrips(trips){
+  const next=trips.filter(t=>!t.draft).map(t=>({id:t.id,title:t.title,start:t.start,end:t.end,time:t.time||'',origin:t.origin||''}));
+  if(JSON.stringify(next)===JSON.stringify(calendarTrips))return;
+  calendarTrips=next;
+  window.dispatchEvent(new CustomEvent('couple-travel-change'));
+ }
+ function tripToday(date=dayKey()){return calendarTrips.find(t=>t.start<=date&&t.end>=date)||null;}
  const trip=()=>state.trips.find(t=>t.id===state.active);
+ function routeItems(t,date){
+  if(t.draft)return [];
+  const origin={id:'origin',name:t.origin,link:t.link,coords:t.originCoords,excluded:!!t.hiddenRouteOrigins?.[date]};
+  return [origin,...t.stops.filter(s=>s.date===date).map(s=>({...s,excluded:!!s.routeExcluded}))];
+ }
+ function setRouteMembership(t,date,id,included){
+  if(id==='origin'){
+   t.hiddenRouteOrigins={...t.hiddenRouteOrigins};
+   if(included)delete t.hiddenRouteOrigins[date];
+   else t.hiddenRouteOrigins[date]=true;
+  }else{
+   const s=t.stops.find(s=>s.id===id&&s.date===date);
+   if(!s)return false;
+   if(included)delete s.routeExcluded;
+   else s.routeExcluded=true;
+  }
+  return true;
+ }
+ // Apply a map edit to the current shared record. A failed transaction never removes a local pin.
+ async function changeRoute(t,edit){
+  if(saveBusy||(!preview&&(!syncReady||!syncConnected)))return false;
+  if(preview){
+   const draft=JSON.parse(JSON.stringify(t));
+   if(!edit(draft))return false;
+   const i=state.trips.findIndex(x=>x.id===t.id);
+   state.trips[i]=draft;
+   if(!save()){state.trips[i]=t;return false;}
+   render();return true;
+  }
+  const expected=knownRevisions.get(t.id)||0;
+  saveBusy=true;root.inert=true;
+  try{
+   const result=await sharedRef.child(t.id).transaction(raw=>{
+    if(!raw||Number(raw.revision||0)!==expected)return;
+    const updated=normalizeTrip(JSON.parse(JSON.stringify(raw)),t.id);
+    if(!edit(updated))return;
+    updated.revision=expected+1;
+    return updated;
+   },undefined,false);
+   if(!result.committed){syncStatus('동선이 변경됐어요. 최신 지도에서 다시 시도해 주세요.');return false;}
+   const saved=result.snapshot.val(),i=state.trips.findIndex(x=>x.id===t.id);
+   if(i>=0&&Number(saved.revision)>=(knownRevisions.get(t.id)||0)){
+    state.trips[i]=normalizeTrip(saved,t.id);
+    knownRevisions.set(t.id,saved.revision);
+   }
+   render();syncStatus();return true;
+  }catch{syncStatus('동선을 저장하지 못했어요. 다시 시도해 주세요.');return false;}
+  finally{saveBusy=false;root.inert=false;}
+ }
+ function renderRoute(t,rows){
+  const items=routeItems(t,day),active=items.filter(s=>!s.excluded);
+  const label=s=>s.id==='origin'?'출발 · '+s.name:(rows.findIndex(row=>row.id===s.id)+1)+'. '+s.name;
+  $('tp-route').innerHTML=active.map(s=>{
+   const text=esc(label(s)),href=safeLink(s.link);
+   if(!s.coords&&href)return `<a class="tp-route-place tp-route-link" href="${esc(href)}" target="_blank" rel="noopener noreferrer" aria-label="${text} 네이버 지도 열기">${text} ↗</a>`;
+   if(!s.coords)return `<span class="tp-route-place">${text}</span>`;
+   return `<button type="button" class="tp-route-place" data-route-focus="${esc(s.id)}" aria-pressed="false">${text}</button>`;
+  }).join('<b aria-hidden="true">›</b>')+(active.some(s=>s.coords)?'<button type="button" class="tp-route-place" data-route-focus="all">⌖ 전체 동선</button>':'');
+  if(items[0]&&!items[0].excluded&&items[0].coords&&safeLink(t.link)){
+   const a=document.createElement('a');a.className='tp-naver';a.href=safeLink(t.link);
+   a.target='_blank';a.rel='noopener noreferrer';a.textContent='출발지 지도 ↗';$('tp-route').append(a);
+  }
+  $('tp-route-caption').textContent=day.replaceAll('-','.')+' · '+(active.length?active.filter(s=>s.id!=='origin').length+'곳 · 체크리스트 순서':'이날 표시할 동선이 없어요');
+  $('tp-route-members').innerHTML=items.map(s=>`<div class="tp-route-member"><span>${esc(label(s))}</span><button type="button" data-route-member="${esc(s.id)}" data-include="${s.excluded}" aria-label="${esc(s.name)} ${s.excluded?'동선에 넣기':'동선에서 빼기'}">${s.excluded?'＋ 다시 넣기':'동선에서 빼기'}</button></div>`).join('');
+  $('tp-route-clear').disabled=!active.length;
+  $('tp-trip-delete').disabled=!!t.draft;
+  $('tp-map').hidden=!active.some(s=>s.coords);
+  $('tp-map-message').textContent=active.some(s=>s.coords)?'번호와 점선은 이날의 방문 순서예요.':'좌표가 있는 장소를 추가하면 이날의 지도가 표시돼요.';
+ }
+ const attemptedLocations=new Map();
+ let resolvingSaved=false;
+ async function locateSavedPlaces(){
+  if(resolvingSaved||saveBusy||!syncReady||!syncConnected||root.style.display==='none'||root.querySelector('dialog[open]')||$('tp-settings-toggle').open)return;
+  resolvingSaved=true;
+  const t=trip(),date=day;
+  try{
+   for(const item of routeItems(t,date)){
+    if(item.excluded||item.coords||!safeLink(item.link))continue;
+    const key=[t.id,item.id,item.link].join('|');
+    if(Date.now()-(attemptedLocations.get(key)||0)<60000)continue;
+    if(attemptedLocations.size>=200)attemptedLocations.delete(attemptedLocations.keys().next().value);
+    attemptedLocations.set(key,Date.now());
+    const found=await readLocation(item.link,item.id==='origin'?'origin':'stop');
+    if(state.active!==t.id||date!==day||root.style.display==='none')break;
+    if(saveBusy||root.querySelector('dialog[open]')||$('tp-settings-toggle').open){attemptedLocations.delete(key);break;}
+    if(!found.coords)continue;
+    const ok=await changeRoute(trip(),draft=>{
+     const current=routeItems(draft,date).find(x=>x.id===item.id);
+     if(!current||current.link!==item.link||current.coords||current.excluded)return false;
+     if(item.id==='origin')draft.originCoords=found.coords;
+     else draft.stops.find(s=>s.id===item.id).coords=found.coords;
+     return true;
+    });
+    if(!ok){attemptedLocations.delete(key);break;}
+   }
+  }finally{resolvingSaved=false;}
+ }
  function syncStatus(message){$('tp-save').textContent=message|| (preview?'미리보기 · 이 기기에 저장됨':syncReady&&syncConnected?'✓ Firebase 실시간 공유 중':'공유 연결 대기 중 · 저장할 수 없어요');$('tp-sync-note').textContent=preview?'미리보기 데이터예요. 실제 Firebase에는 쓰지 않아요.':'두 사람의 여행 계획·준비물·지출을 Firebase로 공유해요.';}
- function save(onSaved){if(preview){try{localStorage.setItem(key,JSON.stringify(state));syncStatus();if(typeof onSaved==='function')onSaved();return true;}catch{syncStatus('저장 공간이 부족해요.');return false;}}
+ function save(onSaved){if(preview){try{delete trip().draft;localStorage.setItem(key,JSON.stringify(state));publishTrips(state.trips);syncStatus();if(typeof onSaved==='function')onSaved();return true;}catch{syncStatus('저장 공간이 부족해요.');return false;}}
   if(!syncReady||!syncConnected||saveBusy){syncStatus('공유 연결을 확인한 뒤 다시 저장해 주세요.');return false;}
-  const t=trip(),draft=JSON.parse(JSON.stringify(t)),expected=knownRevisions.get(t.id)||0;saveBusy=true;root.inert=true;syncStatus('공유 저장 중…');
-  const pending=sharedRef.child(t.id).transaction(current=>{if((current?.revision||0)!==expected)return;return {...draft,revision:expected+1};});
-  pending.then(result=>{if(!result.committed){syncStatus('상대가 먼저 수정했어요. 최신 내용을 확인하고 다시 수정해 주세요.');const current=result.snapshot?.val();if(current){const i=state.trips.findIndex(x=>x.id===t.id);state.trips[i]=normalizeTrip(current,t.id);knownRevisions.set(t.id,current.revision||0);render();}}else{knownRevisions.set(t.id,expected+1);syncStatus();if(typeof onSaved==='function')onSaved();}}).catch(()=>{syncStatus('저장 실패 · 변경 내용은 아직 공유되지 않았어요. 다시 저장해 주세요.');}).finally(()=>{saveBusy=false;root.inert=false;});return true;
+  const t=trip(),draft=JSON.parse(JSON.stringify(t)),expected=knownRevisions.get(t.id)||0;delete draft.draft;saveBusy=true;root.inert=true;syncStatus('공유 저장 중…');
+  const existing=knownRevisions.has(t.id);
+  const pending=sharedRef.child(t.id).transaction(current=>{if((existing&&!current)||(current?.revision||0)!==expected)return;return {...draft,revision:expected+1};},undefined,false);
+  pending.then(result=>{if(!result.committed){syncStatus('상대가 먼저 수정했어요. 최신 내용을 확인하고 다시 수정해 주세요.');const current=result.snapshot?.val();if(current){const i=state.trips.findIndex(x=>x.id===t.id);state.trips[i]=normalizeTrip(current,t.id);knownRevisions.set(t.id,current.revision||0);render();}}else{knownRevisions.set(t.id,expected+1);syncStatus();if(typeof onSaved==='function')onSaved();}}).catch(()=>{syncStatus('저장 실패 · 변경 내용은 아직 공유되지 않았어요. 다시 저장해 주세요.');}).finally(()=>{saveBusy=false;root.inert=false;void locateSavedPlaces();});return true;
  }
  function normalizeTrip(raw,id){return {...raw,id,stops:Array.isArray(raw.stops)?raw.stops:[],expenses:Array.isArray(raw.expenses)?raw.expenses:[],packing:Array.isArray(raw.packing)?raw.packing:[],ratio:Number(raw.ratio??50),revision:Number(raw.revision||0)};}
- function connectShared(){if(preview){syncStatus();return;}try{const db=window.firebase.app().database();sharedRef=db.ref('couple_travel_v1/trips');db.ref('.info/connected').on('value',snap=>{syncConnected=snap.val()===true;syncStatus();});sharedRef.on('value',snap=>{const raw=snap.val()||{},trips=Object.entries(raw).filter(([,t])=>t&&typeof t.title==='string'&&typeof t.start==='string'&&typeof t.end==='string').map(([id,t])=>normalizeTrip(t,id));knownRevisions.clear();trips.forEach(t=>knownRevisions.set(t.id,t.revision));if(trips.length){state.trips=trips;if(!trips.some(t=>t.id===state.active))state.active=trips[0].id;}else if(syncReady){state.trips=[newTrip()];state.active=state.trips[0].id;}syncReady=true;render();syncStatus();window.CoupleHome?.updateCharacter?.();},()=>{syncReady=false;syncStatus('Firebase 공유 권한을 확인해 주세요. 저장할 수 없어요.');});}catch{syncReady=false;syncStatus('Firebase 연결을 사용할 수 없어요.');}}
+ function connectShared(){if(preview){publishTrips(state.trips);syncStatus();return;}try{const db=window.firebase.app().database();sharedRef=db.ref('couple_travel_v1/trips');db.ref('.info/connected').on('value',snap=>{syncConnected=snap.val()===true;syncStatus();if(syncConnected)void locateSavedPlaces();});sharedRef.on('value',snap=>{const raw=snap.val()||{},trips=Object.entries(raw).filter(([,t])=>t&&typeof t.title==='string'&&typeof t.start==='string'&&typeof t.end==='string').map(([id,t])=>normalizeTrip(t,id));knownRevisions.clear();trips.forEach(t=>knownRevisions.set(t.id,t.revision));const localDraft=state.trips.find(t=>t.draft&&t.id===state.active);
+ if(localDraft&&!trips.some(t=>t.id===localDraft.id)&&($('tp-settings-toggle').open||!trips.length))trips.push(localDraft);
+ state.trips=trips.length?trips:[newTrip()];
+ if(!state.trips.some(t=>t.id===state.active))state.active=state.trips[0].id;
+ publishTrips(state.trips);syncReady=true;render();syncStatus();window.CoupleHome?.updateCharacter?.();},()=>{syncReady=false;syncStatus('Firebase 공유 권한을 확인해 주세요. 저장할 수 없어요.');});}catch{syncReady=false;syncStatus('Firebase 연결을 사용할 수 없어요.');}}
  function currentSchedule(t,date=dayKey(),now=new Date()){if(date<t.start||date>t.end)return null;const rows=timeline(t,date).filter(s=>!s.done),m=now.getHours()*60+now.getMinutes();let current=rows.find(s=>s.arrival<=m&&s.leave>m),next=current?rows.find(s=>s.arrival>=current.leave):rows.find(s=>s.arrival>m);return {current,next,finished:!rows.length,late:!current&&!next?rows[0]:null};}
  function renderCurrent(){const t=trip(),x=currentSchedule(t);root.querySelectorAll('.tp-stop-now').forEach(a=>a.classList.remove('tp-stop-now'));if(!x){$('tp-current').hidden=true;return;}$('tp-current').hidden=false;const active=x.current||x.next||x.late;if(active){const row=[...root.querySelectorAll('[data-check]')].find(c=>c.dataset.check===active.id)?.closest('.tp-stop');row?.classList.add('tp-stop-now');}$('tp-current').innerHTML=x.finished?'🐰🍠 오늘 계획을 모두 다녀왔어요 ♥':`<strong>${x.current?'📍 지금 일정':x.next?'✈ 다음 일정':'🕓 아직 남은 일정'} · ${esc(active?.name||'')}</strong>${x.current&&x.next?'<small>다음은 '+esc(x.next.name)+' · '+clock(x.next.arrival)+'</small>':''}${active?.link?'<a class="tp-naver" target="_blank" rel="noopener noreferrer" href="'+esc(safeLink(active.link)||'#')+'">네이버 지도 ↗</a>':''}`;}
  function renderPacking(){const t=trip(),items=t.packing||[];$('tp-pack-progress').textContent=items.filter(x=>x.done).length+' / '+items.length+'개 준비 완료';$('tp-pack-list').innerHTML=items.map(x=>`<div class="tp-pack-item"><label><input type="checkbox" data-pack-check="${x.id}" ${x.done?'checked':''}><span>${esc(x.title)}</span></label><small>${x.owner==='together'?'♥ 함께':x.owner==='rabbit'?'🐰 토끼 담당':'🍠 구마 담당'}</small><button type="button" data-pack-delete="${x.id}" aria-label="${esc(x.title)} 준비물 삭제">✕</button></div>`).join('')||'<p>함께 챙길 준비물을 추가해 주세요.</p>';}
@@ -5871,23 +6068,24 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step,collapse}
  function clock(m){return(m>=1440?'다음날 ':'')+String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
  function render(){const t=trip();if(!dates(t).includes(day))day=t.start;
   $('tp-settings-summary').textContent=t.origin+' · '+t.time+' 출발';
-  $('tp-hero-title').textContent=t.title;const nights=Math.round((new Date(t.end+'T12:00:00')-new Date(t.start+'T12:00:00'))/86400000);$('tp-hero-date').textContent=t.start.replaceAll('-','.')+' — '+t.end.replaceAll('-','.')+' · '+(nights?nights+'박 '+(nights+1)+'일':'당일 여행');
+  $('tp-hero-title').textContent=t.draft?'새 여행 등록':t.title;
+  $('tp-trip-dday').hidden=!!t.draft;
+  $('tp-hero-stats').hidden=!!t.draft;const nights=Math.round((new Date(t.end+'T12:00:00')-new Date(t.start+'T12:00:00'))/86400000);$('tp-hero-date').textContent=t.start.replaceAll('-','.')+' — '+t.end.replaceAll('-','.')+' · '+(nights?nights+'박 '+(nights+1)+'일':'당일 여행');
   const today=dayKey(),diff=Math.round((Date.parse(t.start)-Date.parse(today))/86400000);$('tp-trip-dday').textContent=today>=t.start&&today<=t.end?'오늘도 여행 중 ✈':diff>0?'출발까지 '+diff+'일 ✈':'다녀온 여행 ♥';
   $('tp-hero-stats').innerHTML=`<span>🗓 ${dates(t).length}일의 여행</span><span>📍 ${t.stops.length}곳의 추억</span><span>₩ 예상 ${money(totals(t).planned)}</span>`;
-  $('tp-trips').innerHTML=state.trips.map(x=>`<option value="${esc(x.id)}">${esc(x.title)}</option>`).join('');$('tp-trips').value=t.id;
-  for(const n of ['title','start','end','origin','time','link','limit'])$('tp-settings').elements[n].value=t[n];
+  if(t.draft)$('tp-hero-date').textContent='여행 정보에서 이름과 날짜를 저장해 주세요.';
+  $('tp-trips').innerHTML=state.trips.map(x=>`<option value="${esc(x.id)}">${esc(x.draft?'새 여행 · 저장 전':x.title)}</option>`).join('');$('tp-trips').value=t.id;
+  for(const n of ['title','start','end','origin','time','link','limit'])$('tp-settings').elements[n].value=t[n]??'';
   $('tp-days').innerHTML=dates(t).map((d,i)=>`<button type="button" data-day="${d}" aria-pressed="${d===day}">DAY ${i+1} · ${d.slice(5).replace('-','/')}</button>`).join('');
   const rows=timeline(t,day),done=t.stops.filter(s=>s.done).length;
   $('tp-progress').textContent=`전체 ${t.stops.length}곳 중 ${done}곳 다녀왔어요`;
-  $('tp-stops').innerHTML=rows.length?rows.map((s,i)=>`<article class="tp-stop ${s.done?'done':''}"><label class="tp-check-wrap"><input type="checkbox" data-check="${esc(s.id)}" aria-label="${esc(s.name)} 다녀옴" ${s.done?'checked':''}><span class="tp-check-art" aria-hidden="true"></span></label><span class="tp-number">${i+1}</span><div><div class="tp-stop-name">${icons[s.category]||'📍'} ${esc(s.name)}</div><div class="tp-stop-meta"><button type="button" class="tp-stop-time" data-time-edit="${esc(s.id)}" aria-label="${esc(s.name)} 방문 시간 수정"><span aria-hidden="true">◷</span> ${clock(s.arrival)} – ${clock(s.leave)}<small>${s.manualTime?'직접 설정':'자동'}</small></button><span>이동 ${s.travel}분 · 체류 ${s.stay}분</span>${s.link?`<a class="tp-naver" href="${esc(safeLink(s.link)||'#')}" target="_blank" rel="noopener noreferrer" aria-label="${esc(s.name)} 네이버 지도 새 창으로 열기"><span class="tp-naver-logo" aria-hidden="true">N</span> 네이버 지도 <span aria-hidden="true">↗</span></a>`:''}</div>${s.timeConflict?`<p class="tp-time-warning">앞 일정과 이동 시간을 고려하면 ${clock(s.earliestArrival)} 이후 도착할 수 있어요.</p>`:''}${s.note?`<div class="tp-note">${esc(s.note)}</div>`:''}<details class="tp-stop-menu"><summary aria-label="${esc(s.name)} 일정 메뉴">⋯</summary><div class="tp-stop-actions"><button type="button" data-up="${s.id}" ${i===0?'disabled':''} aria-label="${esc(s.name)} 위로">↑</button><button type="button" data-down="${s.id}" ${i===rows.length-1?'disabled':''} aria-label="${esc(s.name)} 아래로">↓</button><button type="button" data-pin="${s.id}">${s.coords?'⌖ 위치 수정':'⌖ 위치 지정'}</button><button type="button" data-edit="${s.id}">수정</button><button type="button" data-delete="${s.id}">삭제</button></div></details></div><div class="tp-cost">${money(amount(s,t.rates))}${s.basis==='person'?'<p>1인당 '+money(s.cost)+' × 2</p>':''}</div></article>`).join(''):'<div class="tp-empty">아직 빈 하루예요. 함께 가고 싶은 곳을 추가해 보세요.</div>';
+  $('tp-stops').innerHTML=rows.length?rows.map((s,i)=>`<article class="tp-stop ${s.done?'done':''}"><label class="tp-check-wrap"><input type="checkbox" data-check="${esc(s.id)}" aria-label="${esc(s.name)} 다녀옴" ${s.done?'checked':''}><span class="tp-check-art" aria-hidden="true"></span></label><span class="tp-number">${i+1}</span><div><div class="tp-stop-name">${icons[s.category]||'📍'} ${esc(s.name)}</div><div class="tp-stop-meta"><button type="button" class="tp-stop-time" data-time-edit="${esc(s.id)}" aria-label="${esc(s.name)} 방문 시간 수정"><span aria-hidden="true">◷</span> ${clock(s.arrival)} – ${clock(s.leave)}<small>${s.manualTime?'직접 설정':'자동'}</small></button><span>이동 ${s.travel}분 · 체류 ${s.stay}분</span>${s.link?`<a class="tp-naver" href="${esc(safeLink(s.link)||'#')}" target="_blank" rel="noopener noreferrer" aria-label="${esc(s.name)} 네이버 지도 새 창으로 열기"><span class="tp-naver-logo" aria-hidden="true">N</span> 네이버 지도 <span aria-hidden="true">↗</span></a>`:''}</div>${s.timeConflict?`<p class="tp-time-warning">앞 일정과 이동 시간을 고려하면 ${clock(s.earliestArrival)} 이후 도착할 수 있어요.</p>`:''}${s.note?`<div class="tp-note">${esc(s.note)}</div>`:''}<details class="tp-stop-menu"><summary aria-label="${esc(s.name)} 일정 메뉴">⋯</summary><div class="tp-stop-actions"><button type="button" data-up="${s.id}" ${i===0?'disabled':''} aria-label="${esc(s.name)} 위로">↑</button><button type="button" data-down="${s.id}" ${i===rows.length-1?'disabled':''} aria-label="${esc(s.name)} 아래로">↓</button><button type="button" data-edit="${s.id}">수정</button><button type="button" data-delete="${s.id}">삭제</button></div></details></div><div class="tp-cost">${money(amount(s,t.rates))}${s.basis==='person'?'<p>1인당 '+money(s.cost)+' × 2</p>':''}</div></article>`).join(''):'<div class="tp-empty">아직 빈 하루예요. 함께 가고 싶은 곳을 추가해 보세요.</div>';
   if(entranceId){root.querySelectorAll('.tp-stop').forEach(a=>{if(a.querySelector('[data-check]')?.dataset.check===entranceId)a.classList.add('tp-stop-arrive');});setTimeout(()=>{entranceId=null;},700);}
   if(dayChanged){$('tp-stops').classList.remove('tp-day-enter');void $('tp-stops').offsetWidth;$('tp-stops').classList.add('tp-day-enter');dayChanged=false;}
   if(heartId){const c=[...root.querySelectorAll('[data-check]')].find(c=>c.dataset.check===heartId);if(c){const h=document.createElement('span');h.className='tp-check-heart';h.textContent='♥';h.setAttribute('aria-hidden','true');c.parentElement.append(h);setTimeout(()=>h.remove(),900);}heartId=null;}
   const allDone=rows.length>0&&rows.every(s=>s.done);$('tp-day-finish').hidden=!allDone;
-  $('tp-route').innerHTML=`<button type="button" class="tp-route-place" data-route-focus="origin" aria-pressed="false">출발 · ${esc(t.origin)} ${esc(t.time)}</button>`+rows.map((s,i)=>`<b aria-hidden="true">›</b><button type="button" class="tp-route-place" data-route-focus="${s.id}" aria-pressed="false">${i+1}. ${esc(s.name)}</button>`).join('')+'<button type="button" class="tp-route-place" data-route-focus="all" aria-pressed="false">⌖ 전체 동선</button>';
-  $('tp-origin-link')?.remove();if(safeLink(t.link)){const a=document.createElement('a');a.id='tp-origin-link';a.className='tp-naver';a.href=safeLink(t.link);a.target='_blank';a.rel='noopener noreferrer';a.innerHTML='<span class="tp-naver-logo" aria-hidden="true">N</span> 출발지 지도 ↗';$('tp-route').prepend(a);}
-  $('tp-route-caption').textContent=`${day.replaceAll('-','.')} · ${rows.length}곳 · ${rows.reduce((a,s)=>a+Number(s.travel),0)}분 이동 예상`;
-  renderMoney();renderMap();renderPacking();renderCurrent();
+  renderRoute(t,rows);
+  renderMoney();renderMap();renderPacking();renderCurrent();void locateSavedPlaces();
  }
  function renderMoney(){const t=trip(),n=totals(t);$('tp-totals').innerHTML=[['예상 총예산',n.planned],['실제 지출',n.actual],[n.remaining>=0?'예산 여유':'예산 초과',Math.abs(n.remaining)]].map(([label,x],i)=>`<div class="tp-total ${i===2&&n.remaining<0?'over':''}"><small>${label}</small><strong>${money(x)}</strong></div>`).join('');
   const cats={};t.stops.forEach(s=>cats[s.category]=(cats[s.category]||0)+amount(s,t.rates));$('tp-budget').innerHTML=Object.entries(cats).map(([c,v])=>`<div class="tp-money-row"><span>${icons[c]||'📍'} ${esc(c)}</span><b>${money(v)}</b></div>`).join('')||'<p>장소에 예상 비용을 넣으면 여기 모여요.</p>';
@@ -5896,47 +6094,130 @@ window.CoupleTowerRules=Object.freeze({W,H,create,spawn,drop,load,step,collapse}
   $('tp-expenses').innerHTML=t.expenses.length?t.expenses.map(e=>`<div class="tp-money-row"><span><strong>${esc(e.title)}</strong><br><small>${esc(e.date)} · ${names[e.payer]} 결제 · ${e.scope==='shared'?'함께':names[e.scope]+' 개인'}</small></span><b>${money(e.amount)}</b><button type="button" data-expense-delete="${e.id}" aria-label="${esc(e.title)} 지출 삭제">삭제</button></div>`).join(''):'<div class="tp-empty">아직 기록한 지출이 없어요.</div>';
  }
  function ensureMap(){if(mapPromise)return mapPromise;mapPromise=new Promise((resolve,reject)=>{if(window.L)return resolve();const css=document.createElement('link');css.rel='stylesheet';css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.append(css);const js=document.createElement('script');js.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';js.onload=resolve;js.onerror=reject;document.head.append(js);});return mapPromise;}
- async function renderMap(){if(root.style.display==='none')return;try{await ensureMap();if(!map){map=L.map('tp-map',{scrollWheelZoom:false,fadeAnimation:false}).setView([37.56,126.99],12);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(map);layer=L.layerGroup().addTo(map);map.on('click',e=>{if(!picking)return;const t=trip();if(picking==='origin')t.originCoords=[e.latlng.lat,e.latlng.lng];else{const s=t.stops.find(x=>x.id===picking);if(s)s.coords=[e.latlng.lat,e.latlng.lng];}picking=null;$('tp-map').closest('.tp-card').classList.remove('is-picking');save();renderMap();});}
+ async function renderMap(){if(root.style.display==='none')return;if($('tp-map').hidden){layer?.clearLayers();routeMarkers.clear();return;}try{await ensureMap();if(root.style.display==='none'||$('tp-map').hidden)return;if(!map){map=L.map('tp-map',{scrollWheelZoom:false,fadeAnimation:false}).setView([37.56,126.99],12);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(map);layer=L.layerGroup().addTo(map);}
    map.invalidateSize();layer.clearLayers();routeMarkers.clear();const t=trip(),stops=t.stops.filter(s=>s.date===day),points=[];
    const add=(coords,label,name,origin,id)=>{if(!coords)return;points.push(coords);const marker=L.marker(coords,{icon:L.divIcon({className:'',html:`<span class="tp-pin ${origin?'origin':''}">${label}</span>`,iconSize:[28,28],iconAnchor:[14,14]})}).bindPopup(esc(name)).addTo(layer);routeMarkers.set(id,marker);if(id===entranceId)marker.getElement()?.classList.add('tp-pin-enter');};
-   add(t.originCoords,'출',t.origin,true,'origin');stops.forEach((s,i)=>add(s.coords,i+1,s.name,false,s.id));
+   const active=routeItems(t,day).filter(s=>!s.excluded);
+   active.forEach(s=>add(s.coords,s.id==='origin'?'출':stops.findIndex(row=>row.id===s.id)+1,s.name,s.id==='origin',s.id));
    // Never join across a missing location: a gap is explicitly absent on the map.
-   const ordered=[t.originCoords,...stops.map(s=>s.coords)];let segment=[];for(const p of [...ordered,null]){if(p)segment.push(p);else{if(segment.length>1)L.polyline(segment,{color:'#8b83c1',weight:3,dashArray:'7 8'}).addTo(layer);segment=[];}}
+   const ordered=active.map(s=>s.coords);let segment=[];for(const p of [...ordered,null]){if(p)segment.push(p);else{if(segment.length>1)L.polyline(segment,{color:'#8b83c1',weight:3,dashArray:'7 8'}).addTo(layer);segment=[];}}
    if(points.length>1)map.fitBounds(points,{padding:[35,35],maxZoom:14});else if(points.length)map.setView(points[0],13);
-   const missing=stops.filter(s=>!s.coords).length+(!t.originCoords?1:0);$('tp-map-message').textContent=picking?'📍 지도에서 해당 위치를 눌러주세요. 다시 ⌖ 버튼을 누르면 취소돼요.':`${missing?'위치 미지정 '+missing+'곳 · ⌖ 버튼으로 지정해 주세요. ':''}점선은 방문 순서이며 실제 도로 경로가 아니에요. 길찾기는 네이버 지도에서 확인해요.`;
+   const missing=active.filter(s=>!s.coords).length;
+   $('tp-map-message').textContent=!active.length?'동선 편집에서 다시 넣을 수 있어요.':(missing?'좌표 미확인 '+missing+'곳 · ':'')+'점선은 방문 순서예요.';
   }catch{$('tp-map-message').textContent='지도를 불러오지 못했어요. 인터넷 연결 후 지도를 다시 열어주세요. 방문 순서는 아래에서도 확인할 수 있어요.';mapPromise=null;}}
  async function focusRoute(id){
-  picking=null;$('tp-map').closest('.tp-card').classList.remove('is-picking');
-  await renderMap();if(!map)return;
-  const t=trip(),s=id==='origin'?{coords:t.originCoords,name:t.origin}:t.stops.find(x=>x.id===id);
+  const selectedTrip=state.active,selectedDay=day;
+  await renderMap();if(!map||selectedTrip!==state.active||selectedDay!==day)return;
+  const s=routeItems(trip(),day).find(x=>x.id===id&&!x.excluded);
   root.querySelectorAll('[data-route-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.routeFocus===id)));
   if(id==='all'){map.closePopup();return;}
-  if(!s?.coords){$('tp-map-message').textContent=(s?.name||'이 장소')+'의 위치가 아직 없어요. 지도에서 위치를 눌러 지정해 주세요.';picking=id;$('tp-map').closest('.tp-card').classList.add('is-picking');return;}
+  if(!s?.coords){
+   $('tp-map-message').textContent=(s?.name||'이 장소')+'의 좌표를 확인할 수 없어요. 네이버 지도에서 위치를 확인해 주세요.';
+   return;
+  }
   const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const pin=routeMarkers.get(id)?.getElement();if(pin){pin.classList.add('tp-pin-selected');}
   map.flyTo(s.coords,15,{animate:!reduce,duration:.65});routeMarkers.get(id)?.openPopup();
   $('tp-map-message').textContent=s.name+' 위치를 보고 있어요. 전체 동선을 누르면 모든 장소가 보여요.';
  }
- function startPin(id){picking=picking===id?null:id;$('tp-map').closest('.tp-card').classList.toggle('is-picking',!!picking);renderMap();$('tp-map').scrollIntoView({behavior:'smooth',block:'center'});}
- function openStop(id){editRevision=knownRevisions.get(trip().id)||0;const t=trip(),s=t.stops.find(x=>x.id===id)||{id:'',name:'',link:'',date:day,time:'',category:'관광',travel:20,stay:60,cost:0,basis:'total',note:''};const f=$('tp-stop-form');f.reset();for(const n of ['id','name','link','date','time','category','travel','stay','cost','basis','note'])f.elements[n].value=s[n]??'';f.elements.date.min=t.start;f.elements.date.max=t.end;$('tp-stop-heading').textContent=id?'장소 수정':'가고 싶은 곳 추가';$('tp-stop-error').textContent='';$('tp-stop-dialog').showModal();}
+ function openStop(id){editTripId=trip().id;editRevision=knownRevisions.get(trip().id)||0;const t=trip(),s=t.stops.find(x=>x.id===id)||{id:'',name:'',link:'',date:day,time:'',category:'관광',travel:20,stay:60,cost:0,basis:'total',note:''};const f=$('tp-stop-form');formReads.delete(f);$('tp-stop-location').textContent='';f.reset();for(const n of ['id','name','link','date','time','category','travel','stay','cost','basis','note'])f.elements[n].value=s[n]??'';f.elements.date.min=t.start;f.elements.date.max=t.end;$('tp-stop-heading').textContent=id?'장소 수정':'가고 싶은 곳 추가';$('tp-stop-error').textContent='';$('tp-stop-dialog').showModal();}
  $('tp-time-auto').addEventListener('click',()=>{$('tp-stop-form').elements.time.value='';$('tp-stop-error').textContent='';});
- function blockDisconnected(e){if(preview||(syncReady&&syncConnected&&!saveBusy))return;const el=e.target,b=el.closest?.('button');const mutation=e.type==='submit'||(e.type==='change'&&(el.matches('[data-pack-check],[data-check]')))||(e.type==='input'&&el.id==='tp-ratio')||(e.type==='click'&&b&&(b.matches('#tp-new,#tp-add,#tp-expense-add,#tp-origin-pin')||['packDelete','delete','expenseDelete','up','down','pin','edit','timeEdit'].some(k=>b.dataset[k])));if(mutation){e.preventDefault();e.stopImmediatePropagation();syncStatus('공유 연결을 확인한 뒤 다시 수정해 주세요.');if(el.matches?.('[data-pack-check],[data-check]'))render();}}
+ function blockDisconnected(e){if(preview||(syncReady&&syncConnected&&!saveBusy))return;const el=e.target,b=el.closest?.('button');const mutation=e.type==='submit'||(e.type==='change'&&(el.matches('[data-pack-check],[data-check]')))||(e.type==='input'&&el.id==='tp-ratio')||(e.type==='click'&&b&&(b.matches('#tp-new,#tp-add,#tp-expense-add,#tp-trip-delete,#tp-trip-delete-yes,#tp-route-clear')||['packDelete','delete','expenseDelete','up','down','pin','edit','timeEdit','routeMember'].some(k=>b.dataset[k])));if(mutation){e.preventDefault();e.stopImmediatePropagation();syncStatus('공유 연결을 확인한 뒤 다시 수정해 주세요.');if(el.matches?.('[data-pack-check],[data-check]'))render();}}
  ['submit','change','click','input'].forEach(type=>root.addEventListener(type,blockDisconnected,true));
- let settingsRevision=null;$('tp-settings-toggle').addEventListener('toggle',()=>{if($('tp-settings-toggle').open)settingsRevision=knownRevisions.get(trip().id)||0;});
- $('tp-settings').addEventListener('submit',e=>{e.preventDefault();if(!preview&&settingsRevision!==null&&settingsRevision!==(knownRevisions.get(trip().id)||0)){syncStatus('상대'+'가 수정했어요. 여행 정보를 다시 열어주세요.');return;}const f=e.target,t=trip(),d=Object.fromEntries(new FormData(f));if(d.end<d.start){f.elements.end.setCustomValidity('돌아오는 날은 떠나는 날 이후로 정해주세요.');f.elements.end.reportValidity();return;}if((new Date(d.end)-new Date(d.start))/86400000>30){f.elements.end.setCustomValidity('한 여행은 최대 31일까지 계획할 수 있어요.');f.elements.end.reportValidity();return;}if(safeLink(d.link)===null){f.elements.link.setCustomValidity('네이버 지도 HTTPS 링크를 넣어주세요.');f.elements.link.reportValidity();return;}if(t.stops.some(s=>s.date<d.start||s.date>d.end)){f.elements.end.setCustomValidity('기존 장소의 방문 날짜가 포함되도록 기간을 정해주세요. 장소 날짜를 먼저 수정할 수 있어요.');f.elements.end.reportValidity();return;}if(t.origin!==d.origin||t.link!==d.link)t.originCoords=coordinates(d.link);Object.assign(t,d,{limit:Number(d.limit)});save();render();$('tp-settings-toggle').open=false;});
+ const formReads=new WeakMap();
+ function prepareLinkField(form,role,statusId){
+  const field=form.elements.link,nameField=form.elements[role==='origin'?'origin':'name'];
+  field.addEventListener('paste',event=>{
+   const text=event.clipboardData?.getData('text/plain')||'';
+   const url=text.match(/https:\/\/[^\s<>]+/i)?.[0];
+   if(!url||!safeLink(url)||text.trim()===url)return;
+   event.preventDefault();field.value=url;
+   const lines=text.slice(0,text.indexOf(url)).split(/\r?\n/).map(x=>x.trim()).filter(x=>x&&!/^\[?네이버\s*지도\]?$/.test(x));
+   if(!nameField.value.trim()&&lines.length)nameField.value=lines[0].slice(0,80);
+   field.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  field.addEventListener('input',()=>{
+   const link=field.value.trim(),entry={link,tripId:trip().id,coords:null};
+   const previous=formReads.get(form);
+   if(previous?.timer)clearTimeout(previous.timer);
+   formReads.set(form,entry);
+   $(statusId).textContent=link&&safeLink(link)?'링크에서 위치를 확인하고 있어요…':'';
+   if(!link||!safeLink(link))return;
+   entry.timer=setTimeout(async()=>{
+    const result=await readLocation(link,role);
+    if(formReads.get(form)!==entry||field.value.trim()!==link||trip().id!==entry.tripId)return;
+    entry.coords=result.coords;
+    if(result.name&&(!nameField.value.trim()||(role==='origin'&&nameField.value==='출발지')))nameField.value=result.name;
+    $(statusId).textContent=result.coords?'✓ 지도 위치를 찾았어요.':'좌표가 없는 링크예요. 방문 순서에서 네이버 지도를 바로 열 수 있어요.';
+   },250);
+  });
+ }
+ function formCoords(form,link,role){
+  const entry=formReads.get(form);
+  return (entry?.link===link&&entry.tripId===trip().id&&entry.coords)||coordinates(link,role);
+ }
+ prepareLinkField($('tp-stop-form'),'stop','tp-stop-location');
+ prepareLinkField($('tp-settings'),'origin','tp-origin-location');
+ let settingsTripId=null,settingsRevision=null;$('tp-settings-toggle').addEventListener('toggle',()=>{if($('tp-settings-toggle').open){settingsTripId=trip().id;settingsRevision=knownRevisions.get(trip().id)||0;}});
+ $('tp-settings').addEventListener('submit',e=>{e.preventDefault();if((settingsTripId&&settingsTripId!==trip().id)||!preview&&settingsRevision!==null&&settingsRevision!==(knownRevisions.get(trip().id)||0)){syncStatus('상대'+'가 수정했어요. 여행 정보를 다시 열어주세요.');return;}const f=e.target,t=trip(),d=Object.fromEntries(new FormData(f));if(d.end<d.start){f.elements.end.setCustomValidity('돌아오는 날은 떠나는 날 이후로 정해주세요.');f.elements.end.reportValidity();return;}if((new Date(d.end)-new Date(d.start))/86400000>30){f.elements.end.setCustomValidity('한 여행은 최대 31일까지 계획할 수 있어요.');f.elements.end.reportValidity();return;}if(safeLink(d.link)===null){f.elements.link.setCustomValidity('네이버 지도 HTTPS 링크를 넣어주세요.');f.elements.link.reportValidity();return;}if(t.stops.some(s=>s.date<d.start||s.date>d.end)){f.elements.end.setCustomValidity('기존 장소의 방문 날짜가 포함되도록 기간을 정해주세요. 장소 날짜를 먼저 수정할 수 있어요.');f.elements.end.reportValidity();return;}if(t.link!==d.link||!t.originCoords||(!d.link&&t.origin!==d.origin))t.originCoords=formCoords(f,d.link,'origin');Object.assign(t,d,{limit:Number(d.limit)});save();render();$('tp-settings-toggle').open=false;});
  $('tp-settings').addEventListener('input',e=>e.target.setCustomValidity?.(''));
- $('tp-stop-form').addEventListener('submit',e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target)),t=trip(),old=t.stops.find(s=>s.id===d.id);if(!preview&&editRevision!==(knownRevisions.get(t.id)||0)){$('tp-stop-error').textContent='상대가 수정했어요. 창을 닫고 최신 장소를 다시 열어주세요.';return;}if(safeLink(d.link)===null){$('tp-stop-error').textContent='네이버 지도 HTTPS 링크를 넣어주세요.';return;}if(d.date<t.start||d.date>t.end){$('tp-stop-error').textContent='여행 기간 안의 날짜를 골라주세요.';return;}if(d.time&&!validTime(d.time)){$('tp-stop-error').textContent='방문 시간을 다시 확인해 주세요.';return;}const s={...d,time:d.time||'',id:old?.id||uid(),travel:Number(d.travel),stay:Number(d.stay),cost:Number(d.cost||0),basis:d.basis||'total',done:old?.done||false,coords:old&&old.link===d.link&&old.name===d.name?old.coords:coordinates(d.link)};if(old)t.stops[t.stops.indexOf(old)]=s;else t.stops.push(s);entranceId=old?null:s.id;day=s.date;save();render();$('tp-stop-dialog').close();});
+ $('tp-stop-form').addEventListener('submit',e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target)),t=trip(),old=t.stops.find(s=>s.id===d.id);if(editTripId!==t.id||!preview&&editRevision!==(knownRevisions.get(t.id)||0)){$('tp-stop-error').textContent='상대가 수정했어요. 창을 닫고 최신 장소를 다시 열어주세요.';return;}if(safeLink(d.link)===null){$('tp-stop-error').textContent='네이버 지도 HTTPS 링크를 넣어주세요.';return;}if(d.date<t.start||d.date>t.end){$('tp-stop-error').textContent='여행 기간 안의 날짜를 골라주세요.';return;}if(d.time&&!validTime(d.time)){$('tp-stop-error').textContent='방문 시간을 다시 확인해 주세요.';return;}const s={...old,...d,time:d.time||'',id:old?.id||uid(),travel:Number(d.travel),stay:Number(d.stay),cost:Number(d.cost||0),basis:d.basis||'total',done:old?.done||false,coords:old?.coords&&old.link===d.link&&(d.link||old.name===d.name)?old.coords:formCoords(e.target,d.link,'stop')};if(old)t.stops[t.stops.indexOf(old)]=s;else t.stops.push(s);entranceId=old?null:s.id;day=s.date;save();render();$('tp-stop-dialog').close();});
  $('tp-expense-form').addEventListener('submit',e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));trip().expenses.push({...d,id:uid(),amount:Number(d.amount)});save();renderMoney();$('tp-expense-dialog').close();});
- $('tp-trips').addEventListener('change',e=>{state.active=e.target.value;picking=null;day='';if(preview)save();render();});
- $('tp-new').addEventListener('click',()=>{const t=newTrip();state.trips.push(t);state.active=t.id;day='';picking=null;save();render();$('tp-settings-toggle').open=true;$('tp-settings').elements.title.focus();});
- $('tp-add').addEventListener('click',()=>openStop());$('tp-origin-pin').addEventListener('click',()=>startPin('origin'));
+ $('tp-trips').addEventListener('change',e=>{state.active=e.target.value;day='';if(preview)localStorage.setItem(key,JSON.stringify(state));render();});
+ $('tp-new').addEventListener('click',()=>{const t=newTrip();state.trips=state.trips.filter(x=>!x.draft);state.trips.push(t);state.active=t.id;day='';render();$('tp-settings-toggle').open=true;$('tp-settings').elements.title.focus();});
+ $('tp-add').addEventListener('click',()=>openStop());
  $('tp-expense-add').addEventListener('click',()=>{const f=$('tp-expense-form');f.reset();f.elements.date.value=day;$('tp-expense-dialog').showModal();});
  $('tp-ratio').addEventListener('input',e=>{trip().ratio=Number(e.target.value);save();renderMoney();});
  $('tp-pack-form').addEventListener('submit',e=>{e.preventDefault();const f=e.target,t=trip();if(!f.elements.title.value.trim())return;t.packing=t.packing||[];t.packing.push({id:uid(),title:f.elements.title.value.trim(),owner:f.elements.owner.value,done:false});save();renderPacking();f.reset();});
  root.addEventListener('change',e=>{if(e.target.dataset.packCheck){const x=(trip().packing||[]).find(x=>x.id===e.target.dataset.packCheck);if(x){const items=trip().packing||[],wasComplete=items.length>0&&items.every(item=>item.done);x.done=e.target.checked;const completed=!wasComplete&&items.length>0&&items.every(item=>item.done);save(()=>{if(x.done)window.FX?.feedback('check',document.getElementById('tp-save'));if(completed)window.CoupleReaction?.show('packing');});renderPacking();}}const id=e.target.dataset.check;if(id){trip().stops.find(s=>s.id===id).done=e.target.checked;heartId=e.target.checked?id:null;const checked=e.target.checked;save(()=>{if(checked)window.FX?.feedback('check',document.getElementById('tp-save'));});render();}});
- root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset,t=trip();if(d.packDelete){trip().packing=(trip().packing||[]).filter(x=>x.id!==d.packDelete);save();renderPacking();}if(d.routeFocus)focusRoute(d.routeFocus);if(d.tpClose)$(d.tpClose).close();if(d.tpTab){tab=d.tpTab;$('tp-plan').hidden=tab!=='plan';$('tp-money').hidden=tab!=='money';root.querySelectorAll('[data-tp-tab]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.tpTab===tab)));}if(d.day){dayChanged=day!==d.day;day=d.day;picking=null;render();}if(d.edit)openStop(d.edit);if(d.timeEdit){openStop(d.timeEdit);$('tp-stop-form').elements.time.focus();}if(d.pin)startPin(d.pin);if(d.delete){t.stops=t.stops.filter(s=>s.id!==d.delete);save();render();}if(d.expenseDelete){t.expenses=t.expenses.filter(x=>x.id!==d.expenseDelete);save();renderMoney();}if(d.up||d.down){const rows=t.stops.filter(s=>s.date===day),i=rows.findIndex(s=>s.id===(d.up||d.down)),j=i+(d.up?-1:1);if(j>=0&&j<rows.length){const a=t.stops.indexOf(rows[i]),b=t.stops.indexOf(rows[j]);[t.stops[a],t.stops[b]]=[t.stops[b],t.stops[a]];save();render();}}});
- window.addEventListener('site-mode-change',e=>{if(e.detail?.mode==='travel')renderMap();});
- window.CoupleTravel=Object.freeze({getTrips:()=>state.trips.map(t=>({...t})),openTrip(id){if(state.trips.some(t=>t.id===id)){state.active=id;day='';render();}},totals,timeline,safeLink,coordinates,amount,tripToday,currentSchedule});render();connectShared();setInterval(renderCurrent,60000);window.CoupleHome?.updateCharacter?.();
+ root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset,t=trip();if(d.packDelete){trip().packing=(trip().packing||[]).filter(x=>x.id!==d.packDelete);save();renderPacking();}if(d.routeFocus)focusRoute(d.routeFocus);if(d.tpClose)$(d.tpClose).close();if(d.tpTab){tab=d.tpTab;$('tp-plan').hidden=tab!=='plan';$('tp-money').hidden=tab!=='money';root.querySelectorAll('[data-tp-tab]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.tpTab===tab)));}if(d.day){dayChanged=day!==d.day;day=d.day;render();}if(d.edit)openStop(d.edit);if(d.timeEdit){openStop(d.timeEdit);$('tp-stop-form').elements.time.focus();}if(d.delete){t.stops=t.stops.filter(s=>s.id!==d.delete);save();render();}if(d.expenseDelete){t.expenses=t.expenses.filter(x=>x.id!==d.expenseDelete);save();renderMoney();}if(d.up||d.down){const rows=t.stops.filter(s=>s.date===day),i=rows.findIndex(s=>s.id===(d.up||d.down)),j=i+(d.up?-1:1);if(j>=0&&j<rows.length){const a=t.stops.indexOf(rows[i]),b=t.stops.indexOf(rows[j]);[t.stops[a],t.stops[b]]=[t.stops[b],t.stops[a]];save();render();}}});
+ root.addEventListener('click',event=>{
+  const button=event.target.closest('[data-route-member],#tp-route-clear');
+  if(!button)return;
+  const t=trip(),date=day;
+  if(button.id==='tp-route-clear'&&!window.confirm(date+'의 지도에서 출발지와 방문지를 모두 뺄까요? 체크리스트와 예산은 유지돼요.'))return;
+
+  void changeRoute(t,draft=>{
+   if(button.id==='tp-route-clear'){
+    for(const item of routeItems(draft,date))setRouteMembership(draft,date,item.id,false);
+    return true;
+   }
+   return setRouteMembership(draft,date,button.dataset.routeMember,button.dataset.include==='true');
+  });
+ });
+ let deletion=null;
+ $('tp-trip-delete').addEventListener('click',()=>{
+  const t=trip();
+  if(t.draft)return;
+  deletion={id:t.id,revision:knownRevisions.get(t.id)||0};
+  $('tp-delete-name').textContent='‘'+t.title+'’ 여행을 삭제할까요?';
+  $('tp-delete-error').textContent='';
+  $('tp-trip-delete-dialog').showModal();
+ });
+ $('tp-trip-delete-yes').addEventListener('click',async()=>{
+  if(!deletion||saveBusy)return;
+  const {id,revision}=deletion;
+  if(id!==state.active){$('tp-delete-error').textContent='선택한 여행이 바뀌었어요. 다시 열어주세요.';return;}
+  saveBusy=true;$('tp-trip-delete-yes').disabled=true;
+  try{
+   if(!preview){
+    const result=await sharedRef.child(id).transaction(raw=>raw&&Number(raw.revision||0)===revision?null:undefined,undefined,false);
+    if(!result.committed){$('tp-delete-error').textContent='여행이 변경됐어요. 최신 내용을 확인한 뒤 다시 삭제해 주세요.';return;}
+   }
+   const remaining=state.trips.filter(t=>t.id!==id);
+   if(preview)localStorage.setItem(key,JSON.stringify({trips:remaining.filter(t=>!t.draft),active:remaining[0]?.id||null}));
+   knownRevisions.delete(id);
+   state.trips=remaining.length?remaining:[newTrip()];
+   if(!state.trips.some(t=>t.id===state.active))state.active=state.trips[0].id;
+   day='';deletion=null;publishTrips(state.trips);
+   $('tp-trip-delete-dialog').close();render();syncStatus('여행을 삭제했어요.');
+  }catch{$('tp-delete-error').textContent='여행을 삭제하지 못했어요. 연결을 확인하고 다시 시도해 주세요.';}
+  finally{saveBusy=false;$('tp-trip-delete-yes').disabled=false;}
+ });
+ $('tp-stop-dialog').addEventListener('close',()=>{formReads.delete($('tp-stop-form'));void locateSavedPlaces();});
+ $('tp-settings-toggle').addEventListener('toggle',()=>{if(!$('tp-settings-toggle').open)void locateSavedPlaces();});
+ window.addEventListener('site-mode-change',e=>{if(e.detail?.mode==='travel'){renderMap();void locateSavedPlaces();}});
+ window.CoupleTravel=Object.freeze({getTrips:()=>state.trips.map(t=>({...t})),getCalendarTrips:()=>calendarTrips.map(t=>({...t})),openTrip(id,date){if(state.trips.some(t=>t.id===id)){state.active=id;day=date||'';tab='plan';$('tp-plan').hidden=false;$('tp-money').hidden=true;root.querySelectorAll('[data-tp-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tpTab===tab)));render();}},totals,timeline,safeLink,coordinates,amount,tripToday,currentSchedule});render();connectShared();setInterval(renderCurrent,60000);window.CoupleHome?.updateCharacter?.();
 })();
 </script>
 <!-- couple-calendar-travel-script:end -->

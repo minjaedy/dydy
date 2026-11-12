@@ -3,6 +3,7 @@ import {cleanAppRetention} from './app-retention.js';
 import {cleanCalendarYear} from './calendar-cleanup.js';
 import {chatRoute,scheduledChatCleanup,deliverChat,recordAppCards} from './chat.js';
 import {authRoute,cleanAuth,session} from './auth.js';
+import {travelLocationRoute} from './travel-location.js';
 import {recordNotification,notificationBadge,notificationsRoute,signalNotifications,cleanNotifications} from './notifications.js';
 import {buildPushRequest} from './web-push.js';
 import specialDays from './special-days.json' with {type:'json'};
@@ -162,6 +163,9 @@ export default {
     try{
       const path=new URL(request.url).pathname;
       if(request.method==='OPTIONS')response=new Response(null,{status:204});
+      else if(path==='/travel/location'){
+        response=await session(env,request)?await travelLocationRoute(request):json({error:'여행 위치를 찾으려면 로그인해 주세요.'},401);
+      }
       else if(path.startsWith('/notifications/')){const current=await session(env,request);response=current?await notificationsRoute(request,env,current,ctx):json({error:'사용자 인증 후 알림을 확인해 주세요.'},401);}
       else if(path.startsWith('/chat/')){const current=await session(env,request);response=current?await chatRoute(request,env,current,ctx,send):json({error:'사용자 인증 후 대화할 수 있어요.'},401);}
       else if(path.startsWith('/auth/'))response=await authRoute(request,env);
