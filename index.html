@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-version" content="20261112-travel-route-87">
+<meta name="app-version" content="20261125-remember-device-88">
 <title>구마를 안은 행복한 토끼</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/x-icon" href="./assets/couple-icon-v3.ico">
@@ -5340,54 +5340,131 @@ renderApplicant();
 'use strict';
 const preview=document.getElementById('app-calendar')?.dataset.preview==='true';
 const server='https://rabbit-guma-push.couple-private-push.workers.dev',names={rabbit:'이토끼',sweet:'구마구마'};
-let verified=null,resolveEntry=null,owner=null,working=false;
+let verified=null,resolveEntry=null,owner=null,working=false,generation=0,renewal=null,expiryTimer,connections=Promise.resolve();
 const dialog=document.createElement('dialog');dialog.className='couple-auth';
-dialog.innerHTML=`<form id="auth-form"><button type="button" id="auth-cancel" class="auth-close" aria-label="사용자 선택으로 돌아가기">×</button><span class="auth-symbol" aria-hidden="true">⌁</span><h2 id="auth-title">본인 확인</h2><p id="auth-description">인증하면 내 결재함도 함께 열려요.</p><button type="button" id="auth-passkey">Face ID · 기기 인증으로 입장</button><div id="auth-password-fields" hidden><label for="auth-password">내 결재함의 관리자 암호</label><input id="auth-password" type="password" autocomplete="current-password" maxlength="200"><button type="submit">암호로 인증하기</button></div><button type="button" id="auth-use-password" class="auth-secondary">처음 사용하거나 암호로 들어가기</button><div id="auth-enrollment" hidden><p>다음부터는 패스키로 편하게 들어올 수 있어요.</p><button type="button" id="auth-register">이 기기에 패스키 등록하기</button><button type="button" id="auth-enter" class="auth-secondary">지금 홈으로 들어가기</button></div><p id="auth-status" role="status"></p></form>`;
+dialog.innerHTML=`<form id="auth-form"><button type="button" id="auth-cancel" class="auth-close" aria-label="사용자 선택으로 돌아가기">×</button><span class="auth-symbol" aria-hidden="true">♥</span><h2 id="auth-title">이 기기 연결</h2><p id="auth-description">한 번 연결하면 다음부터는 사용자만 고르면 돼요.</p><div id="auth-password-fields"><label for="auth-password">내 결재함의 관리자 암호</label><input id="auth-password" type="password" autocomplete="current-password" maxlength="200" required><button type="submit">연결하고 들어가기</button></div><button type="button" id="auth-retry" hidden>다시 연결하기</button><p id="auth-status" role="status"></p></form>`;
 document.body.appendChild(dialog);
 const $=id=>document.getElementById(id),status=s=>$('auth-status').textContent=s;
+const sessionKey=selected=>'couple-auth-day:'+selected,deviceKey=selected=>'couple-auth-device:'+selected;
+const read=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
+const write=(key,value)=>{try{value?localStorage.setItem(key,JSON.stringify(value)):localStorage.removeItem(key)}catch{}};
+const credential=(value,selected)=>value?.owner===selected&&typeof value.token==='string'&&value.token.length>=32;
+const denied=error=>[401,403].includes(error.status);
 function changed(){window.dispatchEvent(new Event('couple-auth-change'));}
-async function api(path,data){if(preview){if(path==='password')return {owner,expires:Date.now()+12*3600000};throw Error('실제 패스키 등록·인증은 공개 앱에서 진행해 주세요.');}const r=await fetch(server+'/auth/'+path,{method:'POST',headers:{'Content-Type':'application/json',...(verified?.token?{Authorization:'Bearer '+verified.token}:{})},body:JSON.stringify({owner,...data}),signal:AbortSignal.timeout(20000)});const result=await r.json();if(!r.ok)throw Error(result.error||'인증에 실패했어요.');return result;}
-async function action(fn){if(working)return;working=true;dialog.querySelectorAll('button').forEach(b=>b.disabled=true);status('');try{await fn();}catch(e){status(e.name==='NotAllowedError'?'인증을 취소했어요. 다시 시도하거나 암호로 들어갈 수 있어요.':e.message||'인증하지 못했어요.');}finally{working=false;dialog.querySelectorAll('button').forEach(b=>b.disabled=false);}}
-const sessionKey=selected=>'couple-auth-day:'+selected;
-function forget(selected){try{localStorage.removeItem(sessionKey(selected))}catch{}}
-function remember(){if(preview||!verified?.token)return;try{localStorage.setItem(sessionKey(verified.owner),JSON.stringify(verified))}catch{}}
-async function connectFirebase(){if(preview)return;const result=await api('firebase',{});const apps=[firebase.app(),firebase.app('smokeApp')];try{await Promise.all(apps.map(async(app,i)=>{await app.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);await app.auth().signInWithCustomToken(result.tokens[i?'smoke':'dydy']);}));apps.forEach(app=>app.database().goOnline());}catch(error){apps.forEach(app=>app.database().goOffline());await Promise.allSettled(apps.map(app=>app.auth().signOut()));throw error;}}
-function disconnectFirebase(){if(preview||!window.firebase)return;for(const app of firebase.apps){app.database().goOffline();void app.auth().signOut().catch(()=>{});}}
-async function finish(){await connectFirebase();remember();const done=resolveEntry;resolveEntry=null;dialog.close();changed();done?.(true);}
-function cancel(){if(working)return;verified=null;const done=resolveEntry;resolveEntry=null;dialog.close();changed();done?.(false);}
+async function api(path,data={},identity=verified){
+ if(preview)return {owner,expires:Date.now()+12*3600000};
+ const response=await fetch(server+'/auth/'+path,{method:'POST',headers:{'Content-Type':'application/json',...(identity?.token?{Authorization:'Bearer '+identity.token}:{})},body:JSON.stringify({owner:identity?.owner||owner,...data}),signal:AbortSignal.timeout(20000)});
+ const result=await response.json();if(!response.ok){const error=Error(result.error||'연결하지 못했어요.');error.status=response.status;throw error;}return result;
+}
+function disconnectFirebase(){
+ if(preview||!window.firebase)return;
+ const apps=[...firebase.apps];apps.forEach(app=>app.database().goOffline());
+ connections=connections.catch(()=>{}).then(()=>Promise.allSettled(apps.map(app=>app.auth().signOut())));
+}
+async function connectFirebase(identity,epoch){
+ if(preview)return;
+ const result=await api('firebase',{},identity),apps=[firebase.app(),firebase.app('smokeApp')];
+ connections=connections.catch(()=>{}).then(async()=>{
+  if(epoch!==generation)return;
+  try{
+   await Promise.all(apps.map(async(app,i)=>{await app.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);await app.auth().signInWithCustomToken(result.tokens[i?'smoke':'dydy']);}));
+   if(epoch!==generation){apps.forEach(app=>app.database().goOffline());await Promise.allSettled(apps.map(app=>app.auth().signOut()));return;}
+   apps.forEach(app=>app.database().goOnline());
+  }catch(error){apps.forEach(app=>app.database().goOffline());await Promise.allSettled(apps.map(app=>app.auth().signOut()));throw error;}
+ });
+ await connections;
+}
+async function complete(identity,epoch){
+ if(epoch!==generation)return false;
+ await connectFirebase(identity,epoch);if(epoch!==generation)return false;
+ verified={owner:identity.owner,token:identity.token,expires:identity.expires};
+ if(!preview)write(sessionKey(identity.owner),verified);
+ clearTimeout(expiryTimer);expiryTimer=setTimeout(resume,Math.max(25,verified.expires-Date.now()+25));changed();return true;
+}
+async function automatic(selected,epoch){
+ if(preview)return {owner:selected,expires:Date.now()+12*3600000};
+ let cached=read(sessionKey(selected)),remembered=read(deviceKey(selected));
+ if(credential(cached,selected)&&cached.expires>Date.now()){
+  try{
+   cached={...cached,...await api('session',{},cached)};
+   if(!credential(remembered,selected)){
+    remembered=await api('remember',{},cached);
+    if(epoch===generation)write(deviceKey(selected),remembered);
+   }
+   return cached;
+  }catch(error){if(!denied(error))throw error;write(sessionKey(selected),null);}
+ }
+ if(epoch!==generation)return null;
+ if(credential(remembered,selected)){
+  try{return await api('restore',{},remembered)}catch(error){if(!denied(error))throw error;write(deviceKey(selected),null);}
+ }
+ if(epoch!==generation)return null;
+ const paired=read('couple-push-device');
+ if(credential(paired,selected)){
+  try{const result=await api('device',{},paired);if(epoch===generation&&result.remembered)write(deviceKey(selected),result.remembered);return result;}
+  catch(error){if(!denied(error))throw error;}
+ }
+ return null;
+}
+function prompt(retry,message=''){
+ $('auth-title').textContent=names[owner]+(retry?' 연결 중':'의 기기 연결');
+ $('auth-description').textContent=retry?'잠시 연결이 끊겼어요. 다시 연결하면 이어서 사용할 수 있어요.':'이 기기에서 한 번만 연결하면 다음부터는 바로 들어가요.';
+ $('auth-password-fields').hidden=retry;$('auth-retry').hidden=!retry;
+ $('auth-password').value='';status(message);if(!dialog.open)dialog.showModal();
+}
+async function action(fn){
+ if(working)return;working=true;dialog.querySelectorAll('button').forEach(b=>b.disabled=true);status('');
+ try{await fn()}catch(error){status(error.message||'연결하지 못했어요. 잠시 후 다시 시도해 주세요.');}
+ finally{working=false;dialog.querySelectorAll('button').forEach(b=>b.disabled=false);}
+}
+function finished(ok){if(!ok)return;const done=resolveEntry;resolveEntry=null;dialog.close();done?.(true);}
+function cancel(){if(working)return;generation++;disconnectFirebase();verified=null;owner=null;const done=resolveEntry;resolveEntry=null;dialog.close();changed();done?.(false);}
 $('auth-cancel').onclick=cancel;dialog.addEventListener('cancel',e=>{e.preventDefault();cancel();});
-$('auth-use-password').onclick=()=>{$('auth-password-fields').hidden=false;$('auth-password').focus();};
-$('auth-form').onsubmit=e=>{e.preventDefault();void action(async()=>{verified=await api('password',{password:$('auth-password').value});$('auth-password').value='';$('auth-password-fields').hidden=true;$('auth-use-password').hidden=true;$('auth-passkey').hidden=true;$('auth-enrollment').hidden=false;status('인증됐어요. 패스키를 등록하거나 바로 입장해 주세요.');});};
-async function authenticate(){const r=await api('login/options',{});const response=await SimpleWebAuthnBrowser.startAuthentication({optionsJSON:r.options});verified=await api('login/verify',{response,challengeId:r.challengeId});await finish();}
-$('auth-passkey').onclick=()=>void action(authenticate);
-$('auth-register').onclick=()=>void action(async()=>{const r=await api('register/options',{});const response=await SimpleWebAuthnBrowser.startRegistration({optionsJSON:r.options});await api('register/verify',{response,challengeId:r.challengeId});await finish();});
-$('auth-enter').onclick=()=>void action(finish);
-setInterval(()=>{if(verified&&verified.expires<=Date.now())window.CoupleAuth.lock();},30000);
+$('auth-form').onsubmit=e=>{e.preventDefault();void action(async()=>{
+ const epoch=generation,identity=await api('password',{password:$('auth-password').value},{owner});
+ $('auth-password').value='';
+ const remembered=await api('remember',{},identity);if(epoch!==generation)return;
+ write(deviceKey(identity.owner),remembered);finished(await complete(identity,epoch));
+});};
+$('auth-retry').onclick=()=>void action(async()=>{
+ const epoch=generation,identity=await automatic(owner,epoch);if(epoch!==generation)return;
+ if(identity)finished(await complete(identity,epoch));else prompt(false);
+});
+async function ensureSession(){
+ if(!verified)throw Error('사용자를 먼저 선택해 주세요.');
+ if(verified.expires>Date.now())return verified;
+ if(renewal)return renewal;
+ const selected=verified.owner,epoch=generation;
+ const pending=(async()=>{
+  disconnectFirebase();const identity=await automatic(selected,epoch);
+  if(epoch!==generation)throw Error('사용자가 변경됐어요.');
+  if(!identity){verified=null;changed();prompt(false);throw Error('이 기기를 다시 연결해 주세요.');}
+  if(!await complete(identity,epoch))throw Error('사용자가 변경됐어요.');return verified;
+ })();
+ renewal=pending;try{return await pending}finally{if(renewal===pending)renewal=null;}
+}
+const resume=()=>{if(verified&&verified.expires<=Date.now()&&document.visibilityState!=='hidden')void ensureSession().catch(()=>{});};
+setInterval(resume,30000);window.addEventListener('pageshow',resume);window.addEventListener('online',resume);document.addEventListener('visibilitychange',resume);
 window.CoupleAuth=Object.freeze({
- async enter(selected){if(!names[selected])return Promise.resolve(false);disconnectFirebase();verified=null;changed();owner=selected;
-  if(!preview){let cached;try{cached=JSON.parse(localStorage.getItem(sessionKey(selected))||'null')}catch{}if(cached?.owner===selected&&cached.expires>Date.now()&&typeof cached.token==='string'){verified=cached;try{const valid=await api('session',{});verified={...cached,...valid};await connectFirebase();remember();changed();return true}catch{verified=null;forget(selected)}}else forget(selected);}
-  $('auth-title').textContent=names[owner]+'로 들어가기';$('auth-description').textContent=(owner==='sweet'?'유흥연차':'흡연 결재')+' 관리자 암호로 최초 인증 후 패스키를 등록할 수 있어요.';
-  $('auth-password').value='';$('auth-password-fields').hidden=true;$('auth-enrollment').hidden=true;$('auth-passkey').hidden=!window.PublicKeyCredential;$('auth-use-password').hidden=false;status(preview?'미리보기예요. 암호로 인증하기를 누르면 입장 흐름을 볼 수 있어요.':'Face ID 대신 기기 암호나 다른 인증 수단이 표시될 수도 있어요.');dialog.showModal();const entry=new Promise(resolve=>{resolveEntry=resolve;});
-  // Start from the user's avatar click; the server decides whether a passkey exists.
-  if(!preview&&window.PublicKeyCredential)void action(authenticate);
-  else if(!preview)$('auth-password-fields').hidden=false;
-  return entry;
+ async enter(selected){
+  if(!names[selected])return false;
+  const epoch=++generation;renewal=null;disconnectFirebase();verified=null;owner=selected;changed();
+  try{const identity=await automatic(selected,epoch);if(epoch!==generation)return false;if(identity){const allowed=await complete(identity,epoch);if(epoch!==generation)return false;if(allowed)return true;}prompt(false);}
+  catch(error){if(epoch!==generation)return false;prompt(true,error.message||'연결 상태를 확인해 주세요.');}
+  return new Promise(resolve=>{resolveEntry=resolve;});
  },
  getPerson(){return verified&&verified.expires>Date.now()?verified.owner:null;},
- async notificationRequest(path,data={}){if(!verified?.token||verified.expires<=Date.now())throw Error('사용자를 다시 선택해 인증해 주세요.');const r=await fetch(server+'/notifications/'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+verified.token},body:JSON.stringify(data),signal:AbortSignal.timeout(15000)});const result=await r.json();if(!r.ok)throw Error(result.error||'알림을 연결하지 못했어요.');return result;},
- async travelLocation(link){
-   if(!verified?.token || verified.expires<=Date.now())throw Error('사용자를 다시 선택해 인증해 주세요.');
-   const response=await fetch(server+'/travel/location',{
-     method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+verified.token},
-     body:JSON.stringify({link}),signal:AbortSignal.timeout(10000)
-   });
-   if(!response.ok)throw Error('장소 위치를 확인하지 못했어요.');
-   return response.json();
- },
- async chatRequest(path,options={}){if(!verified?.token||verified.expires<=Date.now())throw Error('사용자를 다시 선택해 인증해 주세요.');const r=await fetch(server+'/chat/'+path,{...options,headers:{'Content-Type':'application/json',Authorization:'Bearer '+verified.token},signal:AbortSignal.timeout(20000)});const data=await r.json();if(!r.ok)throw Error(data.error||'대화를 연결하지 못했어요.');return data;},
+ async notificationRequest(path,data={}){const identity=await ensureSession();const r=await fetch(server+'/notifications/'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+identity.token},body:JSON.stringify(data),signal:AbortSignal.timeout(15000)});const result=await r.json();if(!r.ok)throw Error(result.error||'알림을 연결하지 못했어요.');return result;},
+ async travelLocation(link){const identity=await ensureSession();const response=await fetch(server+'/travel/location',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+identity.token},body:JSON.stringify({link}),signal:AbortSignal.timeout(10000)});if(!response.ok)throw Error('장소 위치를 확인하지 못했어요.');return response.json();},
+ async chatRequest(path,options={}){const identity=await ensureSession();const r=await fetch(server+'/chat/'+path,{...options,headers:{'Content-Type':'application/json',Authorization:'Bearer '+identity.token},signal:AbortSignal.timeout(20000)});const data=await r.json();if(!r.ok)throw Error(data.error||'대화를 연결하지 못했어요.');return data;},
  isPerson(selected){return !!verified&&verified.expires>Date.now()&&verified.owner===selected;},
  isAdmin(app){return !!verified&&verified.expires>Date.now()&&verified.owner===(app==='leave'?'sweet':'rabbit');},
- lock(forgetSession=false){const previous=verified;disconnectFirebase();verified=null;changed();if(previous&&(forgetSession||previous.expires<=Date.now()))forget(previous.owner);if(previous?.token)void fetch(server+'/chat/presence',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+previous.token},body:JSON.stringify({active:false}),keepalive:true}).catch(()=>{}).finally(()=>forgetSession?fetch(server+'/auth/logout',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+previous.token},body:JSON.stringify({owner:previous.owner}),keepalive:true}).catch(()=>{}):undefined);}
+ lock(forgetSession=false){
+  const previous=verified,remembered=previous&&read(deviceKey(previous.owner));generation++;renewal=null;clearTimeout(expiryTimer);disconnectFirebase();verified=null;owner=null;changed();
+  if(previous&&forgetSession){write(sessionKey(previous.owner),null);write(deviceKey(previous.owner),null);}
+  if(previous?.token)void fetch(server+'/chat/presence',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+previous.token},body:JSON.stringify({active:false}),keepalive:true}).catch(()=>{});
+  if(previous?.token&&forgetSession)void api('logout',{rememberToken:remembered?.token},previous).catch(()=>{});
+ }
 });
 })();
 
